@@ -1,6 +1,6 @@
 //go:build !tinygo
 
-package device
+package thing2
 
 import (
 	"html/template"
@@ -37,13 +37,11 @@ func (lfs LayeredFS) newest(name string) (fs.File, error) {
 
 // Open a file by name
 func (lfs LayeredFS) Open(name string) (fs.File, error) {
-	println("Open", name)
 	return lfs.newest(name)
 }
 
 // Read a file
 func (lfs LayeredFS) ReadFile(name string) ([]byte, error) {
-	println("ReadFile", name)
 	file, err := lfs.newest(name)
 	if err != nil {
 		return nil, err
@@ -63,7 +61,6 @@ func (lfs LayeredFS) ParseFS(pattern string) *template.Template {
 
 	mainTmpl := template.New("main")
 
-	println("ParseFS", pattern)
 	for _, fsys := range lfs.layers {
 		_, err := mainTmpl.ParseFS(fsys, pattern)
 		if err != nil {

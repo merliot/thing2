@@ -1,27 +1,25 @@
-package server
+package thing2
 
 import (
 	"log"
 	"net/http"
-
-	"github.com/merliot/thing2/device"
 )
 
 type Server struct {
 	http.Server
-	user string
+	user   string
 	passwd string
 }
 
-func NewServer(root *device.Device, addr string) *Server {
+func NewServer(root *Device, addr string) *Server {
 	s := &Server{
 		Server: http.Server{
 			Addr: addr,
 		},
 	}
 
-	http.Handle("/", device.BasicAuth(root))
-	root.HandlePrefix()
+	http.Handle("/", BasicAuth(root))
+	root.HandleDevice()
 
 	return s
 }

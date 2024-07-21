@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 
-	"golang.org/x/net/websocket"
-	"github.com/merliot/thing2/device"
-	"github.com/merliot/thing2/server"
+	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/gadget"
 	"github.com/merliot/thing2/hub"
+	"golang.org/x/net/websocket"
 )
 
 // WebSocketHandler handles WebSocket connections
@@ -31,8 +30,8 @@ func WebSocketHandler(ws *websocket.Conn) {
 }
 
 func main() {
-	device.User = "user"
-	device.Passwd = "passwd"
+	thing2.User = "user"
+	thing2.Passwd = "passwd"
 	addr := ":8080"
 
 	hub1 := hub.NewHub("h1", "model3", "hub01")
@@ -51,6 +50,6 @@ func main() {
 	g4.AddChild(g5.Device)
 	hub1.AddChild(g4.Device)
 
-	server := server.NewServer(hub1.Device, addr)
+	server := thing2.NewServer(hub1.Device, addr)
 	server.Run()
 }

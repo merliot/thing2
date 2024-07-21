@@ -1,4 +1,4 @@
-package device
+package thing2
 
 import (
 	"embed"
@@ -11,18 +11,15 @@ import (
 //go:embed template
 var deviceFs embed.FS
 
-var User string
-var Passwd string
-
 type Device struct {
-	Id string
-	Model string
-	Name string
+	Id             string
+	Model          string
+	Name           string
 	*http.ServeMux `json:"-"`
-	LayeredFS `json:"-"`
-	templates *template.Template
-	parent *Device
-	children map[string]*Device
+	LayeredFS      `json:"-"`
+	templates      *template.Template
+	parent         *Device
+	children       map[string]*Device
 	sync.RWMutex
 }
 
@@ -30,11 +27,11 @@ func NewDevice(id, model, name string, fs embed.FS) *Device {
 	println("NEW DEVICE", id, model, name)
 
 	d := &Device{
-		Id:        id,
-		Model:     model,
-		Name:      name,
-		ServeMux:  http.NewServeMux(),
-		children:  make(map[string]*Device),
+		Id:       id,
+		Model:    model,
+		Name:     name,
+		ServeMux: http.NewServeMux(),
+		children: make(map[string]*Device),
 	}
 
 	// Build device's layered FS.  fs is stacked on top of deviceFs, so
@@ -53,30 +50,17 @@ func NewDevice(id, model, name string, fs embed.FS) *Device {
 	return d
 }
 
-// BasicAuthMiddleware is a middleware function for HTTP Basic Authentication
-func BasicAuth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user, pass, ok := r.BasicAuth()
-		if !ok || user != User || pass != Passwd {
-			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-		println("BasicAuth", r.URL.Path)
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (d *Device) HandlePrefix() {
+// HandleDevice installs /device/{id} pattern for device in default ServeMux
+func (d *Device) HandleDevice() {
 	prefix := "/device/" + d.Id
 	handler := BasicAuth(http.StripPrefix(prefix, d))
-	http.Handle(prefix + "/", handler)
-	println("HandlePrefix", prefix)
+	http.Handle(prefix+"/", handler)
 }
 
 func (d *Device) AddChild(child *Device) error {
 	d.Lock()
 	defer d.Unlock()
+
 	if _, exists := d.children[child.Id]; exists {
 		return errors.New("child already exists")
 	}
@@ -84,7 +68,6 @@ func (d *Device) AddChild(child *Device) error {
 	d.children[child.Id] = child
 	child.parent = d
 
-	child.HandlePrefix()
-
+	child.HandleDevice()
 	return nil
 }

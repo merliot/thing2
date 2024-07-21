@@ -1,4 +1,4 @@
-package device
+package thing2
 
 import (
 	"fmt"

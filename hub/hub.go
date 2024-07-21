@@ -3,19 +3,19 @@ package hub
 import (
 	"embed"
 
-	"github.com/merliot/thing2/device"
+	"github.com/merliot/thing2"
 )
 
 //go:embed template
 var fs embed.FS
 
 type Hub struct {
-	*device.Device
+	*thing2.Device
 }
 
 func NewHub(id, model, name string) *Hub {
 	println("NEW HUB")
 	return &Hub{
-		Device: device.NewDevice(id, model, name, fs),
+		Device: thing2.NewDevice(id, model, name, fs),
 	}
 }
