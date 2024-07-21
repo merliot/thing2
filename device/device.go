@@ -71,6 +71,7 @@ func (d *Device) HandlePrefix() {
 	prefix := "/device/" + d.Id
 	handler := BasicAuth(http.StripPrefix(prefix, d))
 	http.Handle(prefix + "/", handler)
+	println("HandlePrefix", prefix)
 }
 
 func (d *Device) AddChild(child *Device) error {
