@@ -13,9 +13,11 @@ type Hub struct {
 	*thing2.Device
 }
 
-func NewHub(id, model, name string) *Hub {
+func New(id, name string) thing2.Devicer {
 	println("NEW HUB")
-	return &Hub{
-		Device: thing2.NewDevice(id, model, name, fs),
+	h := &Hub{
+		Device: thing2.NewDevice(id, "hub", name, fs),
 	}
+	h.SetData(h)
+	return h
 }

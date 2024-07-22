@@ -6,16 +6,18 @@ import (
 	"github.com/merliot/thing2"
 )
 
-//go:embed template
+//go:embed css template
 var fs embed.FS
 
 type Gadget struct {
 	*thing2.Device
 }
 
-func NewGadget(id, model, name string) *Gadget {
+func New(id, name string) thing2.Devicer {
 	println("NEW GADGET")
-	return &Gadget{
-		Device: thing2.NewDevice(id, model, name, fs),
+	g := &Gadget{
+		Device: thing2.NewDevice(id, "gadget", name, fs),
 	}
+	g.SetData(g)
+	return g
 }

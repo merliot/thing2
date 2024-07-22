@@ -5,26 +5,18 @@ import (
 	"net/http"
 )
 
-type Server struct {
-	http.Server
-	user   string
-	passwd string
-}
+func Run(root Devicer, addr string) {
 
-func NewServer(root *Device, addr string) *Server {
-	s := &Server{
-		Server: http.Server{
-			Addr: addr,
-		},
-	}
-
+	// Install / to point to root device
 	http.Handle("/", BasicAuth(root))
-	root.HandleDevice()
 
-	return s
-}
+	// Install the /device/{id} pattern for root device
+	root.InstallDevicePattern()
 
-func (s Server) Run() {
-	println("ListenAndServe on", s.Server.Addr)
-	log.Fatal(s.ListenAndServe())
+	// Install the /model/{model} pattern, using root device as proto (but
+	// only if we haven't seen this model before)
+	root.InstallModelPattern()
+
+	println("ListenAndServe on", addr)
+	log.Fatal(http.ListenAndServe(addr, nil))
 }

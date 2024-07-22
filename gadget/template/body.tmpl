@@ -1,0 +1,9 @@
+			<div class="panel flex-col h-52 items-center justify-between">
+				<div class="flex flex-row w-full items-center justify-evenly" id="bottle-count">
+					<span class="text-6xl" hx-get="device/{{.Device.Id}}/bottles" hx-trigger="tookone" hx-target="this">
+{{- template "bottles.tmpl" . }}
+					</span>
+					<span>Bottles of Beer on the Wall</span>
+				</div>
+				<button class="btn" hx-post="device/{{.Device.Id}}/takeone" hx-swap="none">Take One</button>
+			</div>

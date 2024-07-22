@@ -8,8 +8,22 @@ import (
 	"sync"
 )
 
-//go:embed template
+//go:embed css images js template
 var deviceFs embed.FS
+
+type Devicer interface {
+	GetId() string
+	GetModel() string
+	AddChild(child Devicer) error
+	SetParent(parent Devicer)
+	ServeHTTP(w http.ResponseWriter, r *http.Request)
+	InstallDevicePattern()
+	InstallModelPattern()
+}
+
+type Children map[string]Devicer
+type Maker func(id, name string) Devicer
+type Models []string
 
 type Device struct {
 	Id             string
@@ -17,10 +31,17 @@ type Device struct {
 	Name           string
 	*http.ServeMux `json:"-"`
 	LayeredFS      `json:"-"`
-	templates      *template.Template
-	parent         *Device
-	children       map[string]*Device
+	// Data passed to render templates
+	data      any
+	templates *template.Template
 	sync.RWMutex
+	parent   Devicer
+	Children `json:"-"`
+	Models   `json:"-"`
+	// DeployParams are device deploy configuration in an html param format
+	DeployParams string
+	// Administratively locked
+	Locked bool `json:"-"`
 }
 
 func NewDevice(id, model, name string, fs embed.FS) *Device {
@@ -31,8 +52,9 @@ func NewDevice(id, model, name string, fs embed.FS) *Device {
 		Model:    model,
 		Name:     name,
 		ServeMux: http.NewServeMux(),
-		children: make(map[string]*Device),
+		Children: make(Children),
 	}
+	d.data = d
 
 	// Build device's layered FS.  fs is stacked on top of deviceFs, so
 	// fs:foo.tmpl will override deviceFs:foo.tmpl, when seraching for file
@@ -50,24 +72,50 @@ func NewDevice(id, model, name string, fs embed.FS) *Device {
 	return d
 }
 
-// HandleDevice installs /device/{id} pattern for device in default ServeMux
-func (d *Device) HandleDevice() {
+func (d Device) GetId() string             { return d.Id }
+func (d Device) GetModel() string          { return d.Model }
+func (d *Device) SetData(data any)         { d.data = data }
+func (d *Device) SetParent(parent Devicer) { d.parent = parent }
+
+// Install /device/{id} pattern for device in default ServeMux
+func (d Device) InstallDevicePattern() {
 	prefix := "/device/" + d.Id
 	handler := BasicAuth(http.StripPrefix(prefix, d))
 	http.Handle(prefix+"/", handler)
+	println("InstallDevicePattern", prefix)
 }
 
-func (d *Device) AddChild(child *Device) error {
+var modelPatterns = make(map[string]string)
+
+// Install /model/{model} pattern for device in default ServeMux
+func (d Device) InstallModelPattern() {
+	// But only if it doesn't already exist
+	if _, exists := modelPatterns[d.Model]; !exists {
+		prefix := "/model/" + d.Model
+		handler := BasicAuth(http.StripPrefix(prefix, d))
+		http.Handle(prefix+"/", handler)
+		modelPatterns[d.Model] = prefix
+		println("InstallModelPattern", prefix)
+	}
+}
+
+func (d *Device) AddChild(child Devicer) error {
 	d.Lock()
 	defer d.Unlock()
 
-	if _, exists := d.children[child.Id]; exists {
+	if _, exists := d.Children[child.GetId()]; exists {
 		return errors.New("child already exists")
 	}
 
-	d.children[child.Id] = child
-	child.parent = d
+	d.Children[child.GetId()] = child
+	child.SetParent(d)
 
-	child.HandleDevice()
+	// Install the /device/{id} pattern for child
+	child.InstallDevicePattern()
+
+	// Install the /model/{model} pattern, using child as proto (but only
+	// if we haven't seen this model before)
+	child.InstallModelPattern()
+
 	return nil
 }
