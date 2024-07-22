@@ -8,7 +8,7 @@ import (
 func Run(root Devicer, addr string) {
 
 	// Install / to point to root device
-	http.Handle("/", BasicAuth(root))
+	http.Handle("/", basicAuthHandler(root))
 
 	// Install the /device/{id} pattern for root device
 	root.InstallDevicePattern()
@@ -16,6 +16,9 @@ func Run(root Devicer, addr string) {
 	// Install the /model/{model} pattern, using root device as proto (but
 	// only if we haven't seen this model before)
 	root.InstallModelPattern()
+
+	// Install /wsx websocket listener
+	http.HandleFunc("/wsx", basicAuthHandlerFunc(wsx))
 
 	println("ListenAndServe on", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))

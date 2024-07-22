@@ -34,7 +34,7 @@ func (d *Device) renderPage(w http.ResponseWriter, name string, pageVars pageVar
 	})
 }
 
-func (d *Device) showIndex() http.Handler {
+func (d Device) showIndex() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.renderPage(w, "index.tmpl", pageVars{
 			"view": "full",

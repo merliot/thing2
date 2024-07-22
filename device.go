@@ -57,7 +57,7 @@ func NewDevice(id, model, name string, fs embed.FS) *Device {
 	d.data = d
 
 	// Build device's layered FS.  fs is stacked on top of deviceFs, so
-	// fs:foo.tmpl will override deviceFs:foo.tmpl, when seraching for file
+	// fs:foo.tmpl will override deviceFs:foo.tmpl, when searching for file
 	// foo.tmpl.
 	d.LayeredFS.Stack(deviceFs)
 	d.LayeredFS.Stack(fs)
@@ -80,7 +80,7 @@ func (d *Device) SetParent(parent Devicer) { d.parent = parent }
 // Install /device/{id} pattern for device in default ServeMux
 func (d Device) InstallDevicePattern() {
 	prefix := "/device/" + d.Id
-	handler := BasicAuth(http.StripPrefix(prefix, d))
+	handler := basicAuthHandler(http.StripPrefix(prefix, d))
 	http.Handle(prefix+"/", handler)
 	println("InstallDevicePattern", prefix)
 }
@@ -92,7 +92,7 @@ func (d Device) InstallModelPattern() {
 	// But only if it doesn't already exist
 	if _, exists := modelPatterns[d.Model]; !exists {
 		prefix := "/model/" + d.Model
-		handler := BasicAuth(http.StripPrefix(prefix, d))
+		handler := basicAuthHandler(http.StripPrefix(prefix, d))
 		http.Handle(prefix+"/", handler)
 		modelPatterns[d.Model] = prefix
 		println("InstallModelPattern", prefix)
@@ -100,6 +100,7 @@ func (d Device) InstallModelPattern() {
 }
 
 func (d *Device) AddChild(child Devicer) error {
+
 	d.Lock()
 	defer d.Unlock()
 

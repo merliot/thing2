@@ -2,12 +2,19 @@ package thing2
 
 import (
 	"fmt"
+	"net/http"
 
 	"golang.org/x/net/websocket"
 )
 
-// WebSocketHandler handles WebSocket connections
-func WebSocketHandler(ws *websocket.Conn) {
+// wsx handles /wsx requests
+func wsx(w http.ResponseWriter, r *http.Request) {
+	serv := websocket.Server{Handler: websocket.Handler(wsxServe)}
+	serv.ServeHTTP(w, r)
+}
+
+// wsxServe handles WebSocket connections
+func wsxServe(ws *websocket.Conn) {
 	defer ws.Close()
 	var message string
 	for {
