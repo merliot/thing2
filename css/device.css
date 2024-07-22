@@ -476,6 +476,10 @@ video {
   border-width: 1px;
 }
 
+.border-solid {
+  border-style: solid;
+}
+
 .border-separate {
   border-collapse: separate;
 }
@@ -644,4 +648,12 @@ video {
 .btn:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(209 213 219 / var(--tw-bg-opacity));
+}
+
+#offline {
+  display: none;
+}
+
+.offline #offline {
+  display: block;
 }

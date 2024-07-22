@@ -10,11 +10,21 @@
 		<script src="js/htmx-ext-ws.js"></script>
 	</head>
 
-	<body class="online model-{{.Device.Model}}" hx-ext="ws" ws-connect="/wsx">
-
+	<body class="offline model-{{.Device.Model}}" hx-ext="ws" ws-connect="/wsx">
 		<div class="device" id="device-{{.Device.Id}}" hx-target="this">
 {{ template "device-full.tmpl" .}}
 		</div>
-
 	</body>
+	<script>
+		<!-- TODO: I can't get hx-on:htmx:wsOpen to work, so adding using js -->
+		document.addEventListener("htmx:wsOpen", function(event) {
+			document.body.classList.remove("offline");
+		});
+		document.addEventListener("htmx:wsClose", function(event) {
+			document.body.classList.add("offline");
+		});
+		document.addEventListener("htmx:wsError", function(event) {
+			document.body.classList.add("offline");
+		});
+	</script>
 </html>
