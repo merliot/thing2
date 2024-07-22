@@ -1,0 +1,46 @@
+<div class="panel flex-col">
+
+	<div class="flex flex-row mb-5 items-center cursor-pointer" hx-get="/device/{{.Device.Id}}/full">
+		<span class="icon">&#x2B05;</span>
+		<span class="no-underline">Info</span>
+	</div>
+
+	<style>
+		table th {
+			text-align: right;
+		}
+	</style>
+
+	<table class="border-separate border-spacing-5-1">
+		<tr>
+			<th>ID</th>
+			<td>{{.Device.Id}}</td>
+		</tr>
+		<tr>
+			<th>Model</th>
+			<td>{{.Device.Model}}</td>
+		</tr>
+		<tr>
+			<th>Name</th>
+			<td>{{.Device.Name}}</td>
+		</tr>
+
+		<tr class="hr-row">
+			<td colspan="2"><hr></td>
+		</tr>
+
+{{- if ne .Vars.modulePath "" }}
+		<tr>
+			<th>Module Path</th>
+			<td><a target="_blank" href="https://{{ .Vars.modulePath }}">{{ .Vars.modulePath }}</a></td>
+		</tr>
+{{- end }}
+	</table>
+
+{{- template "info.tmpl" . }}
+
+	<div class="flex flex-row justify-end mt-8">
+		<a target="_blank" href="/model/{{.Device.Model}}/code"><button class="btn">Show Code</button></a>
+		<a target="_blank" href="/device/{{.Device.Id}}/state"><button class="btn">Show State</button></a>
+	</div>
+</div>

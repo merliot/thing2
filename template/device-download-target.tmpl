@@ -1,0 +1,36 @@
+{{- if not $.Vars.linuxTarget }}
+				<div class="flex flex-row mb-5">
+					<label>
+						Wifi SSID:
+						<select name="ssid">
+	{{- range $key, $value := .Device.WifiAuth }}
+		{{- if eq $key $.Vars.ssid }}
+							<option value="{{ $key }}" selected>{{ $key }}</option>
+		{{- else }}
+							<option value="{{ $key }}">{{ $key }}</option>
+		{{- end }}
+	{{- end }}
+						</select>
+					</label>
+				</div>
+	{{- if $.Vars.missingWifi  }}
+				 <div class="flex flex-row mb-5">
+					<span class="mx-5 my-0">&#9888;</span>
+					<span class="text-red-500">Missing Wifi Settings</span>
+				</div>
+	{{- end }}
+{{- end }}
+
+{{- if $.Vars.linuxTarget }}
+				<div class="flex flex-col">
+					<span class="text-gray-700">(optional)</span>
+					<div class="flex flex-row mb-5">
+						<label>
+							Run Local Web Server on Port:
+							<input class="w-16" type="text" name="port" value="{{ .Vars.port }}">
+						</label>
+					</div>
+				</div>
+{{- end }}
+				<hr>
+{{- template "download.tmpl" .}}

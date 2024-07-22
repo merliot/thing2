@@ -3,7 +3,7 @@
 					<img class="w-10 h-10" src="/model/{{.Device.Model}}/images/icon.png"></img>
 					<span class="px-5 text-lg font-bold">{{.Device.Name}}</span>
 				</div>
-				<span class="rounded-lg border-solid border-3 border-red-500 text-red-500 px-2.5 py-1" id="offline">Offline</span>
+				<span class="rounded-2xl border-solid border-3 text-red-500 px-2.5 py-1" id="offline">Offline</span>
 				<div class="flex items-center">
 {{- if .Device.Locked}}
 					<span class="icon cursor-not-allowed">&#x1F512;</span>
@@ -11,12 +11,12 @@
 {{- if eq .Vars.view "download"}}
 					<a class="icon nono" disabled>&#x1F4E5;</a>
 {{- else}}
-					<a class="icon" hx-get="/model/{{.Device.Model}}/download">&#x1F4E5;</a>
+					<a class="icon" hx-get="/device/{{.Device.Id}}/download">&#x1F4E5;</a>
 {{- end}}
 {{- if eq .Vars.view "info"}}
 					<a class="icon nono" disabled>&#x24D8;</a>
 {{- else}}
-					<a class="icon" hx-get="/model/{{.Device.Model}}/info">&#x24D8;</a>
+					<a class="icon" hx-get="/device/{{.Device.Id}}/info">&#x24D8;</a>
 {{- end}}
 				</div>
 			</header>

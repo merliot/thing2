@@ -5,7 +5,10 @@ import (
 	"errors"
 	"html/template"
 	"net/http"
+	"strings"
 	"sync"
+
+	"github.com/merliot/thing2/target"
 )
 
 //go:embed css images js template
@@ -24,6 +27,7 @@ type Devicer interface {
 type Children map[string]Devicer
 type Maker func(id, name string) Devicer
 type Models []string
+type WifiAuth map[string]string // key: ssid; value: passphrase
 
 type Device struct {
 	Id             string
@@ -38,13 +42,17 @@ type Device struct {
 	parent   Devicer
 	Children `json:"-"`
 	Models   `json:"-"`
-	// DeployParams are device deploy configuration in an html param format
+	// Targets supported by device
+	target.Targets `json:"-"`
+	// WifiAuth is a map of SSID:PASSPHRASE pairs
+	WifiAuth `json:"-"`
+	// DeployParams is device deploy configuration in an html param format
 	DeployParams string
 	// Administratively locked
 	Locked bool `json:"-"`
 }
 
-func NewDevice(id, model, name string, fs embed.FS) *Device {
+func NewDevice(id, model, name string, fs embed.FS, targets []string) *Device {
 	println("NEW DEVICE", id, model, name)
 
 	d := &Device{
@@ -53,6 +61,8 @@ func NewDevice(id, model, name string, fs embed.FS) *Device {
 		Name:     name,
 		ServeMux: http.NewServeMux(),
 		Children: make(Children),
+		Targets:  target.MakeTargets(targets),
+		WifiAuth: make(WifiAuth),
 	}
 	d.data = d
 
@@ -66,8 +76,7 @@ func NewDevice(id, model, name string, fs embed.FS) *Device {
 	d.templates = d.LayeredFS.ParseFS("template/*.tmpl")
 
 	// All devices inherit this device API
-	d.Handle("/", http.FileServer(http.FS(d.LayeredFS)))
-	d.Handle("/{$}", d.showIndex())
+	d.API()
 
 	return d
 }
@@ -119,4 +128,17 @@ func (d *Device) AddChild(child Devicer) error {
 	child.InstallModelPattern()
 
 	return nil
+}
+
+func (d *Device) SetWifiAuth(ssids, passphrases string) {
+	if ssids == "" {
+		return
+	}
+	keys := strings.Split(ssids, ",")
+	values := strings.Split(passphrases, ",")
+	for i, key := range keys {
+		if i < len(values) {
+			d.WifiAuth[key] = values[i]
+		}
+	}
 }

@@ -1,0 +1,75 @@
+<h3>Instructions</h3>
+
+<hr>
+
+<p>Use a <a target="_blank" href="https://www.raspberrypi.com/">Raspberry Pi</a> SBC (Single Board Computer) to build a {{.Device.Model}} device.</p>
+
+<p>Supported Raspberry Pi models: 3B, 3B+, 3A+, 4B, 400, 5, CM3, CM3+, CM4, CM4S, Zero 2 W (not Pico)</p>
+
+<center>
+	<a target="_blank" href="images/rpi-{{.Device.Model}}.png">
+		<img src="images/rpi-{{.Device.Model}}.png" width="100%"></img>
+	</a>
+</center>
+
+<h4>Parts List</h4>
+
+{{template "instructions-rpi-parts.tmpl" .}}
+
+<h4>Step 1</h4>
+
+{{template "instructions-rpi-step1.tmpl" .}}
+
+<p>(Optional) The device can run as a local web server.  To enable, specify a port to listen on.  The device's address is http://addr:port, where addr is the local IP (or hostname).  This is useful, for example, when the hub is not accessible, and you want to check in on the device.</p>
+
+<h4>Step 2</h4>
+
+<p>Click the Download button to download the demo installer file.  The installer file name is:</p>
+
+<pre>
+<code>
+	{{.Device.Id}}-installer
+</code>
+</pre>
+
+<h4>Step 3 (Optional)</h4>
+
+<p>Verify the MD5 checksum:</p>
+
+<pre>
+<code>
+	$ md5sum {{.Device.Id}}-installer
+</code>
+</pre>
+
+<h4>Step 4</h4>
+
+<p>Copy the installer file to the Raspberry Pi system and run:</p>
+
+<pre>
+<code>
+	$ chmod +x {{.Device.Id}}-installer
+	$ sudo ./{{.Device.Id}}-installer
+
+	Intalling {{.Device.Model}}...
+	Intalling logging for {{.Device.Model}}...
+	Intalling systemd service for {{.Device.Model}}...
+	Success!
+</code>
+</pre>
+
+<p>The installer will install the device as a service named "{{.Device.Model}}".  To uninstall:</p>
+
+<pre>
+<code>
+	$ sudo ./{{.Device.Id}}-installer -u
+</code>
+</pre>
+
+<p>To view device logs:</p>
+
+<pre>
+<code>
+	$ sudo tail -f /var/log/{{.Device.Model}}.log
+</code>
+</p>
