@@ -9,7 +9,7 @@ import (
 	"net/url"
 )
 
-func (d Device) API() {
+func (d *Device) API() {
 	d.Handle("/", http.FileServer(http.FS(d.LayeredFS)))
 	d.Handle("/{$}", d.showIndex())
 	d.Handle("/full", d.showView("full", "device-full.tmpl"))
@@ -22,7 +22,7 @@ func (d Device) API() {
 	// d.HandleFunc("/deploy", d.deploy)
 }
 
-func (d Device) render(w io.Writer, name string, data any) error {
+func (d *Device) render(w io.Writer, name string, data any) error {
 	tmpl := d.templates.Lookup(name)
 	if tmpl == nil {
 		return fmt.Errorf("Template '%s' not found", name)
@@ -30,7 +30,7 @@ func (d Device) render(w io.Writer, name string, data any) error {
 	return tmpl.Execute(w, data)
 }
 
-func (d Device) renderTemplateData(w http.ResponseWriter, name string, data any) {
+func (d *Device) renderTemplateData(w http.ResponseWriter, name string, data any) {
 	fmt.Printf("renderTemplateData %#v\n", data)
 	if err := d.render(w, name, data); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -44,14 +44,14 @@ type pageData struct {
 	Device any
 }
 
-func (d Device) renderPage(w http.ResponseWriter, name string, pageVars pageVars) {
+func (d *Device) renderPage(w http.ResponseWriter, name string, pageVars pageVars) {
 	d.renderTemplateData(w, name, &pageData{
 		Vars:   pageVars,
 		Device: d.data,
 	})
 }
 
-func (d Device) TemplateShow(name string) http.Handler {
+func (d *Device) TemplateShow(name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.RLock()
 		defer d.RUnlock()
@@ -59,7 +59,7 @@ func (d Device) TemplateShow(name string) http.Handler {
 	})
 }
 
-func (d Device) showIndex() http.Handler {
+func (d *Device) showIndex() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.RLock()
 		defer d.RUnlock()
@@ -69,7 +69,7 @@ func (d Device) showIndex() http.Handler {
 	})
 }
 
-func (d Device) showView(view, name string) http.Handler {
+func (d *Device) showView(view, name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.RLock()
 		defer d.RUnlock()
@@ -79,7 +79,7 @@ func (d Device) showView(view, name string) http.Handler {
 	})
 }
 
-func (d Device) showInfo() http.Handler {
+func (d *Device) showInfo() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.RLock()
 		defer d.RUnlock()
@@ -90,7 +90,7 @@ func (d Device) showInfo() http.Handler {
 	})
 }
 
-func (d Device) showState() http.Handler {
+func (d *Device) showState() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.RLock()
 		defer d.RUnlock()
@@ -99,7 +99,7 @@ func (d Device) showState() http.Handler {
 	})
 }
 
-func (d Device) showCode() http.Handler {
+func (d *Device) showCode() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Retrieve top-level entries
 		entries, _ := fs.ReadDir(d.LayeredFS, ".")
@@ -116,7 +116,7 @@ func linuxTarget(target string) bool {
 	return target == "demo" || target == "x86-64" || target == "rpi"
 }
 
-func (d Device) DeployValues() url.Values {
+func (d *Device) DeployValues() url.Values {
 	values, err := url.ParseQuery(d.DeployParams)
 	if err != nil {
 		panic(err.Error())
@@ -131,7 +131,7 @@ func firstValue(values url.Values, key string) string {
 	return ""
 }
 
-func (d Device) currentTarget(params url.Values) string {
+func (d *Device) currentTarget(params url.Values) string {
 	target := firstValue(params, "target")
 	if target == "" {
 		target = firstValue(d.DeployValues(), "target")
@@ -139,7 +139,7 @@ func (d Device) currentTarget(params url.Values) string {
 	return target
 }
 
-func (d Device) showDownload() http.Handler {
+func (d *Device) showDownload() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.RLock()
 		defer d.RUnlock()
@@ -154,7 +154,7 @@ func (d Device) showDownload() http.Handler {
 	})
 }
 
-func (d Device) showDownloadTarget() http.Handler {
+func (d *Device) showDownloadTarget() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.RLock()
 		defer d.RUnlock()
@@ -169,7 +169,7 @@ func (d Device) showDownloadTarget() http.Handler {
 	})
 }
 
-func (d Device) showDownloadInstructions() http.Handler {
+func (d *Device) showDownloadInstructions() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.RLock()
 		defer d.RUnlock()

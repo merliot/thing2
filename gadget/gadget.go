@@ -20,7 +20,8 @@ var targets = []string{"demo", "x86-64", "nano-rp2040"}
 func New(id, name string) thing2.Devicer {
 	println("NEW GADGET")
 	g := &Gadget{
-		Device: thing2.NewDevice(id, "gadget", name, fs, targets),
+		Device:  thing2.NewDevice(id, "gadget", name, fs, targets),
+		Bottles: 99,
 	}
 	g.SetData(g)
 	g.HandleFunc("/takeone", g.takeone)

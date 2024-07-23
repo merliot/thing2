@@ -76,17 +76,15 @@ func NewDevice(id, model, name string, fs embed.FS, targets []string) *Device {
 	// Build the device templates
 	d.templates = d.LayeredFS.ParseFS("template/*.tmpl")
 
-	// All devices inherit this device API
+	// All devices inherit this base device API
 	d.API()
 
 	return d
 }
 
-func (d Device) GetId() string    { return d.Id }
-func (d Device) GetModel() string { return d.Model }
-func (d *Device) SetData(data any) {
-	d.data = data
-}
+func (d *Device) GetId() string            { return d.Id }
+func (d *Device) GetModel() string         { return d.Model }
+func (d *Device) SetData(data any)         { d.data = data }
 func (d *Device) SetParent(parent Devicer) { d.parent = parent }
 
 // Install /device/{id} pattern for device in default ServeMux
@@ -102,13 +100,14 @@ var modelPatterns = make(map[string]string)
 // Install /model/{model} pattern for device in default ServeMux
 func InstallModelPattern(d Devicer) {
 	// But only if it doesn't already exist
-	if _, exists := modelPatterns[d.GetModel()]; !exists {
-		prefix := "/model/" + d.GetModel()
-		handler := basicAuthHandler(http.StripPrefix(prefix, d))
-		http.Handle(prefix+"/", handler)
-		modelPatterns[d.GetModel()] = prefix
-		fmt.Printf("InstallModelPattern %s %#v\n", prefix, d)
+	if _, exists := modelPatterns[d.GetModel()]; exists {
+		return
 	}
+	prefix := "/model/" + d.GetModel()
+	handler := basicAuthHandler(http.StripPrefix(prefix, d))
+	http.Handle(prefix+"/", handler)
+	modelPatterns[d.GetModel()] = prefix
+	fmt.Printf("InstallModelPattern %s %#v\n", prefix, d)
 }
 
 func (d *Device) AddChild(child Devicer) error {

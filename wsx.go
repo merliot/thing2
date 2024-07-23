@@ -7,13 +7,13 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-// wsx handles /wsx requests
+// wsx handles /wsx requests on an htmx WebSocket
 func wsx(w http.ResponseWriter, r *http.Request) {
 	serv := websocket.Server{Handler: websocket.Handler(wsxServe)}
 	serv.ServeHTTP(w, r)
 }
 
-// wsxServe handles WebSocket connections
+// wsxServe handles htmx WebSocket connections
 func wsxServe(ws *websocket.Conn) {
 	defer ws.Close()
 	var message string
