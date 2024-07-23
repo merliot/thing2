@@ -3,6 +3,8 @@ package thing2
 import (
 	"embed"
 	"errors"
+	"fmt"
+	"html"
 	"html/template"
 	"net/http"
 	"strings"
@@ -11,7 +13,7 @@ import (
 	"github.com/merliot/thing2/target"
 )
 
-//go:embed css images js template
+//go:embed css images js template favicon.ico
 var deviceFs embed.FS
 
 type Devicer interface {
@@ -19,9 +21,8 @@ type Devicer interface {
 	GetModel() string
 	AddChild(child Devicer) error
 	SetParent(parent Devicer)
+	SetDeployParams(params string)
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
-	InstallDevicePattern()
-	InstallModelPattern()
 }
 
 type Children map[string]Devicer
@@ -81,30 +82,32 @@ func NewDevice(id, model, name string, fs embed.FS, targets []string) *Device {
 	return d
 }
 
-func (d Device) GetId() string             { return d.Id }
-func (d Device) GetModel() string          { return d.Model }
-func (d *Device) SetData(data any)         { d.data = data }
+func (d Device) GetId() string    { return d.Id }
+func (d Device) GetModel() string { return d.Model }
+func (d *Device) SetData(data any) {
+	d.data = data
+}
 func (d *Device) SetParent(parent Devicer) { d.parent = parent }
 
 // Install /device/{id} pattern for device in default ServeMux
-func (d Device) InstallDevicePattern() {
-	prefix := "/device/" + d.Id
+func InstallDevicePattern(d Devicer) {
+	prefix := "/device/" + d.GetId()
 	handler := basicAuthHandler(http.StripPrefix(prefix, d))
 	http.Handle(prefix+"/", handler)
-	println("InstallDevicePattern", prefix)
+	fmt.Printf("InstallDevicePattern %s %#v\n", prefix, d)
 }
 
 var modelPatterns = make(map[string]string)
 
 // Install /model/{model} pattern for device in default ServeMux
-func (d Device) InstallModelPattern() {
+func InstallModelPattern(d Devicer) {
 	// But only if it doesn't already exist
-	if _, exists := modelPatterns[d.Model]; !exists {
-		prefix := "/model/" + d.Model
+	if _, exists := modelPatterns[d.GetModel()]; !exists {
+		prefix := "/model/" + d.GetModel()
 		handler := basicAuthHandler(http.StripPrefix(prefix, d))
 		http.Handle(prefix+"/", handler)
-		modelPatterns[d.Model] = prefix
-		println("InstallModelPattern", prefix)
+		modelPatterns[d.GetModel()] = prefix
+		fmt.Printf("InstallModelPattern %s %#v\n", prefix, d)
 	}
 }
 
@@ -121,13 +124,17 @@ func (d *Device) AddChild(child Devicer) error {
 	child.SetParent(d)
 
 	// Install the /device/{id} pattern for child
-	child.InstallDevicePattern()
+	InstallDevicePattern(child)
 
 	// Install the /model/{model} pattern, using child as proto (but only
 	// if we haven't seen this model before)
-	child.InstallModelPattern()
+	InstallModelPattern(child)
 
 	return nil
+}
+
+func (d *Device) SetDeployParams(params string) {
+	d.DeployParams = html.UnescapeString(params)
 }
 
 func (d *Device) SetWifiAuth(ssids, passphrases string) {

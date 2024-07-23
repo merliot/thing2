@@ -11,11 +11,11 @@ func Run(root Devicer, addr string) {
 	http.Handle("/", basicAuthHandler(root))
 
 	// Install the /device/{id} pattern for root device
-	root.InstallDevicePattern()
+	InstallDevicePattern(root)
 
 	// Install the /model/{model} pattern, using root device as proto (but
 	// only if we haven't seen this model before)
-	root.InstallModelPattern()
+	InstallModelPattern(root)
 
 	// Install /wsx websocket listener
 	http.HandleFunc("/wsx", basicAuthHandlerFunc(wsx))

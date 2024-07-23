@@ -7,8 +7,6 @@ import (
 )
 
 func main() {
-	thing2.User = "user"
-	thing2.Passwd = "passwd"
 
 	/*
 		thing2.SupportedModels(thing2.Models{
@@ -32,5 +30,5 @@ func main() {
 	g4.AddChild(g5)
 	hub1.AddChild(g4)
 
-	thing2.Run(hub1, ":8080")
+	thing2.Run(hub1, ":8000")
 }

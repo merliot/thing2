@@ -14,7 +14,6 @@ func (d Device) API() {
 	d.Handle("/{$}", d.showIndex())
 	d.Handle("/full", d.showView("full", "device-full.tmpl"))
 	d.Handle("/info", d.showInfo())
-	//d.Handle("/info", d.showView("info", "device-info.tmpl"))
 	d.Handle("/state", d.showState())
 	d.Handle("/code", d.showCode())
 	d.Handle("/download", d.showDownload())
@@ -32,6 +31,7 @@ func (d Device) render(w io.Writer, name string, data any) error {
 }
 
 func (d Device) renderTemplateData(w http.ResponseWriter, name string, data any) {
+	fmt.Printf("renderTemplateData %#v\n", data)
 	if err := d.render(w, name, data); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -51,16 +51,28 @@ func (d Device) renderPage(w http.ResponseWriter, name string, pageVars pageVars
 	})
 }
 
+func (d Device) TemplateShow(name string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.RLock()
+		defer d.RUnlock()
+		d.renderPage(w, name, pageVars{})
+	})
+}
+
 func (d Device) showIndex() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.RLock()
+		defer d.RUnlock()
 		d.renderPage(w, "index.tmpl", pageVars{
 			"view": "full",
 		})
 	})
 }
 
-func (d *Device) showView(view, name string) http.Handler {
+func (d Device) showView(view, name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.RLock()
+		defer d.RUnlock()
 		d.renderPage(w, name, pageVars{
 			"view": view,
 		})
@@ -69,6 +81,8 @@ func (d *Device) showView(view, name string) http.Handler {
 
 func (d Device) showInfo() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.RLock()
+		defer d.RUnlock()
 		d.renderPage(w, "device-info.tmpl", pageVars{
 			"view":       "info",
 			"modulePath": d.modulePath(),
@@ -76,14 +90,16 @@ func (d Device) showInfo() http.Handler {
 	})
 }
 
-func (d *Device) showState() http.Handler {
+func (d Device) showState() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.RLock()
+		defer d.RUnlock()
 		state, _ := json.MarshalIndent(d.data, "", "\t")
 		d.renderTemplateData(w, "state.tmpl", string(state))
 	})
 }
 
-func (d *Device) showCode() http.Handler {
+func (d Device) showCode() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Retrieve top-level entries
 		entries, _ := fs.ReadDir(d.LayeredFS, ".")
@@ -125,6 +141,8 @@ func (d Device) currentTarget(params url.Values) string {
 
 func (d Device) showDownload() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.RLock()
+		defer d.RUnlock()
 		values := d.DeployValues()
 		target := firstValue(values, "target")
 		d.renderPage(w, "device-download.tmpl", pageVars{
@@ -138,6 +156,8 @@ func (d Device) showDownload() http.Handler {
 
 func (d Device) showDownloadTarget() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.RLock()
+		defer d.RUnlock()
 		values := d.DeployValues()
 		target := d.currentTarget(r.URL.Query())
 		d.renderPage(w, "device-download-target.tmpl", pageVars{
@@ -151,6 +171,8 @@ func (d Device) showDownloadTarget() http.Handler {
 
 func (d Device) showDownloadInstructions() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.RLock()
+		defer d.RUnlock()
 		target := d.currentTarget(r.URL.Query())
 		template := "instructions-" + target + ".tmpl"
 		d.renderPage(w, template, pageVars{})

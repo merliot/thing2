@@ -6,8 +6,10 @@ import (
 	"net/http"
 )
 
-var User string
-var Passwd string
+var (
+	User   = GetEnv("USER", "")
+	Passwd = GetEnv("PASSWD", "")
+)
 
 // HTTP Basic Authentication middleware
 func basicAuth(w http.ResponseWriter, r *http.Request) bool {
