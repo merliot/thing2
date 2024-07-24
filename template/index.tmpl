@@ -11,10 +11,8 @@
 	</head>
 
 	<body class="offline model-{{.Device.Model}}" hx-ext="ws" ws-connect="/wsx">
-		<div class="device" id="device-{{.Device.Id}}"
-			hx-target="this"
-			hx-get="/device/{{.Device.Id}}/full"
-			hx-trigger="load, htmx:wsOpen">
+		<div class="device" id="device-{{.Device.Id}}" hx-target="this">
+{{ template "device-full.tmpl" .}}
 		</div>
 	</body>
 	<script>
