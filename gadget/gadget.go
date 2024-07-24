@@ -2,7 +2,8 @@ package gadget
 
 import (
 	"embed"
-	"net/http"
+	"fmt"
+	"strconv"
 
 	"github.com/merliot/thing2"
 )
@@ -24,16 +25,21 @@ func New(id, name string) thing2.Devicer {
 		Bottles: 99,
 	}
 	g.SetData(g)
-	g.HandleFunc("/takeone", g.takeone)
-	g.Handle("/bottles", g.TemplateShow("bottles.tmpl"))
+	g.Handle("/takeone", thing2.Sink(g))
+	g.RHandle("/bottles", g.TemplateShow("bottles.tmpl"))
 	return g
 }
 
-func (g *Gadget) takeone(w http.ResponseWriter, r *http.Request) {
-	g.Lock()
-	defer g.Unlock()
-	if g.Bottles > 0 {
-		g.Bottles--
-		//g.Inject(pkt.SetPath("tookone"))
+func (g *Gadget) Dispatch(msg *thing2.Msg) {
+	fmt.Printf("Dispatch %#v\n", msg)
+	switch msg.Path {
+	case "/takeone":
+		if g.Bottles > 0 {
+			g.Bottles--
+			msg.Path = "/tookone"
+			msg.Set("Bottles", strconv.Itoa(g.Bottles))
+			fmt.Printf("Bcast %#v\n", msg)
+			//thing2.Bcast(msg)
+		}
 	}
 }

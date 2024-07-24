@@ -3,7 +3,6 @@ package thing2
 import (
 	"embed"
 	"errors"
-	"fmt"
 	"html"
 	"html/template"
 	"net/http"
@@ -20,9 +19,13 @@ type Devicer interface {
 	GetId() string
 	GetModel() string
 	AddChild(child Devicer) error
+	Parent() Devicer
 	SetParent(parent Devicer)
 	SetDeployParams(params string)
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
+	InstallDevicePattern()
+	InstallModelPattern()
+	Dispatch(msg *Msg)
 }
 
 type Children map[string]Devicer
@@ -31,26 +34,26 @@ type Models []string
 type WifiAuth map[string]string // key: ssid; value: passphrase
 
 type Device struct {
+	*http.ServeMux `json:"-"`
 	Id             string
 	Model          string
 	Name           string
-	*http.ServeMux `json:"-"`
 	LayeredFS      `json:"-"`
-	// Data passed to render templates
-	data      any
-	templates *template.Template
-	sync.RWMutex
-	parent   Devicer
-	Children `json:"-"`
-	Models   `json:"-"`
-	// Targets supported by device
-	target.Targets `json:"-"`
+	Children       `json:"-"`
+	Models         `json:"-"`
 	// WifiAuth is a map of SSID:PASSPHRASE pairs
 	WifiAuth `json:"-"`
 	// DeployParams is device deploy configuration in an html param format
 	DeployParams string
 	// Administratively locked
 	Locked bool `json:"-"`
+	// Data passed to render templates
+	data         any
+	templates    *template.Template
+	sync.RWMutex `json:"-"`
+	parent       Devicer
+	// Targets supported by device
+	target.Targets `json:"-"`
 }
 
 func NewDevice(id, model, name string, fs embed.FS, targets []string) *Device {
@@ -79,36 +82,18 @@ func NewDevice(id, model, name string, fs embed.FS, targets []string) *Device {
 	// All devices inherit this base device API
 	d.API()
 
+	// Register device on bus
+	registerDevice(d)
+
 	return d
 }
 
-func (d *Device) GetId() string            { return d.Id }
-func (d *Device) GetModel() string         { return d.Model }
+func (d Device) GetId() string             { return d.Id }
+func (d Device) GetModel() string          { return d.Model }
 func (d *Device) SetData(data any)         { d.data = data }
+func (d Device) Parent() Devicer           { return d.parent }
 func (d *Device) SetParent(parent Devicer) { d.parent = parent }
-
-// Install /device/{id} pattern for device in default ServeMux
-func InstallDevicePattern(d Devicer) {
-	prefix := "/device/" + d.GetId()
-	handler := basicAuthHandler(http.StripPrefix(prefix, d))
-	http.Handle(prefix+"/", handler)
-	fmt.Printf("InstallDevicePattern %s %#v\n", prefix, d)
-}
-
-var modelPatterns = make(map[string]string)
-
-// Install /model/{model} pattern for device in default ServeMux
-func InstallModelPattern(d Devicer) {
-	// But only if it doesn't already exist
-	if _, exists := modelPatterns[d.GetModel()]; exists {
-		return
-	}
-	prefix := "/model/" + d.GetModel()
-	handler := basicAuthHandler(http.StripPrefix(prefix, d))
-	http.Handle(prefix+"/", handler)
-	modelPatterns[d.GetModel()] = prefix
-	fmt.Printf("InstallModelPattern %s %#v\n", prefix, d)
-}
+func (d *Device) Dispatch(msg *Msg)        {}
 
 func (d *Device) AddChild(child Devicer) error {
 
@@ -123,11 +108,11 @@ func (d *Device) AddChild(child Devicer) error {
 	child.SetParent(d)
 
 	// Install the /device/{id} pattern for child
-	InstallDevicePattern(child)
+	child.InstallDevicePattern()
 
 	// Install the /model/{model} pattern, using child as proto (but only
 	// if we haven't seen this model before)
-	InstallModelPattern(child)
+	child.InstallModelPattern()
 
 	return nil
 }

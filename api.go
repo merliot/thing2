@@ -1,3 +1,5 @@
+//go:build !tinygo
+
 package thing2
 
 import (
@@ -7,19 +9,78 @@ import (
 	"io/fs"
 	"net/http"
 	"net/url"
+	"sync"
 )
 
+func (d *Device) Handle(pattern string, handler http.Handler) {
+	d.ServeMux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.Lock()
+		defer d.Unlock()
+		handler.ServeHTTP(w, r)
+	}))
+}
+
+func (d *Device) HandleFunc(pattern string, handlerFunc http.HandlerFunc) {
+	d.ServeMux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.Lock()
+		defer d.Unlock()
+		handlerFunc(w, r)
+	}))
+}
+
+func (d *Device) RHandle(pattern string, handler http.Handler) {
+	d.ServeMux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.RLock()
+		defer d.RUnlock()
+		handler.ServeHTTP(w, r)
+	}))
+}
+
+func (d *Device) RHandleFunc(pattern string, handlerFunc http.HandlerFunc) {
+	d.ServeMux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d.RLock()
+		defer d.RUnlock()
+		handlerFunc(w, r)
+	}))
+}
+
+// Install /device/{id} pattern for device in default ServeMux
+func (d *Device) InstallDevicePattern() {
+	prefix := "/device/" + d.Id
+	handler := basicAuthHandler(http.StripPrefix(prefix, d))
+	http.Handle(prefix+"/", handler)
+	fmt.Printf("InstallDevicePattern %s\n", prefix)
+}
+
+var modelPatterns = make(map[string]string)
+var modelPatternsMu sync.RWMutex
+
+// Install /model/{model} pattern for device in default ServeMux
+func (d *Device) InstallModelPattern() {
+	modelPatternsMu.Lock()
+	defer modelPatternsMu.Unlock()
+	// But only if it doesn't already exist
+	if _, exists := modelPatterns[d.Model]; exists {
+		return
+	}
+	prefix := "/model/" + d.Model
+	handler := basicAuthHandler(http.StripPrefix(prefix, d))
+	http.Handle(prefix+"/", handler)
+	modelPatterns[d.Model] = prefix
+	fmt.Printf("InstallModelPattern %s\n", prefix)
+}
+
 func (d *Device) API() {
-	d.Handle("/", http.FileServer(http.FS(d.LayeredFS)))
-	d.Handle("/{$}", d.showIndex())
-	d.Handle("/full", d.showView("full", "device-full.tmpl"))
-	d.Handle("/info", d.showInfo())
-	d.Handle("/state", d.showState())
-	d.Handle("/code", d.showCode())
-	d.Handle("/download", d.showDownload())
-	d.Handle("/download-target", d.showDownloadTarget())
-	d.Handle("/download-instructions", d.showDownloadInstructions())
-	// d.HandleFunc("/deploy", d.deploy)
+	d.RHandle("/", http.FileServer(http.FS(d.LayeredFS)))
+	d.RHandle("/{$}", d.showIndex())
+	d.RHandle("/full", d.showView("full", "device-full.tmpl"))
+	d.RHandle("/info", d.showInfo())
+	d.RHandle("/state", d.showState())
+	d.RHandle("/code", d.showCode())
+	d.RHandle("/download", d.showDownload())
+	d.RHandle("/download-target", d.showDownloadTarget())
+	d.RHandle("/download-instructions", d.showDownloadInstructions())
+	// d.RHandleFunc("/deploy", d.deploy)
 }
 
 func (d *Device) render(w io.Writer, name string, data any) error {
@@ -53,16 +114,12 @@ func (d *Device) renderPage(w http.ResponseWriter, name string, pageVars pageVar
 
 func (d *Device) TemplateShow(name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.RLock()
-		defer d.RUnlock()
 		d.renderPage(w, name, pageVars{})
 	})
 }
 
 func (d *Device) showIndex() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.RLock()
-		defer d.RUnlock()
 		d.renderPage(w, "index.tmpl", pageVars{
 			"view": "full",
 		})
@@ -71,8 +128,6 @@ func (d *Device) showIndex() http.Handler {
 
 func (d *Device) showView(view, name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.RLock()
-		defer d.RUnlock()
 		d.renderPage(w, name, pageVars{
 			"view": view,
 		})
@@ -81,8 +136,6 @@ func (d *Device) showView(view, name string) http.Handler {
 
 func (d *Device) showInfo() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.RLock()
-		defer d.RUnlock()
 		d.renderPage(w, "device-info.tmpl", pageVars{
 			"view":       "info",
 			"modulePath": d.modulePath(),
@@ -92,8 +145,6 @@ func (d *Device) showInfo() http.Handler {
 
 func (d *Device) showState() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.RLock()
-		defer d.RUnlock()
 		state, _ := json.MarshalIndent(d.data, "", "\t")
 		d.renderTemplateData(w, "state.tmpl", string(state))
 	})
@@ -141,8 +192,6 @@ func (d *Device) currentTarget(params url.Values) string {
 
 func (d *Device) showDownload() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.RLock()
-		defer d.RUnlock()
 		values := d.DeployValues()
 		target := firstValue(values, "target")
 		d.renderPage(w, "device-download.tmpl", pageVars{
@@ -156,8 +205,6 @@ func (d *Device) showDownload() http.Handler {
 
 func (d *Device) showDownloadTarget() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.RLock()
-		defer d.RUnlock()
 		values := d.DeployValues()
 		target := d.currentTarget(r.URL.Query())
 		d.renderPage(w, "device-download-target.tmpl", pageVars{
@@ -171,8 +218,6 @@ func (d *Device) showDownloadTarget() http.Handler {
 
 func (d *Device) showDownloadInstructions() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.RLock()
-		defer d.RUnlock()
 		target := d.currentTarget(r.URL.Query())
 		template := "instructions-" + target + ".tmpl"
 		d.renderPage(w, template, pageVars{})
