@@ -1,6 +1,10 @@
+		<div class="device" id="device-{{.Device.Id}}"
+			hx-target="this"
+			hx-swap="outerHTML">
 {{- template "device-header.tmpl" .}}
 {{- if ne .Device.DeployParams ""}}
 	{{- template "body.tmpl" .}}
 {{- else}}
 	{{- template "device-undefined.tmpl" .}}
 {{- end}}
+		</div>

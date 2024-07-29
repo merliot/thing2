@@ -17,8 +17,14 @@ func Run(root Devicer, addr string) {
 	// only if we haven't seen this model before)
 	root.InstallModelPattern()
 
+	// Install /ws websocket listener
+	http.HandleFunc("/ws", basicAuthHandlerFunc(ws))
+
 	// Install /wsx websocket listener
-	http.HandleFunc("/wsx", basicAuthHandlerFunc(wsx))
+	http.HandleFunc("/wsx", basicAuthHandlerFunc(wsxHandle))
+
+	// Build route table from root's perpective
+	BuildRoutes(root)
 
 	println("ListenAndServe on", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))

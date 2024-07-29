@@ -73,6 +73,7 @@ func (d *Device) InstallModelPattern() {
 func (d *Device) API() {
 	d.RHandle("/", http.FileServer(http.FS(d.LayeredFS)))
 	d.RHandle("/{$}", d.showIndex())
+	d.RHandle("/keepalive", d.keepAlive())
 	d.RHandle("/full", d.showView("full", "device-full.tmpl"))
 	d.RHandle("/info", d.showInfo())
 	d.RHandle("/state", d.showState())
@@ -121,8 +122,16 @@ func (d *Device) TemplateShow(name string) http.Handler {
 func (d *Device) showIndex() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.renderPage(w, "index.tmpl", pageVars{
-			"view": "full",
+			"view":      "full",
+			"sessionId": newSession(),
 		})
+	})
+}
+
+func (d *Device) keepAlive() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Header.Get("session-id")
+		sessionUpdate(id)
 	})
 }
 

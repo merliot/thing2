@@ -3,6 +3,7 @@ package thing2
 import (
 	"embed"
 	"errors"
+	"fmt"
 	"html"
 	"html/template"
 	"net/http"
@@ -19,13 +20,14 @@ type Devicer interface {
 	GetId() string
 	GetModel() string
 	AddChild(child Devicer) error
-	Parent() Devicer
+	GetChildren() Children
+	GetParent() Devicer
 	SetParent(parent Devicer)
 	SetDeployParams(params string)
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
 	InstallDevicePattern()
 	InstallModelPattern()
-	Dispatch(msg *Msg)
+	Route(pkt *Packet)
 }
 
 type Children map[string]Devicer
@@ -38,8 +40,10 @@ type Device struct {
 	Id             string
 	Model          string
 	Name           string
+	parent         Devicer
+	children       Children
+	handlers       PacketHandlers
 	LayeredFS      `json:"-"`
-	Children       `json:"-"`
 	Models         `json:"-"`
 	// WifiAuth is a map of SSID:PASSPHRASE pairs
 	WifiAuth `json:"-"`
@@ -51,12 +55,12 @@ type Device struct {
 	data         any
 	templates    *template.Template
 	sync.RWMutex `json:"-"`
-	parent       Devicer
 	// Targets supported by device
 	target.Targets `json:"-"`
 }
 
-func NewDevice(id, model, name string, fs embed.FS, targets []string) *Device {
+func NewDevice(id, model, name string, fs embed.FS, targets []string,
+	handlers PacketHandlers) *Device {
 	println("NEW DEVICE", id, model, name)
 
 	d := &Device{
@@ -64,9 +68,10 @@ func NewDevice(id, model, name string, fs embed.FS, targets []string) *Device {
 		Model:    model,
 		Name:     name,
 		ServeMux: http.NewServeMux(),
-		Children: make(Children),
+		children: make(Children),
 		Targets:  target.MakeTargets(targets),
 		WifiAuth: make(WifiAuth),
+		handlers: handlers,
 	}
 	d.data = d
 
@@ -82,29 +87,28 @@ func NewDevice(id, model, name string, fs embed.FS, targets []string) *Device {
 	// All devices inherit this base device API
 	d.API()
 
-	// Register device on bus
-	registerDevice(d)
-
 	return d
 }
 
 func (d Device) GetId() string             { return d.Id }
 func (d Device) GetModel() string          { return d.Model }
-func (d *Device) SetData(data any)         { d.data = data }
-func (d Device) Parent() Devicer           { return d.parent }
+func (d Device) GetParent() Devicer        { return d.parent }
 func (d *Device) SetParent(parent Devicer) { d.parent = parent }
-func (d *Device) Dispatch(msg *Msg)        {}
+func (d *Device) GetChildren() Children    { return d.children }
+func (d *Device) SetData(data any)         { d.data = data }
+func (d *Device) Dispatch(pkt *Packet)     {}
+func (d *Device) String() string           { return d.Id + ":" + d.Model + ":" + d.Name }
 
 func (d *Device) AddChild(child Devicer) error {
 
 	d.Lock()
 	defer d.Unlock()
 
-	if _, exists := d.Children[child.GetId()]; exists {
+	if _, exists := d.children[child.GetId()]; exists {
 		return errors.New("child already exists")
 	}
 
-	d.Children[child.GetId()] = child
+	d.children[child.GetId()] = child
 	child.SetParent(d)
 
 	// Install the /device/{id} pattern for child
@@ -131,5 +135,15 @@ func (d *Device) SetWifiAuth(ssids, passphrases string) {
 		if i < len(values) {
 			d.WifiAuth[key] = values[i]
 		}
+	}
+}
+
+func (d *Device) Route(pkt *Packet) {
+	fmt.Println(d, pkt)
+	if pkt.Dst == d.Id {
+		if h, ok := d.handlers[pkt.Path]; ok {
+			h(pkt)
+		}
+		return
 	}
 }

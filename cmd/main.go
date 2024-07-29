@@ -23,6 +23,8 @@ func main() {
 	g4 := gadget.New("g4", "gadget04")
 	g5 := gadget.New("g5", "gadget05")
 
+	g5.SetDeployParams("target=demo")
+
 	hub1.AddChild(g1)
 	hub1.AddChild(g2)
 	hub1.AddChild(g3)

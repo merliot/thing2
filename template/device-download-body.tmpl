@@ -37,6 +37,7 @@
 				hx-get="/device/{{.Device.Id}}/download-target"
 				hx-trigger="load, change from:#download-target"
 				hx-target="this"
+				hx-swap="innerHTML"
 				hx-vals='js:{target: document.getElementById(`download-target`).value}'>
 			</div>
 
@@ -61,5 +62,6 @@
 	hx-get="/device/{{.Device.Id}}/download-instructions"
 	hx-trigger="load, change from:#download-target"
 	hx-target="this"
+	hx-swap="innerHTML"
 	hx-vals='js:{target: document.getElementById(`download-target`).value}'>
 </div>
