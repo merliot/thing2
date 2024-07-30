@@ -74,7 +74,7 @@ func (d *Device) API() {
 	d.RHandle("/", http.FileServer(http.FS(d.LayeredFS)))
 	d.RHandle("/{$}", d.showIndex())
 	d.RHandle("/keepalive", d.keepAlive())
-	d.RHandle("/full", d.showView("full", "device-full.tmpl"))
+	d.RHandle("/full", d.showFull())
 	d.RHandle("/info", d.showInfo())
 	d.RHandle("/state", d.showState())
 	d.RHandle("/code", d.showCode())
@@ -92,13 +92,6 @@ func (d *Device) render(w io.Writer, name string, data any) error {
 	return tmpl.Execute(w, data)
 }
 
-func (d *Device) renderTemplateData(w http.ResponseWriter, name string, data any) {
-	fmt.Printf("renderTemplateData %#v\n", data)
-	if err := d.render(w, name, data); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-}
-
 type pageVars map[string]any
 
 type pageData struct {
@@ -106,11 +99,21 @@ type pageData struct {
 	Device any
 }
 
-func (d *Device) renderPage(w http.ResponseWriter, name string, pageVars pageVars) {
-	d.renderTemplateData(w, name, &pageData{
+func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
+	return d.render(w, name, &pageData{
 		Vars:   pageVars,
 		Device: d.data,
 	})
+}
+
+func (d *Device) Render(w io.Writer, view string) error {
+	d.RLock()
+	defer d.RUnlock()
+	switch view {
+	case "full":
+		return d._showFull(w)
+	}
+	return nil
 }
 
 func (d *Device) TemplateShow(name string) http.Handler {
@@ -130,16 +133,24 @@ func (d *Device) showIndex() http.Handler {
 
 func (d *Device) keepAlive() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Header.Get("session-id")
-		sessionUpdate(id)
+		sessionId := r.Header.Get("session-id")
+		sessionUpdate(sessionId)
 	})
 }
 
-func (d *Device) showView(view, name string) http.Handler {
+func (d *Device) _showFull(w io.Writer) error {
+	return d.renderPage(w, "device-full.tmpl", pageVars{
+		"view": "full",
+	})
+}
+
+func (d *Device) showFull() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.renderPage(w, name, pageVars{
-			"view": view,
-		})
+		sessionId := r.Header.Get("session-id")
+		sessionDeviceView(sessionId, "full", d)
+		if err := d._showFull(w); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 	})
 }
 
@@ -155,7 +166,7 @@ func (d *Device) showInfo() http.Handler {
 func (d *Device) showState() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		state, _ := json.MarshalIndent(d.data, "", "\t")
-		d.renderTemplateData(w, "state.tmpl", string(state))
+		d.render(w, "state.tmpl", string(state))
 	})
 }
 
@@ -168,7 +179,7 @@ func (d *Device) showCode() http.Handler {
 		for _, entry := range entries {
 			names = append(names, entry.Name())
 		}
-		d.renderTemplateData(w, "code.tmpl", names)
+		d.render(w, "code.tmpl", names)
 	})
 }
 

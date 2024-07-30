@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -28,6 +29,8 @@ type Devicer interface {
 	InstallDevicePattern()
 	InstallModelPattern()
 	Route(pkt *Packet)
+	Render(w io.Writer, view string) error
+	String() string
 }
 
 type Children map[string]Devicer

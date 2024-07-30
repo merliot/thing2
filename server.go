@@ -5,7 +5,11 @@ import (
 	"net/http"
 )
 
+var rootDevicer Devicer
+
 func Run(root Devicer, addr string) {
+
+	rootDevicer = root
 
 	// Install / to point to root device
 	http.Handle("/", basicAuthHandler(root))
@@ -22,6 +26,8 @@ func Run(root Devicer, addr string) {
 
 	// Install /wsx websocket listener
 	http.HandleFunc("/wsx", basicAuthHandlerFunc(wsxHandle))
+
+	http.HandleFunc("/server/sessions", basicAuthHandlerFunc(sessionsShow))
 
 	// Build route table from root's perpective
 	BuildRoutes(root)

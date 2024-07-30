@@ -19,15 +19,15 @@ func wsxServe(ws *websocket.Conn) {
 	defer ws.Close()
 
 	req := ws.Request()
-	id := req.URL.Query().Get("session-id")
-	if id == "" {
+	sessionId := req.URL.Query().Get("session-id")
+	if sessionId == "" {
 		println("missing session-id param")
 		return
 	}
 
-	sessionConn(id, ws)
-
-	// TODO send /full rendering back over websocket
+	sessionConn(sessionId, ws)
+	sessionDeviceView(sessionId, "full", rootDevicer)
+	sessionDeviceRender(sessionId, rootDevicer)
 
 	var message string
 	for {
@@ -45,7 +45,7 @@ func wsxServe(ws *websocket.Conn) {
 		}
 	}
 
-	sessionConn(id, nil)
+	sessionConn(sessionId, nil)
 }
 
 func BcastUp(path string, msg any) {
