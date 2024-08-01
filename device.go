@@ -22,8 +22,6 @@ type Devicer interface {
 	GetModel() string
 	AddChild(child Devicer) error
 	GetChildren() Children
-	GetParent() Devicer
-	SetParent(parent Devicer)
 	SetDeployParams(params string)
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
 	InstallDevicePattern()
@@ -43,9 +41,9 @@ type Device struct {
 	Id             string
 	Model          string
 	Name           string
-	parent         Devicer
 	children       Children
 	handlers       PacketHandlers
+	sessionsMu     sync.RWMutex
 	LayeredFS      `json:"-"`
 	Models         `json:"-"`
 	// WifiAuth is a map of SSID:PASSPHRASE pairs
@@ -93,14 +91,12 @@ func NewDevice(id, model, name string, fs embed.FS, targets []string,
 	return d
 }
 
-func (d Device) GetId() string             { return d.Id }
-func (d Device) GetModel() string          { return d.Model }
-func (d Device) GetParent() Devicer        { return d.parent }
-func (d *Device) SetParent(parent Devicer) { d.parent = parent }
-func (d *Device) GetChildren() Children    { return d.children }
-func (d *Device) SetData(data any)         { d.data = data }
-func (d *Device) Dispatch(pkt *Packet)     {}
-func (d *Device) String() string           { return d.Id + ":" + d.Model + ":" + d.Name }
+func (d Device) GetId() string          { return d.Id }
+func (d Device) GetModel() string       { return d.Model }
+func (d *Device) GetChildren() Children { return d.children }
+func (d *Device) SetData(data any)      { d.data = data }
+func (d *Device) Dispatch(pkt *Packet)  {}
+func (d *Device) String() string        { return d.Id + ":" + d.Model + ":" + d.Name }
 
 func (d *Device) AddChild(child Devicer) error {
 
@@ -112,7 +108,6 @@ func (d *Device) AddChild(child Devicer) error {
 	}
 
 	d.children[child.GetId()] = child
-	child.SetParent(d)
 
 	// Install the /device/{id} pattern for child
 	child.InstallDevicePattern()

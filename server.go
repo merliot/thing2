@@ -1,6 +1,7 @@
 package thing2
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 )
@@ -27,11 +28,25 @@ func Run(root Devicer, addr string) {
 	// Install /wsx websocket listener
 	http.HandleFunc("/wsx", basicAuthHandlerFunc(wsxHandle))
 
+	// Install /server/* patterns for debug info
 	http.HandleFunc("/server/sessions", basicAuthHandlerFunc(sessionsShow))
+	http.HandleFunc("/server/routes", basicAuthHandlerFunc(routesShow))
 
 	// Build route table from root's perpective
 	BuildRoutes(root)
 
 	println("ListenAndServe on", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
+}
+
+func templateShow(w http.ResponseWriter, temp string, data any) {
+	tmpl, err := template.New("main").Parse(temp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }

@@ -3,5 +3,7 @@
 					<span class="text-6xl">{{.Device.Bottles}}</span>
 					<span>Bottles of Beer on the Wall</span>
 				</div>
-				<button class="btn" hx-post="/device/{{.Device.Id}}/takeone?Foo=2" hx-swap="none">Take One</button>
+				<button class="btn"
+					hx-post="/device/{{.Device.Id}}/takeone"
+					hx-swap="none">Take One</button>
 			</div>

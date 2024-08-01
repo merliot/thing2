@@ -107,8 +107,8 @@ func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
 }
 
 func (d *Device) Render(w io.Writer, view string) error {
-	d.RLock()
-	defer d.RUnlock()
+	//d.RLock()
+	//defer d.RUnlock()
 	switch view {
 	case "full":
 		return d._showFull(w)
@@ -147,7 +147,7 @@ func (d *Device) _showFull(w io.Writer) error {
 func (d *Device) showFull() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionId := r.Header.Get("session-id")
-		sessionDeviceView(sessionId, "full", d)
+		sessionDeviceSaveView(sessionId, d, "full")
 		if err := d._showFull(w); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}

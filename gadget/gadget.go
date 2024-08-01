@@ -9,18 +9,13 @@ import (
 //go:embed css *.go template
 var fs embed.FS
 
-type Bottles int
-
-func (b *Bottles) Htmx() {
-}
-
 type Gadget struct {
 	*thing2.Device
-	Bottles
+	Bottles int
 }
 
-type Takeone struct {
-	Foo int
+type Update struct {
+	Bottles int
 }
 
 var targets = []string{"demo", "x86-64", "nano-rp2040"}
@@ -34,14 +29,13 @@ func New(id, name string) thing2.Devicer {
 
 	handlers := thing2.PacketHandlers{
 		"/takeone": g.takeone,
-		"/bottles": g.bottles,
+		"/tookone": g.tookone,
 	}
 
 	g.Device = thing2.NewDevice(id, "gadget", name, fs, targets, handlers)
 	g.SetData(g)
 
-	g.Handle("/takeone", thing2.SendTo(g, &Takeone{}))
-	g.RHandle("/bottles", g.TemplateShow("bottles.tmpl"))
+	g.Handle("/takeone", thing2.SendTo(g, nil))
 
 	return g
 }
@@ -50,10 +44,13 @@ func (g *Gadget) takeone(pkt *thing2.Packet) {
 	println("/takeone")
 	if g.Bottles > 0 {
 		g.Bottles--
-		//BcastUp("/bottles", g)
+		msg := Update{g.Bottles}
+		pkt.SetPath("/tookone").SetMsg(msg).RouteUp()
 	}
 }
 
-func (g *Gadget) bottles(pkt *thing2.Packet) {
-	println("/bottles")
+func (g *Gadget) tookone(pkt *thing2.Packet) {
+	println("/tookone")
+	var update = pkt.GetMsg().(Update)
+	g.Bottles = update.Bottles
 }

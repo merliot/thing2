@@ -3,7 +3,6 @@ package thing2
 import (
 	"bytes"
 	_ "embed"
-	"html/template"
 	"net/http"
 	"sync"
 	"time"
@@ -13,13 +12,18 @@ import (
 )
 
 //go:embed template/sessions.tmpl
-var sessionTemplate string
+var sessionsTemplate string
+
+type lastView struct {
+	view   string
+	device Devicer
+}
 
 type session struct {
-	id         string
+	sessionId  string
 	conn       *websocket.Conn
 	LastUpdate time.Time
-	LastView   map[Devicer]string
+	LastViews  map[string]lastView // keyed by device Id
 }
 
 var sessions = make(map[string]*session)
@@ -29,12 +33,12 @@ func init() {
 	go gcSessions()
 }
 
-func _newSession(id string, conn *websocket.Conn) *session {
+func _newSession(sessionId string, conn *websocket.Conn) *session {
 	return &session{
-		id:         id,
+		sessionId:  sessionId,
 		conn:       conn,
 		LastUpdate: time.Now(),
-		LastView:   make(map[Devicer]string),
+		LastViews:  make(map[string]lastView),
 	}
 }
 
@@ -44,90 +48,106 @@ func newSession() string {
 	sessionsMu.Lock()
 	defer sessionsMu.Unlock()
 
-	id := uuid.New().String()
-	sessions[id] = _newSession(id, nil)
-	println("newSession", id)
-	return id
+	sessionId := uuid.New().String()
+	sessions[sessionId] = _newSession(sessionId, nil)
+	println("newSession", sessionId)
+	return sessionId
 }
 
-func (s *session) Age() string {
+func (s session) Age() string {
 	return time.Since(s.LastUpdate).String()
 }
 
-func sessionConn(id string, conn *websocket.Conn) {
+func sessionConn(sessionId string, conn *websocket.Conn) {
 
 	sessionsMu.Lock()
 	defer sessionsMu.Unlock()
 
-	if session, ok := sessions[id]; ok {
-		println("sessionConn", id, conn)
+	if session, ok := sessions[sessionId]; ok {
+		println("sessionConn", sessionId, conn)
 		session.conn = conn
 		session.LastUpdate = time.Now()
 	} else {
-		sessions[id] = _newSession(id, conn)
+		sessions[sessionId] = _newSession(sessionId, conn)
 	}
 }
 
-func sessionUpdate(id string) {
+func sessionUpdate(sessionId string) {
 
 	sessionsMu.Lock()
 	defer sessionsMu.Unlock()
 
-	if session, ok := sessions[id]; ok {
-		println("sessionUpdate", id)
+	if session, ok := sessions[sessionId]; ok {
+		println("sessionUpdate", sessionId)
 		session.LastUpdate = time.Now()
+	} else {
+		sessions[sessionId] = _newSession(sessionId, nil)
 	}
 }
 
-func sessionDeviceView(id, view string, device Devicer) {
+func sessionDeviceSaveView(sessionId string, device Devicer, view string) {
 
 	sessionsMu.Lock()
 	defer sessionsMu.Unlock()
 
-	if session, ok := sessions[id]; ok {
-		println("sessionDeviceView", id, view, device)
+	if session, ok := sessions[sessionId]; ok {
+		println("sessionDeviceView", sessionId, view, device)
 		session.LastUpdate = time.Now()
-		session.LastView[device] = view
+		session.LastViews[device.GetId()] = lastView{
+			view:   view,
+			device: device,
+		}
 	}
 }
 
-func sessionDeviceRender(id string, device Devicer) {
+func (s session) render(device Devicer, view string) {
+	var buf bytes.Buffer
+	if err := device.Render(&buf, view); err != nil {
+		println("session.render error", err.Error())
+		return
+	}
+	websocket.Message.Send(s.conn, string(buf.Bytes()))
+}
+
+func sessionDeviceRender(sessionId string, device Devicer) {
 
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
 
-	if session, ok := sessions[id]; ok {
+	if session, ok := sessions[sessionId]; ok {
 		if session.conn == nil {
 			return
 		}
-		if view, ok := session.LastView[device]; ok {
-			println("sessionDeviceRender", id, view, device)
-			var buf bytes.Buffer
-			if err := device.Render(&buf, view); err != nil {
-				println("device.Render error", err.Error())
-				return
-			}
-			websocket.Message.Send(session.conn, string(buf.Bytes()))
+		if last, ok := session.LastViews[device.GetId()]; ok {
+			session.render(device, last.view)
 		}
+	}
+}
+
+func sessionsRoute(pkt *Packet) {
+
+	println("sessionsRoute", pkt.String())
+	sessionsMu.RLock()
+	defer sessionsMu.RUnlock()
+
+	for sessionId, session := range sessions {
+		println("sessionsRoute", sessionId)
+		if session.conn == nil {
+			println("sessionsRoute", sessionId, "skipping")
+			continue
+		}
+		if last, ok := session.LastViews[pkt.Dst]; ok {
+			println("sessionsRoute", sessionId, "render", pkt.Dst, last.view, last.device.String())
+			session.render(last.device, last.view)
+		}
+
 	}
 }
 
 func sessionsShow(w http.ResponseWriter, r *http.Request) {
-
-	tmpl, err := template.New("sessions").Parse(sessionTemplate)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
-
-	err = tmpl.Execute(w, sessions)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	templateShow(w, sessionsTemplate, sessions)
 }
 
 func gcSessions() {
@@ -137,11 +157,11 @@ func gcSessions() {
 	for range ticker.C {
 		println("gcSessions ticked")
 		sessionsMu.Lock()
-		for id, session := range sessions {
-			println("gcSessions considering", id)
+		for sessionId, session := range sessions {
+			println("gcSessions considering", sessionId)
 			if time.Since(session.LastUpdate) > dur {
-				println("gcSessions", id)
-				delete(sessions, id)
+				println("gcSessions", sessionId)
+				delete(sessions, sessionId)
 			}
 		}
 		sessionsMu.Unlock()
