@@ -7,22 +7,22 @@ import (
 )
 
 var (
-	User   = GetEnv("USER", "")
-	Passwd = GetEnv("PASSWD", "")
+	user   = GetEnv("USER", "")
+	passwd = GetEnv("PASSWD", "")
 )
 
 // HTTP Basic Authentication middleware
 func basicAuth(w http.ResponseWriter, r *http.Request) bool {
 	// skip basic authentication if no user
-	if User == "" {
+	if user == "" {
 		return true
 	}
 
 	ruser, rpasswd, ok := r.BasicAuth()
 
 	if ok {
-		userHash := sha256.Sum256([]byte(User))
-		passHash := sha256.Sum256([]byte(Passwd))
+		userHash := sha256.Sum256([]byte(user))
+		passHash := sha256.Sum256([]byte(passwd))
 		ruserHash := sha256.Sum256([]byte(ruser))
 		rpassHash := sha256.Sum256([]byte(rpasswd))
 

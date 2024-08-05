@@ -35,22 +35,19 @@ func New(id, name string) thing2.Devicer {
 	g.Device = thing2.NewDevice(id, "gadget", name, fs, targets, handlers)
 	g.SetData(g)
 
-	g.Handle("/takeone", thing2.SendTo(g, nil))
+	g.Handle("/takeone", thing2.RouteDown(g.Id, nil))
 
 	return g
 }
 
 func (g *Gadget) takeone(pkt *thing2.Packet) {
-	println("/takeone")
 	if g.Bottles > 0 {
 		g.Bottles--
 		msg := Update{g.Bottles}
-		pkt.SetPath("/tookone").SetMsg(msg).RouteUp()
+		pkt.SetPath("/tookone").Marshal(msg).RouteUp()
 	}
 }
 
 func (g *Gadget) tookone(pkt *thing2.Packet) {
-	println("/tookone")
-	var update = pkt.GetMsg().(Update)
-	g.Bottles = update.Bottles
+	pkt.Unmarshal(g).RouteUp()
 }

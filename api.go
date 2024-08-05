@@ -12,6 +12,7 @@ import (
 	"sync"
 )
 
+/*
 func (d *Device) Handle(pattern string, handler http.Handler) {
 	d.ServeMux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d.Lock()
@@ -27,6 +28,7 @@ func (d *Device) HandleFunc(pattern string, handlerFunc http.HandlerFunc) {
 		handlerFunc(w, r)
 	}))
 }
+*/
 
 func (d *Device) RHandle(pattern string, handler http.Handler) {
 	d.ServeMux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +86,7 @@ func (d *Device) API() {
 	// d.RHandleFunc("/deploy", d.deploy)
 }
 
-func (d *Device) render(w io.Writer, name string, data any) error {
+func (d *Device) renderTemplate(w io.Writer, name string, data any) error {
 	tmpl := d.templates.Lookup(name)
 	if tmpl == nil {
 		return fmt.Errorf("Template '%s' not found", name)
@@ -100,20 +102,10 @@ type pageData struct {
 }
 
 func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
-	return d.render(w, name, &pageData{
+	return d.renderTemplate(w, name, &pageData{
 		Vars:   pageVars,
 		Device: d.data,
 	})
-}
-
-func (d *Device) Render(w io.Writer, view string) error {
-	//d.RLock()
-	//defer d.RUnlock()
-	switch view {
-	case "full":
-		return d._showFull(w)
-	}
-	return nil
 }
 
 func (d *Device) TemplateShow(name string) http.Handler {
@@ -124,9 +116,11 @@ func (d *Device) TemplateShow(name string) http.Handler {
 
 func (d *Device) showIndex() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionId := newSession()
+		sessionDeviceSaveView(sessionId, d.GetId(), "full")
 		d.renderPage(w, "index.tmpl", pageVars{
 			"view":      "full",
-			"sessionId": newSession(),
+			"sessionId": sessionId,
 		})
 	})
 }
@@ -147,7 +141,7 @@ func (d *Device) _showFull(w io.Writer) error {
 func (d *Device) showFull() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionId := r.Header.Get("session-id")
-		sessionDeviceSaveView(sessionId, d, "full")
+		sessionDeviceSaveView(sessionId, d.GetId(), "full")
 		if err := d._showFull(w); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
@@ -166,7 +160,7 @@ func (d *Device) showInfo() http.Handler {
 func (d *Device) showState() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		state, _ := json.MarshalIndent(d.data, "", "\t")
-		d.render(w, "state.tmpl", string(state))
+		d.renderTemplate(w, "state.tmpl", string(state))
 	})
 }
 
@@ -179,7 +173,7 @@ func (d *Device) showCode() http.Handler {
 		for _, entry := range entries {
 			names = append(names, entry.Name())
 		}
-		d.render(w, "code.tmpl", names)
+		d.renderTemplate(w, "code.tmpl", names)
 	})
 }
 

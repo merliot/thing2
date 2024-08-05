@@ -6,5 +6,11 @@
 </head>
 <body>
     <h1>Active Routes</h1>
+    <p>Dst Id: Nexthop Id</p>
+    {{range $dstId, $nexthopId := .}}
+	    <p>{{$dstId}}:{{$nexthopId}}</p>
+    {{else}}
+        <p>No active routes</p>
+    {{end}}
 </body>
 </html>

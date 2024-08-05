@@ -1,6 +1,7 @@
 package thing2
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 
@@ -12,18 +13,22 @@ var decoder = form.NewDecoder()
 type Packet struct {
 	Dst  string
 	Path string
-	Msg  any
+	Msg  json.RawMessage
 }
 
-func NewPacketFromURL(url *url.URL, msg any) (*Packet, error) {
+func NewPacketFromURL(url *url.URL, v any) (*Packet, error) {
 	var pkt = &Packet{
 		Path: url.Path,
-		Msg:  msg,
 	}
-	if msg == nil {
+	if v == nil {
 		return pkt, nil
 	}
-	if err := decoder.Decode(pkt.Msg, url.Query()); err != nil {
+	err := decoder.Decode(v, url.Query())
+	if err != nil {
+		return nil, err
+	}
+	pkt.Msg, err = json.Marshal(v)
+	if err != nil {
 		return nil, err
 	}
 	return pkt, nil
@@ -33,12 +38,21 @@ func (p *Packet) String() string {
 	return fmt.Sprintf("%#v", p)
 }
 
-func (p *Packet) GetMsg() any {
-	return p.Msg
+// Marshal the packet message payload as JSON from v
+func (p *Packet) Marshal(v any) *Packet {
+	var err error
+	p.Msg, err = json.Marshal(v)
+	if err != nil {
+		fmt.Printf("JSON marshal error %s\r\n", err.Error())
+	}
+	return p
 }
 
-func (p *Packet) SetMsg(msg any) *Packet {
-	p.Msg = msg
+// Unmarshal the packet message payload as JSON into v
+func (p *Packet) Unmarshal(v any) *Packet {
+	if err := json.Unmarshal(p.Msg, v); err != nil {
+		fmt.Printf("JSON unmarshal error %s\r\n", err.Error())
+	}
 	return p
 }
 
@@ -54,15 +68,16 @@ func (p *Packet) SetPath(path string) *Packet {
 
 func (p *Packet) RouteDown() {
 	routesMu.RLock()
-	route := routes[p.Dst]
+	nexthop := routes[p.Dst]
 	routesMu.RUnlock()
-	route.nextHop.Route(p)
+	deviceRouteDown(nexthop, p)
 }
 
 func (p *Packet) RouteUp() {
 	println("RouteUp", p.String())
-	sessionsRoute(p)
+	sessionsRoute(p.Dst)
+	uplinksRoute(p)
 }
 
 type PacketHandler func(pkt *Packet)
-type PacketHandlers map[string]PacketHandler // keyed by path (/takeone)
+type PacketHandlers map[string]PacketHandler // keyed by path

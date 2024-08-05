@@ -8,9 +8,22 @@ import (
 
 var rootDevicer Devicer
 
-func Run(root Devicer, addr string) {
+var port = GetEnv("PORT", "8000")
+
+func Run(root Devicer) {
 
 	rootDevicer = root
+
+	// Build route table from root's perpective
+	BuildRoutes(root)
+
+	// Dial parents
+	dialParents()
+
+	// (Optional) run as web server
+	if port == "" {
+		return
+	}
 
 	// Install / to point to root device
 	http.Handle("/", basicAuthHandler(root))
@@ -32,9 +45,7 @@ func Run(root Devicer, addr string) {
 	http.HandleFunc("/server/sessions", basicAuthHandlerFunc(sessionsShow))
 	http.HandleFunc("/server/routes", basicAuthHandlerFunc(routesShow))
 
-	// Build route table from root's perpective
-	BuildRoutes(root)
-
+	addr := ":" + port
 	println("ListenAndServe on", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }

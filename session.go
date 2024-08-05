@@ -14,16 +14,11 @@ import (
 //go:embed template/sessions.tmpl
 var sessionsTemplate string
 
-type lastView struct {
-	view   string
-	device Devicer
-}
-
 type session struct {
 	sessionId  string
 	conn       *websocket.Conn
 	LastUpdate time.Time
-	LastViews  map[string]lastView // keyed by device Id
+	LastView   map[string]string // key: device Id; value: view
 }
 
 var sessions = make(map[string]*session)
@@ -38,7 +33,7 @@ func _newSession(sessionId string, conn *websocket.Conn) *session {
 		sessionId:  sessionId,
 		conn:       conn,
 		LastUpdate: time.Now(),
-		LastViews:  make(map[string]lastView),
+		LastView:   make(map[string]string),
 	}
 }
 
@@ -85,31 +80,37 @@ func sessionUpdate(sessionId string) {
 	}
 }
 
-func sessionDeviceSaveView(sessionId string, device Devicer, view string) {
+func sessionDeviceSaveView(sessionId, deviceId, view string) {
 
 	sessionsMu.Lock()
 	defer sessionsMu.Unlock()
 
 	if session, ok := sessions[sessionId]; ok {
-		println("sessionDeviceView", sessionId, view, device)
+		println("sessionDeviceView", sessionId, deviceId, view)
 		session.LastUpdate = time.Now()
-		session.LastViews[device.GetId()] = lastView{
-			view:   view,
-			device: device,
-		}
+		session.LastView[deviceId] = view
 	}
 }
 
-func (s session) render(device Devicer, view string) {
+func (s session) _render(deviceId, view string) {
 	var buf bytes.Buffer
-	if err := device.Render(&buf, view); err != nil {
+	if err := _deviceRender(deviceId, view, &buf); err != nil {
 		println("session.render error", err.Error())
 		return
 	}
 	websocket.Message.Send(s.conn, string(buf.Bytes()))
 }
 
-func sessionDeviceRender(sessionId string, device Devicer) {
+func (s session) render(deviceId, view string) {
+	var buf bytes.Buffer
+	if err := deviceRender(deviceId, view, &buf); err != nil {
+		println("session.render error", err.Error())
+		return
+	}
+	websocket.Message.Send(s.conn, string(buf.Bytes()))
+}
+
+func sessionDeviceRender(sessionId, deviceId string) {
 
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
@@ -118,15 +119,15 @@ func sessionDeviceRender(sessionId string, device Devicer) {
 		if session.conn == nil {
 			return
 		}
-		if last, ok := session.LastViews[device.GetId()]; ok {
-			session.render(device, last.view)
+		if view, ok := session.LastView[deviceId]; ok {
+			session.render(deviceId, view)
 		}
 	}
 }
 
-func sessionsRoute(pkt *Packet) {
+func sessionsRoute(deviceId string) {
 
-	println("sessionsRoute", pkt.String())
+	println("sessionsRoute", deviceId)
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
 
@@ -136,9 +137,9 @@ func sessionsRoute(pkt *Packet) {
 			println("sessionsRoute", sessionId, "skipping")
 			continue
 		}
-		if last, ok := session.LastViews[pkt.Dst]; ok {
-			println("sessionsRoute", sessionId, "render", pkt.Dst, last.view, last.device.String())
-			session.render(last.device, last.view)
+		if view, ok := session.LastView[deviceId]; ok {
+			println("sessionsRoute", sessionId, "render", deviceId, view)
+			session._render(deviceId, view)
 		}
 
 	}

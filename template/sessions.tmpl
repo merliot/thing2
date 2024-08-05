@@ -12,8 +12,8 @@
             <p>Last Update: {{$session.Age}}</p>
             <h3>Last Views:</h3>
             <ul>
-                {{range $device, $view := $session.LastView}}
-			<li>Device ID: {{$device.GetId}} - {{$view}}</li>
+                {{range $deviceId, $view := $session.LastView}}
+			<li>Device ID: {{$deviceId}} - {{$view}}</li>
                 {{end}}
             </ul>
         </div>

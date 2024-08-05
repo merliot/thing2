@@ -26,8 +26,8 @@ func wsxServe(ws *websocket.Conn) {
 	}
 
 	sessionConn(sessionId, ws)
-	sessionDeviceSaveView(sessionId, rootDevicer, "full")
-	sessionDeviceRender(sessionId, rootDevicer)
+	sessionDeviceSaveView(sessionId, rootDevicer.GetId(), "full")
+	sessionDeviceRender(sessionId, rootDevicer.GetId())
 
 	var message string
 	for {
@@ -37,17 +37,7 @@ func wsxServe(ws *websocket.Conn) {
 			break
 		}
 		fmt.Println("Received message from client:", message)
-
-		// Send message back to the client
-		if err := websocket.Message.Send(ws, "Echo: "+message); err != nil {
-			fmt.Println("Can't send:", err)
-			break
-		}
 	}
 
 	sessionConn(sessionId, nil)
-}
-
-func BcastUp(path string, msg any) {
-
 }
