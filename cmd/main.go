@@ -8,12 +8,8 @@ import (
 
 func main() {
 
-	/*
-		thing2.SupportedModels(thing2.Models{
-			"gadget": gadget.New,
-			"hub":    hub.New,
-		})
-	*/
+	thing2.Makers["hub"] = hub.New
+	thing2.Makers["gadget"] = gadget.New
 
 	hub1 := hub.New("h1", "hub01")
 
@@ -32,5 +28,5 @@ func main() {
 	g4.AddChild(g5)
 	hub1.AddChild(g4)
 
-	thing2.Run(hub1, ":8000")
+	thing2.Run(hub1)
 }

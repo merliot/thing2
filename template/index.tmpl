@@ -5,7 +5,9 @@
 		<title>{{.Device.Model}} - {{.Device.Name}}</title>
 
 		<link rel="stylesheet" type="text/css" href="css/device.css">
-		<link rel="stylesheet" type="text/css" href="/model/{{.Device.Model}}/css/{{.Device.Model}}.css">
+{{- range $model, $ignore := .Vars.models }}
+		<link rel="stylesheet" type="text/css" href="/model/{{$model}}/css/{{$model}}.css">
+{{- end }}
 		<script src="js/htmx.min.js"></script>
 		<script src="js/htmx-ext-ws.js"></script>
 	</head>

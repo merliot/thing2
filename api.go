@@ -47,18 +47,18 @@ func (d *Device) RHandleFunc(pattern string, handlerFunc http.HandlerFunc) {
 }
 
 // Install /device/{id} pattern for device in default ServeMux
-func (d *Device) InstallDevicePattern() {
+func (d *Device) InstallDevice() {
 	prefix := "/device/" + d.Id
 	handler := basicAuthHandler(http.StripPrefix(prefix, d))
 	http.Handle(prefix+"/", handler)
-	fmt.Printf("InstallDevicePattern %s\n", prefix)
+	fmt.Printf("InstallDevice %s\n", prefix)
 }
 
 var modelPatterns = make(map[string]string)
 var modelPatternsMu sync.RWMutex
 
 // Install /model/{model} pattern for device in default ServeMux
-func (d *Device) InstallModelPattern() {
+func (d *Device) InstallModel() {
 	modelPatternsMu.Lock()
 	defer modelPatternsMu.Unlock()
 	// But only if it doesn't already exist
@@ -69,7 +69,7 @@ func (d *Device) InstallModelPattern() {
 	handler := basicAuthHandler(http.StripPrefix(prefix, d))
 	http.Handle(prefix+"/", handler)
 	modelPatterns[d.Model] = prefix
-	fmt.Printf("InstallModelPattern %s\n", prefix)
+	fmt.Printf("InstallModel %s\n", prefix)
 }
 
 func (d *Device) API() {
@@ -121,6 +121,7 @@ func (d *Device) showIndex() http.Handler {
 		d.renderPage(w, "index.tmpl", pageVars{
 			"view":      "full",
 			"sessionId": sessionId,
+			"models":    Makers,
 		})
 	})
 }

@@ -6,12 +6,16 @@ import (
 	"net/http"
 )
 
-var rootDevicer Devicer
+var (
+	port         = GetEnv("PORT", "8000")
+	deployParams = GetEnv("DEPLOY_PARAMS", "")
 
-var port = GetEnv("PORT", "8000")
+	rootDevicer Devicer
+)
 
 func Run(root Devicer) {
 
+	root.SetDeployParams(deployParams)
 	rootDevicer = root
 
 	// Build route table from root's perpective
@@ -20,20 +24,19 @@ func Run(root Devicer) {
 	// Dial parents
 	dialParents()
 
-	// (Optional) run as web server
+	// (Optional) run as web server, if port given
 	if port == "" {
 		return
 	}
+
+	// Install /model/{model} patterns for makers
+	modelsInstall()
 
 	// Install / to point to root device
 	http.Handle("/", basicAuthHandler(root))
 
 	// Install the /device/{id} pattern for root device
-	root.InstallDevicePattern()
-
-	// Install the /model/{model} pattern, using root device as proto (but
-	// only if we haven't seen this model before)
-	root.InstallModelPattern()
+	root.InstallDevice()
 
 	// Install /ws websocket listener
 	http.HandleFunc("/ws", basicAuthHandlerFunc(ws))
