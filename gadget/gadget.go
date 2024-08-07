@@ -10,7 +10,6 @@ import (
 var fs embed.FS
 
 type Gadget struct {
-	*thing2.Device
 	Bottles int
 }
 
@@ -18,8 +17,15 @@ type Update struct {
 	Bottles int
 }
 
-var targets = []string{"demo", "x86-64", "nano-rp2040"}
+func (g *Gadget) GetModel() string     { return "gadget" }
+func (g *Gadget) GetFS() *embed.FS     { return &fs }
+func (g *Gadget) GetTargets() []string { return []string{"demo", "x86-64", "nano-rp2040"} }
 
+func NewModel() thing2.Modeler {
+	return &Gadget{}
+}
+
+/*
 func New(id, name string) thing2.Devicer {
 	println("NEW GADGET")
 
@@ -39,6 +45,7 @@ func New(id, name string) thing2.Devicer {
 
 	return g
 }
+*/
 
 func (g *Gadget) takeone(pkt *thing2.Packet) {
 	if g.Bottles > 0 {

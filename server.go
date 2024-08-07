@@ -1,6 +1,7 @@
 package thing2
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -9,17 +10,28 @@ import (
 var (
 	port         = GetEnv("PORT", "8000")
 	deployParams = GetEnv("DEPLOY_PARAMS", "")
-
-	rootDevicer Devicer
+	root         *Device
 )
 
-func Run(root Devicer) {
+func Run() {
 
-	root.SetDeployParams(deployParams)
-	rootDevicer = root
+	err := fileReadDevices()
+	if err != nil {
+		fmt.Println("Error reading devices from file:", err)
+		return
+	}
+
+	devicesMake()
+
+	root, err := devicesFindRoot()
+	if err != nil {
+		fmt.Println("Error finding root device:", err)
+		return
+	}
+	fmt.Println("root", root.Name)
 
 	// Build route table from root's perpective
-	BuildRoutes(root)
+	devicesBuildRoutes(root)
 
 	// Dial parents
 	dialParents()
@@ -36,7 +48,7 @@ func Run(root Devicer) {
 	http.Handle("/", basicAuthHandler(root))
 
 	// Install the /device/{id} pattern for root device
-	root.InstallDevice()
+	root.deviceInstall()
 
 	// Install /ws websocket listener
 	http.HandleFunc("/ws", basicAuthHandlerFunc(ws))
@@ -46,7 +58,6 @@ func Run(root Devicer) {
 
 	// Install /server/* patterns for debug info
 	http.HandleFunc("/server/sessions", basicAuthHandlerFunc(sessionsShow))
-	http.HandleFunc("/server/routes", basicAuthHandlerFunc(routesShow))
 
 	addr := ":" + port
 	println("ListenAndServe on", addr)

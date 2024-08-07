@@ -60,9 +60,9 @@ func wsClient(conn *websocket.Conn) {
 
 	var link = &wsLink{conn}
 	var ann = announcement{
-		Id:    rootDevicer.GetId(),
-		Model: rootDevicer.GetModel(),
-		Name:  rootDevicer.GetName(),
+		Id:    root.Id,
+		Model: root.Model,
+		Name:  root.Name,
 	}
 	var pkt = &Packet{
 		Dst:  ann.Id,
@@ -192,7 +192,7 @@ func wsServer(conn *websocket.Conn) {
 		return
 	}
 
-	if ann.Id == rootDevicer.GetId() {
+	if ann.Id == root.Id {
 		fmt.Println("Error: can't dial into self")
 		return
 	}

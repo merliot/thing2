@@ -10,16 +10,12 @@ import (
 var fs embed.FS
 
 type Hub struct {
-	*thing2.Device
 }
 
-var targets = []string{"x86-64", "rpi"}
-
-func New(id, name string) thing2.Devicer {
-	println("NEW HUB")
-	h := &Hub{
-		Device: thing2.NewDevice(id, "hub", name, fs, targets, thing2.PacketHandlers{}),
-	}
-	h.SetData(h)
-	return h
+func NewModel() thing2.Modeler {
+	return &Hub{}
 }
+
+func (h *Hub) GetModel() string     { return "hub" }
+func (h *Hub) GetFS() *embed.FS     { return &fs }
+func (h *Hub) GetTargets() []string { return []string{"demo", "x86-64", "rpi"} }

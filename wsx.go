@@ -26,8 +26,8 @@ func wsxServe(ws *websocket.Conn) {
 	}
 
 	sessionConn(sessionId, ws)
-	sessionDeviceSaveView(sessionId, rootDevicer.GetId(), "full")
-	sessionDeviceRender(sessionId, rootDevicer.GetId())
+	sessionDeviceSaveView(sessionId, root.Id, "full")
+	sessionDeviceRender(sessionId, root.Id)
 
 	var message string
 	for {

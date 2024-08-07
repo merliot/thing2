@@ -1,9 +1,19 @@
 package thing2
 
-type Maker func(id, name string) Devicer
+import "fmt"
 
-var Makers = make(map[string]Maker) // key: model, value: Maker
+type Maker func() Modeler
+type Makers []Maker
 
-func makerNew(id, model, name string) Devicer {
-	return Makers[model](id, name)
+var makers = make(map[string]Maker)
+
+func (m Makers) Register() {
+	for _, maker := range m {
+		model := maker().GetModel()
+		if _, exists := makers[model]; exists {
+			fmt.Println("Maker", model, "already registered, skipping")
+			continue
+		}
+		makers[model] = maker
+	}
 }

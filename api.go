@@ -46,12 +46,12 @@ func (d *Device) RHandleFunc(pattern string, handlerFunc http.HandlerFunc) {
 	}))
 }
 
-// Install /device/{id} pattern for device in default ServeMux
-func (d *Device) InstallDevice() {
+// deviceInstall installs /device/{id} pattern for device in default ServeMux
+func (d *Device) deviceInstall() {
 	prefix := "/device/" + d.Id
 	handler := basicAuthHandler(http.StripPrefix(prefix, d))
 	http.Handle(prefix+"/", handler)
-	fmt.Printf("InstallDevice %s\n", prefix)
+	fmt.Println("deviceInstall", prefix)
 }
 
 var modelPatterns = make(map[string]string)
@@ -73,7 +73,7 @@ func (d *Device) InstallModel() {
 }
 
 func (d *Device) API() {
-	d.RHandle("/", http.FileServer(http.FS(d.LayeredFS)))
+	d.RHandle("/", http.FileServer(http.FS(d.layeredFS)))
 	d.RHandle("/{$}", d.showIndex())
 	d.RHandle("/keepalive", d.keepAlive())
 	d.RHandle("/full", d.showFull())
@@ -121,7 +121,7 @@ func (d *Device) showIndex() http.Handler {
 		d.renderPage(w, "index.tmpl", pageVars{
 			"view":      "full",
 			"sessionId": sessionId,
-			"models":    Makers,
+			//"models":    Makers,
 		})
 	})
 }
@@ -168,7 +168,7 @@ func (d *Device) showState() http.Handler {
 func (d *Device) showCode() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Retrieve top-level entries
-		entries, _ := fs.ReadDir(d.LayeredFS, ".")
+		entries, _ := fs.ReadDir(d.layeredFS, ".")
 		// Collect entry names
 		names := make([]string, 0, len(entries))
 		for _, entry := range entries {

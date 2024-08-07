@@ -8,18 +8,18 @@ import (
 	"io/ioutil"
 )
 
-// LayeredFS is a layered fs, built up from individual file systems
-type LayeredFS struct {
+// layeredFS is a layered fs, built up from individual file systems
+type layeredFS struct {
 	layers []fs.ReadFileFS
 }
 
 // Stack adds fs to the layered fs.  Order matters: first added is lowest
 // in priority when searching for a file name in the layered fs.
-func (lfs *LayeredFS) Stack(fsys fs.ReadFileFS) {
+func (lfs *layeredFS) stack(fsys fs.ReadFileFS) {
 	lfs.layers = append(lfs.layers, fsys)
 }
 
-func (lfs LayeredFS) newest(name string) (fs.File, error) {
+func (lfs layeredFS) newest(name string) (fs.File, error) {
 
 	// Start with newest (last added) FS, giving newer FSes priority over
 	// older FSes when searching for file name.  The first FS with a
@@ -36,12 +36,12 @@ func (lfs LayeredFS) newest(name string) (fs.File, error) {
 }
 
 // Open a file by name
-func (lfs LayeredFS) Open(name string) (fs.File, error) {
+func (lfs layeredFS) Open(name string) (fs.File, error) {
 	return lfs.newest(name)
 }
 
-// Read a file
-func (lfs LayeredFS) ReadFile(name string) ([]byte, error) {
+// readFile reads a file as []byte
+func (lfs layeredFS) readFile(name string) ([]byte, error) {
 	file, err := lfs.newest(name)
 	if err != nil {
 		return nil, err
@@ -50,9 +50,9 @@ func (lfs LayeredFS) ReadFile(name string) ([]byte, error) {
 	return ioutil.ReadAll(file)
 }
 
-// ParseFS returns a template by parsing the layered file system for the
+// parseFS returns a template by parsing the layered file system for the
 // template name matching the pattern name
-func (lfs LayeredFS) ParseFS(pattern string) *template.Template {
+func (lfs layeredFS) parseFS(pattern string) *template.Template {
 
 	// Iterate from oldest (first added) FS to newest FS, building a "main"
 	// template with pattern matching templates from each FS.  The winner

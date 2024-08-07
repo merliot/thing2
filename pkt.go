@@ -67,10 +67,12 @@ func (p *Packet) SetPath(path string) *Packet {
 }
 
 func (p *Packet) RouteDown() {
-	routesMu.RLock()
-	nexthop := routes[p.Dst]
-	routesMu.RUnlock()
-	deviceRouteDown(nexthop, p)
+	/*
+		routesMu.RLock()
+		nexthop := routes[p.Dst]
+		routesMu.RUnlock()
+		deviceRouteDown(nexthop, p)
+	*/
 }
 
 func (p *Packet) RouteUp() {

@@ -7,7 +7,7 @@ import (
 )
 
 func (d Device) modulePath() string {
-	data, err := d.LayeredFS.ReadFile("go.mod")
+	data, err := d.layeredFS.readFile("go.mod")
 	if err != nil {
 		return ""
 	}
