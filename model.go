@@ -8,9 +8,9 @@ import (
 
 type Modeler interface {
 	GetModel() string
+	GetState() any
 	GetFS() *embed.FS
 	GetTargets() []string
-	GetData() any
 }
 
 // modelInstall installs /model/{model} pattern for device in default ServeMux
@@ -25,10 +25,8 @@ func (d *Device) modelInstall() {
 // models
 func modelsInstall() {
 	for model, maker := range makers {
-		var proto = &Device{
-			Model:   model,
-			Modeler: maker(),
-		}
+		var proto = &Device{Model: model}
+		proto.build(maker)
 		proto.modelInstall()
 	}
 }

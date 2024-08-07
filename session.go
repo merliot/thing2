@@ -38,7 +38,7 @@ func _newSession(sessionId string, conn *websocket.Conn) *session {
 }
 
 func newSession() string {
-	// TODO check and limit size of sessions
+	// TODO check and limit number of sessions
 
 	sessionsMu.Lock()
 	defer sessionsMu.Unlock()

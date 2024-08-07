@@ -99,7 +99,7 @@ func wsClient(conn *websocket.Conn) {
 			Path: "/state",
 		}
 		d.RLock()
-		pkt.Marshal(d.GetData())
+		pkt.Marshal(d.GetState())
 		d.RUnlock()
 		link.Send(pkt)
 	}

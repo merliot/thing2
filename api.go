@@ -98,13 +98,15 @@ type pageVars map[string]any
 
 type pageData struct {
 	Vars   pageVars
-	Device any
+	Device *Device
+	State  any
 }
 
 func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
 	return d.renderTemplate(w, name, &pageData{
 		Vars:   pageVars,
-		Device: d.GetData(),
+		Device: d,
+		State:  d.GetState(),
 	})
 }
 
@@ -121,7 +123,7 @@ func (d *Device) showIndex() http.Handler {
 		d.renderPage(w, "index.tmpl", pageVars{
 			"view":      "full",
 			"sessionId": sessionId,
-			//"models":    Makers,
+			"models":    makers,
 		})
 	})
 }
@@ -160,7 +162,7 @@ func (d *Device) showInfo() http.Handler {
 
 func (d *Device) showState() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		state, _ := json.MarshalIndent(d.GetData(), "", "\t")
+		state, _ := json.MarshalIndent(d.GetState(), "", "\t")
 		d.renderTemplate(w, "state.tmpl", string(state))
 	})
 }

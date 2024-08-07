@@ -46,6 +46,25 @@ type Device struct {
 var devices = make(map[string]*Device)
 var devicesMu sync.RWMutex
 
+func (d *Device) build(maker Maker) {
+	d.Modeler = maker()
+	d.Online = false
+	d.ServeMux = http.NewServeMux()
+	d.Targets = target.MakeTargets(d.GetTargets())
+
+	// Build device's layered FS.  fs is stacked on top of
+	// deviceFs, so fs:foo.tmpl will override deviceFs:foo.tmpl,
+	// when searching for file foo.tmpl.
+	d.layeredFS.stack(deviceFs)
+	d.layeredFS.stack(d.GetFS())
+
+	// Build the device templates
+	d.templates = d.layeredFS.parseFS("template/*.tmpl")
+
+	// All devices have a base device API
+	d.API()
+}
+
 func devicesMake() {
 
 	devicesMu.Lock()
@@ -64,23 +83,7 @@ func devicesMake() {
 			delete(devices, id)
 			continue
 		}
-
-		device.Modeler = maker()
-		device.Online = false
-		device.ServeMux = http.NewServeMux()
-		device.Targets = target.MakeTargets(device.GetTargets())
-
-		// Build device's layered FS.  fs is stacked on top of
-		// deviceFs, so fs:foo.tmpl will override deviceFs:foo.tmpl,
-		// when searching for file foo.tmpl.
-		device.layeredFS.stack(deviceFs)
-		device.layeredFS.stack(device.GetFS())
-
-		// Build the device templates
-		device.templates = device.layeredFS.parseFS("template/*.tmpl")
-
-		// All devices have a base device API
-		device.API()
+		device.build(maker)
 	}
 }
 
@@ -298,5 +301,5 @@ func deviceCheck(id, model, name string) error {
 
 func (d *Device) saveState(pkt *Packet) {
 	// TODO check pkt Model and Name match device
-	pkt.Unmarshal(d.GetData()).RouteUp()
+	pkt.Unmarshal(d.GetState()).RouteUp()
 }

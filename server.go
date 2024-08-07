@@ -23,7 +23,7 @@ func Run() {
 
 	devicesMake()
 
-	root, err := devicesFindRoot()
+	root, err = devicesFindRoot()
 	if err != nil {
 		fmt.Println("Error finding root device:", err)
 		return
