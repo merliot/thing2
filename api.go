@@ -104,7 +104,7 @@ type pageData struct {
 func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
 	return d.renderTemplate(w, name, &pageData{
 		Vars:   pageVars,
-		Device: d.data,
+		Device: d.GetData(),
 	})
 }
 
@@ -117,7 +117,7 @@ func (d *Device) TemplateShow(name string) http.Handler {
 func (d *Device) showIndex() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionId := newSession()
-		sessionDeviceSaveView(sessionId, d.GetId(), "full")
+		sessionDeviceSaveView(sessionId, d.Id, "full")
 		d.renderPage(w, "index.tmpl", pageVars{
 			"view":      "full",
 			"sessionId": sessionId,
@@ -142,7 +142,7 @@ func (d *Device) _showFull(w io.Writer) error {
 func (d *Device) showFull() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionId := r.Header.Get("session-id")
-		sessionDeviceSaveView(sessionId, d.GetId(), "full")
+		sessionDeviceSaveView(sessionId, d.Id, "full")
 		if err := d._showFull(w); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
@@ -160,7 +160,7 @@ func (d *Device) showInfo() http.Handler {
 
 func (d *Device) showState() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		state, _ := json.MarshalIndent(d.data, "", "\t")
+		state, _ := json.MarshalIndent(d.GetData(), "", "\t")
 		d.renderTemplate(w, "state.tmpl", string(state))
 	})
 }

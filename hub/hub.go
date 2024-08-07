@@ -19,3 +19,4 @@ func NewModel() thing2.Modeler {
 func (h *Hub) GetModel() string     { return "hub" }
 func (h *Hub) GetFS() *embed.FS     { return &fs }
 func (h *Hub) GetTargets() []string { return []string{"demo", "x86-64", "rpi"} }
+func (h *Hub) GetData() any         { return h }

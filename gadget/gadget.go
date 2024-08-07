@@ -20,6 +20,7 @@ type Update struct {
 func (g *Gadget) GetModel() string     { return "gadget" }
 func (g *Gadget) GetFS() *embed.FS     { return &fs }
 func (g *Gadget) GetTargets() []string { return []string{"demo", "x86-64", "nano-rp2040"} }
+func (g *Gadget) GetData() any         { return g }
 
 func NewModel() thing2.Modeler {
 	return &Gadget{}

@@ -10,6 +10,7 @@ type Modeler interface {
 	GetModel() string
 	GetFS() *embed.FS
 	GetTargets() []string
+	GetData() any
 }
 
 // modelInstall installs /model/{model} pattern for device in default ServeMux

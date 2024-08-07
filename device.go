@@ -17,29 +17,26 @@ import (
 //go:embed css images js template favicon.ico
 var deviceFs embed.FS
 
-type Children []string
 type WifiAuth map[string]string // key: ssid; value: passphrase
 
 type Device struct {
-	Id      string
-	Model   string
-	Name    string
-	Online  bool
-	nexthop *Device
-	Children
+	Id             string
+	Model          string
+	Name           string
+	Online         bool
+	nexthop        *Device
+	Children       []string
 	Modeler        `json:"-"`
 	*http.ServeMux `json:"-"`
 
-	handlers PacketHandlers
+	//handlers PacketHandlers
 	layeredFS
 	// WifiAuth is a map of SSID:PASSPHRASE pairs
 	WifiAuth `json:"-"`
 	// DeployParams is device deploy configuration in an html param format
 	DeployParams string
 	// Administratively locked
-	Locked bool `json:"-"`
-	// Data passed to render templates
-	data         any
+	Locked       bool `json:"-"`
 	templates    *template.Template
 	sync.RWMutex `json:"-"`
 	// Targets supported by device
@@ -155,51 +152,6 @@ func devicesBuildRoutes(root *Device) {
 	fmt.Printf("%#v\n", devices)
 }
 
-func NewDevice(id, model, name string, fs embed.FS, targets []string,
-	handlers PacketHandlers) *Device {
-	println("NEW DEVICE", id, model, name)
-
-	d := &Device{
-		Id:       id,
-		Model:    model,
-		Name:     name,
-		ServeMux: http.NewServeMux(),
-		Targets:  target.MakeTargets(targets),
-		WifiAuth: make(WifiAuth),
-		handlers: handlers,
-	}
-	d.data = d
-
-	// Add common device handlers
-	d.handlers["/state"] = d.saveState
-
-	// Build device's layered FS.  fs is stacked on top of deviceFs, so
-	// fs:foo.tmpl will override deviceFs:foo.tmpl, when searching for file
-	// foo.tmpl.
-	d.layeredFS.stack(deviceFs)
-	d.layeredFS.stack(fs)
-
-	// Build the device templates
-	d.templates = d.layeredFS.parseFS("template/*.tmpl")
-
-	// All devices inherit this base device API
-	d.API()
-
-	// Add device to map of devices
-	devicesMu.Lock()
-	devices[id] = d
-	devicesMu.Unlock()
-
-	return d
-}
-
-func (d Device) GetId() string          { return d.Id }
-func (d Device) GetModel() string       { return d.Model }
-func (d Device) GetName() string        { return d.Name }
-func (d *Device) GetChildren() Children { return d.Children }
-func (d *Device) SetData(data any)      { d.data = data }
-func (d *Device) String() string        { return d.Id + ":" + d.Model + ":" + d.Name }
-
 func (d *Device) addChild(child *Device) error {
 
 	d.Lock()
@@ -210,8 +162,6 @@ func (d *Device) addChild(child *Device) error {
 	}
 
 	d.Children = append(d.Children, child.Id)
-
-	// Install the /device/{id} pattern for child
 	child.deviceInstall()
 
 	return nil
@@ -241,10 +191,12 @@ func deviceNotFound(id string) error {
 func (d *Device) handle(pkt *Packet) {
 	d.Lock()
 	defer d.Unlock()
-	if h, ok := d.handlers[pkt.Path]; ok {
-		println("handling", pkt.Path)
-		h(pkt)
-	}
+	/*
+		if h, ok := d.handlers[pkt.Path]; ok {
+			println("handling", pkt.Path)
+			h(pkt)
+		}
+	*/
 }
 
 func (d *Device) routeDown(pkt *Packet) {
@@ -346,5 +298,5 @@ func deviceCheck(id, model, name string) error {
 
 func (d *Device) saveState(pkt *Packet) {
 	// TODO check pkt Model and Name match device
-	pkt.Unmarshal(d.data).RouteUp()
+	pkt.Unmarshal(d.GetData()).RouteUp()
 }
