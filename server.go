@@ -31,7 +31,7 @@ func Run() {
 	fmt.Println("root", root.Name)
 
 	// Build route table from root's perpective
-	devicesBuildRoutes(root)
+	routesBuild()
 
 	// Dial parents
 	dialParents()

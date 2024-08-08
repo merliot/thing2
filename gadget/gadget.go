@@ -29,7 +29,7 @@ func (g *Gadget) GetTargets() []string { return []string{"demo", "x86-64", "nano
 func (g *Gadget) GetHandlers() thing2.Handlers {
 	return thing2.Handlers{
 		"/takeone": {nil, g.takeone},
-		"/tookone": {Update{}, g.tookone},
+		"/tookone": {&Update{}, g.tookone},
 	}
 }
 

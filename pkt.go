@@ -35,7 +35,9 @@ func NewPacketFromURL(url *url.URL, v any) (*Packet, error) {
 }
 
 func (p *Packet) String() string {
-	return fmt.Sprintf("%#v", p)
+	var msg any
+	json.Unmarshal(p.Msg, &msg)
+	return fmt.Sprintf("[%s%s] %v", p.Dst, p.Path, msg)
 }
 
 // Marshal the packet message payload as JSON from v
@@ -67,16 +69,15 @@ func (p *Packet) SetPath(path string) *Packet {
 }
 
 func (p *Packet) RouteDown() {
-	/*
-		routesMu.RLock()
-		nexthop := routes[p.Dst]
-		routesMu.RUnlock()
-		deviceRouteDown(nexthop, p)
-	*/
+	fmt.Println("RouteDown", p.String())
+	routesMu.RLock()
+	nexthop := routes[p.Dst]
+	routesMu.RUnlock()
+	deviceRouteDown(nexthop, p)
 }
 
 func (p *Packet) RouteUp() {
-	println("RouteUp", p.String())
+	fmt.Println("RouteUp", p.String())
 	sessionsRoute(p.Dst)
 	uplinksRoute(p)
 }

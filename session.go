@@ -45,7 +45,6 @@ func newSession() string {
 
 	sessionId := uuid.New().String()
 	sessions[sessionId] = _newSession(sessionId, nil)
-	println("newSession", sessionId)
 	return sessionId
 }
 
@@ -59,7 +58,6 @@ func sessionConn(sessionId string, conn *websocket.Conn) {
 	defer sessionsMu.Unlock()
 
 	if session, ok := sessions[sessionId]; ok {
-		println("sessionConn", sessionId, conn)
 		session.conn = conn
 		session.LastUpdate = time.Now()
 	} else {
@@ -73,7 +71,6 @@ func sessionUpdate(sessionId string) {
 	defer sessionsMu.Unlock()
 
 	if session, ok := sessions[sessionId]; ok {
-		println("sessionUpdate", sessionId)
 		session.LastUpdate = time.Now()
 	} else {
 		sessions[sessionId] = _newSession(sessionId, nil)
@@ -86,7 +83,6 @@ func sessionDeviceSaveView(sessionId, deviceId, view string) {
 	defer sessionsMu.Unlock()
 
 	if session, ok := sessions[sessionId]; ok {
-		println("sessionDeviceView", sessionId, deviceId, view)
 		session.LastUpdate = time.Now()
 		session.LastView[deviceId] = view
 	}
@@ -95,7 +91,6 @@ func sessionDeviceSaveView(sessionId, deviceId, view string) {
 func (s session) _render(deviceId, view string) {
 	var buf bytes.Buffer
 	if err := _deviceRender(deviceId, view, &buf); err != nil {
-		println("session.render error", err.Error())
 		return
 	}
 	websocket.Message.Send(s.conn, string(buf.Bytes()))
@@ -104,7 +99,6 @@ func (s session) _render(deviceId, view string) {
 func (s session) render(deviceId, view string) {
 	var buf bytes.Buffer
 	if err := deviceRender(deviceId, view, &buf); err != nil {
-		println("session.render error", err.Error())
 		return
 	}
 	websocket.Message.Send(s.conn, string(buf.Bytes()))
@@ -127,18 +121,14 @@ func sessionDeviceRender(sessionId, deviceId string) {
 
 func sessionsRoute(deviceId string) {
 
-	println("sessionsRoute", deviceId)
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
 
-	for sessionId, session := range sessions {
-		println("sessionsRoute", sessionId)
+	for _, session := range sessions {
 		if session.conn == nil {
-			println("sessionsRoute", sessionId, "skipping")
 			continue
 		}
 		if view, ok := session.LastView[deviceId]; ok {
-			println("sessionsRoute", sessionId, "render", deviceId, view)
 			session._render(deviceId, view)
 		}
 
@@ -156,12 +146,9 @@ func gcSessions() {
 	ticker := time.NewTicker(dur)
 	defer ticker.Stop()
 	for range ticker.C {
-		println("gcSessions ticked")
 		sessionsMu.Lock()
 		for sessionId, session := range sessions {
-			println("gcSessions considering", sessionId)
 			if time.Since(session.LastUpdate) > dur {
-				println("gcSessions", sessionId)
 				delete(sessions, sessionId)
 			}
 		}

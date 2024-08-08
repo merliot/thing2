@@ -21,7 +21,6 @@ type Device struct {
 	Model          string
 	Name           string
 	Online         bool
-	nexthop        *Device
 	Children       []string
 	Modeler        `json:"-"`
 	Handlers       `json:"-"`
@@ -67,10 +66,6 @@ func (d *Device) build(maker Maker) {
 }
 
 func devicesMake() {
-
-	devicesMu.Lock()
-	defer devicesMu.Unlock()
-
 	for id, device := range devices {
 		if id != device.Id {
 			fmt.Println("Id", id, "mismatch, skipping device Id", device.Id)
@@ -91,9 +86,6 @@ func devicesMake() {
 // devicesFindRoot returns the root *Device if there is exactly one tree
 // defined by the devices map, otherwise nil.
 func devicesFindRoot() (*Device, error) {
-
-	devicesMu.RLock()
-	defer devicesMu.RUnlock()
 
 	// Create a map to track all devices that are children
 	childSet := make(map[string]bool)
@@ -129,33 +121,6 @@ func devicesFindRoot() (*Device, error) {
 	return nil, fmt.Errorf("No tree found in devices")
 }
 
-func _buildChildRoutes(parent, base *Device) {
-	for _, childId := range parent.Children {
-		child := devices[childId]
-		// children point to base
-		child.nexthop = base
-		_buildChildRoutes(child, base)
-	}
-}
-
-func devicesBuildRoutes(root *Device) {
-
-	devicesMu.Lock()
-	defer devicesMu.Unlock()
-
-	// root points to self
-	root.nexthop = root
-
-	for _, childId := range root.Children {
-		child := devices[childId]
-		// children of root point to self
-		child.nexthop = child
-		_buildChildRoutes(child, child)
-	}
-
-	fmt.Printf("%#v\n", devices)
-}
-
 func (d *Device) addChild(child *Device) error {
 
 	d.Lock()
@@ -183,13 +148,12 @@ func (d *Device) handle(pkt *Packet) {
 	d.Lock()
 	defer d.Unlock()
 	if handler, ok := d.Handlers[pkt.Path]; ok {
-		println("handling", pkt.Path)
+		fmt.Println("Handling", pkt.String())
 		handler.Callback(pkt)
 	}
 }
 
 func (d *Device) routeDown(pkt *Packet) {
-	fmt.Println("routeDown", d, pkt)
 	if pkt.Dst == d.Id {
 		d.handle(pkt)
 		return
