@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"strings"
 	"sync"
 
 	"github.com/merliot/thing2/target"
@@ -16,8 +15,6 @@ import (
 
 //go:embed css images js template favicon.ico
 var deviceFs embed.FS
-
-type WifiAuth map[string]string // key: ssid; value: passphrase
 
 type Device struct {
 	Id             string
@@ -34,8 +31,6 @@ type Device struct {
 
 	//handlers PacketHandlers
 	layeredFS
-	// WifiAuth is a map of SSID:PASSPHRASE pairs
-	WifiAuth `json:"-"`
 	// DeployParams is device deploy configuration in an html param format
 	DeployParams string
 	// Administratively locked
@@ -178,19 +173,6 @@ func (d *Device) addChild(child *Device) error {
 
 func (d *Device) SetDeployParams(params string) {
 	d.DeployParams = html.UnescapeString(params)
-}
-
-func (d *Device) SetWifiAuth(ssids, passphrases string) {
-	if ssids == "" {
-		return
-	}
-	keys := strings.Split(ssids, ",")
-	values := strings.Split(passphrases, ",")
-	for i, key := range keys {
-		if i < len(values) {
-			d.WifiAuth[key] = values[i]
-		}
-	}
 }
 
 func deviceNotFound(id string) error {

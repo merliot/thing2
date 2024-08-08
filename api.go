@@ -226,7 +226,7 @@ func (d *Device) showDownloadTarget() http.Handler {
 		target := d.currentTarget(r.URL.Query())
 		d.renderPage(w, "device-download-target.tmpl", pageVars{
 			"linuxTarget": linuxTarget(target),
-			"missingWifi": len(d.WifiAuth) == 0,
+			"missingWifi": len(wifiAuths) == 0,
 			"ssid":        firstValue(values, "ssid"),
 			"port":        firstValue(values, "port"),
 		})
