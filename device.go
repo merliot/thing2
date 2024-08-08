@@ -27,7 +27,10 @@ type Device struct {
 	nexthop        *Device
 	Children       []string
 	Modeler        `json:"-"`
+	Handlers       `json:"-"`
+	templates      *template.Template
 	*http.ServeMux `json:"-"`
+	sync.RWMutex   `json:"-"`
 
 	//handlers PacketHandlers
 	layeredFS
@@ -36,9 +39,7 @@ type Device struct {
 	// DeployParams is device deploy configuration in an html param format
 	DeployParams string
 	// Administratively locked
-	Locked       bool `json:"-"`
-	templates    *template.Template
-	sync.RWMutex `json:"-"`
+	Locked bool `json:"-"`
 	// Targets supported by device
 	target.Targets `json:"-"`
 }
@@ -47,6 +48,7 @@ var devices = make(map[string]*Device)
 var devicesMu sync.RWMutex
 
 func (d *Device) build(maker Maker) {
+
 	d.Modeler = maker()
 	d.Online = false
 	d.ServeMux = http.NewServeMux()
@@ -63,6 +65,10 @@ func (d *Device) build(maker Maker) {
 
 	// All devices have a base device API
 	d.API()
+
+	// Install the device-specific API handlers
+	d.Handlers = d.GetHandlers()
+	d.handlersInstall()
 }
 
 func devicesMake() {
@@ -194,12 +200,10 @@ func deviceNotFound(id string) error {
 func (d *Device) handle(pkt *Packet) {
 	d.Lock()
 	defer d.Unlock()
-	/*
-		if h, ok := d.handlers[pkt.Path]; ok {
-			println("handling", pkt.Path)
-			h(pkt)
-		}
-	*/
+	if handler, ok := d.Handlers[pkt.Path]; ok {
+		println("handling", pkt.Path)
+		handler.Callback(pkt)
+	}
 }
 
 func (d *Device) routeDown(pkt *Packet) {

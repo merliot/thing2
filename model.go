@@ -11,6 +11,7 @@ type Modeler interface {
 	GetState() any
 	GetFS() *embed.FS
 	GetTargets() []string
+	GetHandlers() Handlers
 }
 
 // modelInstall installs /model/{model} pattern for device in default ServeMux

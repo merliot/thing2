@@ -80,6 +80,3 @@ func (p *Packet) RouteUp() {
 	sessionsRoute(p.Dst)
 	uplinksRoute(p)
 }
-
-type PacketHandler func(pkt *Packet)
-type PacketHandlers map[string]PacketHandler // keyed by path
