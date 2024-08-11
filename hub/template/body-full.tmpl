@@ -1,0 +1,16 @@
+			<div class="flex flex-col bg-white h-full rounded-t-2xl">
+				<div class="flex flex-row justify-between items-center mx-6 my-5">
+					<div class="flex flex-row align-center cursor-pointer">
+						<span class="font-bold">Devices</span>
+					</div>
+				</div>
+				<div class="flex flex-wrap px-4">
+{{ range .Device.Children }}
+					<div class="cursor-pointer" hx-get="/device/{{$.Device.Id}}/detail?childId={{.}}">
+	{{ $.Device.RenderChildHTML $.Vars.sessionId . "tile" }}
+					</div>
+{{- else }}
+	{{- template "no-devices.tmpl" }}
+{{- end }}
+				</div>
+			</div>

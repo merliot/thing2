@@ -77,10 +77,7 @@ func sessionUpdate(sessionId string) {
 	}
 }
 
-func sessionDeviceSaveView(sessionId, deviceId, view string) {
-
-	sessionsMu.Lock()
-	defer sessionsMu.Unlock()
+func _sessionDeviceSaveView(sessionId, deviceId, view string) {
 
 	if session, ok := sessions[sessionId]; ok {
 		session.LastUpdate = time.Now()
@@ -88,9 +85,17 @@ func sessionDeviceSaveView(sessionId, deviceId, view string) {
 	}
 }
 
+func sessionDeviceSaveView(sessionId, deviceId, view string) {
+
+	sessionsMu.Lock()
+	defer sessionsMu.Unlock()
+
+	_sessionDeviceSaveView(sessionId, deviceId, view)
+}
+
 func (s session) _render(deviceId, view string) {
 	var buf bytes.Buffer
-	if err := _deviceRender(deviceId, view, &buf); err != nil {
+	if err := _deviceRender(s.sessionId, deviceId, view, &buf); err != nil {
 		return
 	}
 	websocket.Message.Send(s.conn, string(buf.Bytes()))
@@ -98,7 +103,7 @@ func (s session) _render(deviceId, view string) {
 
 func (s session) render(deviceId, view string) {
 	var buf bytes.Buffer
-	if err := deviceRender(deviceId, view, &buf); err != nil {
+	if err := deviceRender(s.sessionId, deviceId, view, &buf); err != nil {
 		return
 	}
 	websocket.Message.Send(s.conn, string(buf.Bytes()))

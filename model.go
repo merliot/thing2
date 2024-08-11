@@ -6,6 +6,13 @@ import (
 	"net/http"
 )
 
+type ModelSpec struct {
+	Package string
+	Maker   string
+}
+
+type ModelSpecs []ModelSpec
+
 type Modeler interface {
 	GetModel() string
 	GetState() any
@@ -22,8 +29,6 @@ func (d *Device) modelInstall() {
 	fmt.Println("modelInstall", prefix)
 }
 
-// modelInstall installs /model/{model} patterns in default ServeMux for all
-// models
 func modelsInstall() {
 	for model, maker := range makers {
 		var proto = &Device{Model: model}

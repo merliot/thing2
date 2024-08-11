@@ -28,7 +28,6 @@ func Run() {
 		fmt.Println("Error finding root device:", err)
 		return
 	}
-	fmt.Println("root", root.Name)
 
 	// Build route table from root's perpective
 	routesBuild()
@@ -44,11 +43,11 @@ func Run() {
 	// Install /model/{model} patterns for makers
 	modelsInstall()
 
+	// Install the /device/{id} pattern for devices
+	devicesInstall()
+
 	// Install / to point to root device
 	http.Handle("/", basicAuthHandler(root))
-
-	// Install the /device/{id} pattern for root device
-	root.deviceInstall()
 
 	// Install /ws websocket listener
 	http.HandleFunc("/ws", basicAuthHandlerFunc(ws))

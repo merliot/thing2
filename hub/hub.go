@@ -6,10 +6,11 @@ import (
 	"github.com/merliot/thing2"
 )
 
-//go:embed template
+//go:embed css images template
 var fs embed.FS
 
 type Hub struct {
+	Demo bool `json:"-"`
 }
 
 func NewModel() thing2.Modeler {

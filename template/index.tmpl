@@ -12,10 +12,10 @@
 		<script src="js/htmx-ext-ws.js"></script>
 	</head>
 
-	<body class="offline model-{{.Device.Model}}"
+	<body class="offline"
 		hx-headers='{"session-id": "{{.Vars.sessionId}}"}'
 		hx-put="/keepalive"
-		hx-trigger="every 10s"
+		hx-trigger="every 30s"
 		hx-swap="none"
 		hx-ext="ws"
 		ws-connect="/wsx?session-id={{.Vars.sessionId}}">

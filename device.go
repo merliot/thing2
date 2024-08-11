@@ -28,7 +28,6 @@ type Device struct {
 	*http.ServeMux `json:"-"`
 	sync.RWMutex   `json:"-"`
 
-	//handlers PacketHandlers
 	layeredFS
 	// DeployParams is device deploy configuration in an html param format
 	DeployParams string
@@ -177,30 +176,32 @@ func deviceRouteUp(id string, pkt *Packet) {
 	}
 }
 
-func (d *Device) render(w io.Writer, view string) error {
+func (d *Device) _render(sessionId string, w io.Writer, view string) error {
 	switch view {
 	case "full":
-		return d._showFull(w)
+		return d._showFull(sessionId, w)
+	case "tile":
+		return d._showTile(sessionId, w)
 	}
 	return nil
 }
 
-func _deviceRender(id, view string, w io.Writer) error {
+func _deviceRender(sessionId string, id, view string, w io.Writer) error {
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
 	if d, ok := devices[id]; ok {
-		return d.render(w, view)
+		return d._render(sessionId, w, view)
 	}
 	return deviceNotFound(id)
 }
 
-func deviceRender(id, view string, w io.Writer) error {
+func deviceRender(sessionId, id, view string, w io.Writer) error {
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
 	if d, ok := devices[id]; ok {
 		d.RLock()
 		defer d.RUnlock()
-		return d.render(w, view)
+		return d._render(sessionId, w, view)
 	}
 	return deviceNotFound(id)
 }

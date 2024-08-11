@@ -2,9 +2,5 @@
 			hx-target="this"
 			hx-swap="outerHTML">
 {{ template "device-header.tmpl" .}}
-{{- if ne .Device.DeployParams ""}}
-	{{- template "body-full.tmpl" .}}
-{{- else}}
-	{{- template "device-undefined.tmpl" .}}
-{{- end}}
+{{ template "body-detail.tmpl" .}}
 		</div>

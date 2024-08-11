@@ -33,7 +33,7 @@ html,
 body {
   margin: 0;
   line-height: inherit;
-  background-color: #f4f4f4;
+  background-color: lightgrey;
   max-width: 600px;
 }
 
@@ -404,6 +404,10 @@ video {
   flex-direction: column;
 }
 
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
 .table {
   display: table;
 }
@@ -416,12 +420,28 @@ video {
   display: none;
 }
 
+.h-5 {
+  height: 1.25rem;
+}
+
 .h-10 {
   height: 2.5rem;
 }
 
+.h-36 {
+  height: 9rem;
+}
+
 .h-52 {
   height: 13rem;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.w-5 {
+  width: 1.25rem;
 }
 
 .w-10 {
@@ -430,6 +450,10 @@ video {
 
 .w-16 {
   width: 4rem;
+}
+
+.w-36 {
+  width: 9rem;
 }
 
 .w-full {
@@ -468,8 +492,21 @@ video {
   justify-content: space-evenly;
 }
 
+.rounded-lg	{
+  border-radius: 0.5rem;
+}
+
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+
 .rounded-2xl {
   border-radius: 1rem;
+}
+
+.rounded-t-2xl {
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
 }
 
 .border {
@@ -492,8 +529,21 @@ video {
   border-color: rgb(239 68 68 / 1);
 }
 
+.border-gray-300 {
+  border-color: rgb(209 213 219);
+}
+
+.border-gray-400 {
+  border-color: rgb(156 163 175);
+}
+
 .p-4 {
   padding: 1rem;
+}
+
+.px-0 {
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 .px-2 {
@@ -506,6 +556,11 @@ video {
   padding-right: 0.625rem;
 }
 
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
 .px-5 {
   padding-left: 1.25rem;
   padding-right: 1.25rem;
@@ -516,9 +571,56 @@ video {
   padding-bottom: 0.25rem;
 }
 
+.py-4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.pr-2\.5 {
+  padding-right: 0.625rem;
+}
+
+.m-0 {
+  margin: 0px;
+}
+
+.m-2\.5 {
+  margin: 0.625rem;
+}
+
+.mx-3 {
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
+}
+
+.mx-4 {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
 .mx-5 {
   margin-left: 1.25rem;
   margin-right: 1.25rem;
+}
+
+.mx-6 {
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
+}
+
+.mx-8 {
+  margin-left: 2rem;
+  margin-right: 2rem;
+}
+
+.my-4 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.my-5 {
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .my-0 {
@@ -577,6 +679,30 @@ video {
   text-decoration-line: none;
 }
 
+.bg-slate-100	{
+  background-color: rgb(241 245 249);
+}
+
+.bg-gray-100 {
+  background-color: rgb(243 244 246);
+}
+
+.bg-gray-300 {
+  background-color: rgb(209 213 219);
+}
+
+.bg-white {
+  background-color: rgb(255 255 255);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
 /*
 .panel {
   @apply flex bg-white rounded-lg shadow-xl box-border p-5 m-0 mx-4 my-4;
@@ -608,7 +734,7 @@ video {
   cursor: pointer;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   line-height: 1.75rem;
   color: currentColor;
   text-decoration-line: none;

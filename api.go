@@ -3,32 +3,17 @@
 package thing2
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"io/fs"
+	"log"
 	"net/http"
 	"net/url"
-	"sync"
+	"runtime"
 )
-
-/*
-func (d *Device) Handle(pattern string, handler http.Handler) {
-	d.ServeMux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.Lock()
-		defer d.Unlock()
-		handler.ServeHTTP(w, r)
-	}))
-}
-
-func (d *Device) HandleFunc(pattern string, handlerFunc http.HandlerFunc) {
-	d.ServeMux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.Lock()
-		defer d.Unlock()
-		handlerFunc(w, r)
-	}))
-}
-*/
 
 func (d *Device) RHandle(pattern string, handler http.Handler) {
 	d.ServeMux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +31,7 @@ func (d *Device) RHandleFunc(pattern string, handlerFunc http.HandlerFunc) {
 	}))
 }
 
-// deviceInstall installs /device/{id} pattern for device in default ServeMux
+// install installs /device/{id} pattern for device in default ServeMux
 func (d *Device) deviceInstall() {
 	prefix := "/device/" + d.Id
 	handler := basicAuthHandler(http.StripPrefix(prefix, d))
@@ -54,22 +39,12 @@ func (d *Device) deviceInstall() {
 	fmt.Println("deviceInstall", prefix)
 }
 
-var modelPatterns = make(map[string]string)
-var modelPatternsMu sync.RWMutex
-
-// Install /model/{model} pattern for device in default ServeMux
-func (d *Device) InstallModel() {
-	modelPatternsMu.Lock()
-	defer modelPatternsMu.Unlock()
-	// But only if it doesn't already exist
-	if _, exists := modelPatterns[d.Model]; exists {
-		return
+func devicesInstall() {
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+	for _, device := range devices {
+		device.deviceInstall()
 	}
-	prefix := "/model/" + d.Model
-	handler := basicAuthHandler(http.StripPrefix(prefix, d))
-	http.Handle(prefix+"/", handler)
-	modelPatterns[d.Model] = prefix
-	fmt.Printf("InstallModel %s\n", prefix)
 }
 
 func (d *Device) API() {
@@ -77,6 +52,8 @@ func (d *Device) API() {
 	d.RHandle("/{$}", d.showIndex())
 	d.RHandle("/keepalive", d.keepAlive())
 	d.RHandle("/full", d.showFull())
+	d.RHandle("/tile", d.showTile())
+	d.RHandle("/detail", d.showDetail())
 	d.RHandle("/info", d.showInfo())
 	d.RHandle("/state", d.showState())
 	d.RHandle("/code", d.showCode())
@@ -110,10 +87,40 @@ func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
 	})
 }
 
-func (d *Device) TemplateShow(name string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		d.renderPage(w, name, pageVars{})
-	})
+func dumpStackTrace() {
+	buf := make([]byte, 1024)
+	for {
+		n := runtime.Stack(buf, true)
+		if n < len(buf) {
+			buf = buf[:n]
+			break
+		}
+		buf = make([]byte, 2*len(buf))
+	}
+	log.Printf("Stack trace:\n%s", buf)
+}
+
+func (d *Device) RenderChildHTML(sessionId, childId, view string) (template.HTML, error) {
+
+	println("RenderChildHTML", sessionId, childId, view)
+	//dumpStackTrace()
+
+	child, ok := devices[childId]
+	if !ok {
+		return template.HTML(""), deviceNotFound(childId)
+	}
+
+	_sessionDeviceSaveView(sessionId, childId, view)
+
+	child.RLock()
+	defer child.RUnlock()
+
+	var buf bytes.Buffer
+	if err := child._render(sessionId, &buf, view); err != nil {
+		return template.HTML(""), err
+	}
+
+	return template.HTML(buf.String()), nil
 }
 
 func (d *Device) showIndex() http.Handler {
@@ -121,8 +128,8 @@ func (d *Device) showIndex() http.Handler {
 		sessionId := newSession()
 		sessionDeviceSaveView(sessionId, d.Id, "full")
 		d.renderPage(w, "index.tmpl", pageVars{
-			"view":      "full",
 			"sessionId": sessionId,
+			"view":      "full",
 			"models":    makers,
 		})
 	})
@@ -135,9 +142,10 @@ func (d *Device) keepAlive() http.Handler {
 	})
 }
 
-func (d *Device) _showFull(w io.Writer) error {
+func (d *Device) _showFull(sessionId string, w io.Writer) error {
 	return d.renderPage(w, "device-full.tmpl", pageVars{
-		"view": "full",
+		"sessionId": sessionId,
+		"view":      "full",
 	})
 }
 
@@ -145,7 +153,43 @@ func (d *Device) showFull() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionId := r.Header.Get("session-id")
 		sessionDeviceSaveView(sessionId, d.Id, "full")
-		if err := d._showFull(w); err != nil {
+		if err := d._showFull(sessionId, w); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+	})
+}
+
+func (d *Device) _showTile(sessionId string, w io.Writer) error {
+	return d.renderPage(w, "device-tile.tmpl", pageVars{
+		"sessionId": sessionId,
+		"view":      "tile",
+	})
+}
+
+func (d *Device) showTile() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionId := r.Header.Get("session-id")
+		sessionDeviceSaveView(sessionId, d.Id, "tile")
+		if err := d._showTile(sessionId, w); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+	})
+}
+
+func (d *Device) _showDetail(sessionId, childId string, w io.Writer) error {
+	return d.renderPage(w, "device-full-detail.tmpl", pageVars{
+		"sessionId": sessionId,
+		"childId":   childId,
+		"view":      "full",
+	})
+}
+
+func (d *Device) showDetail() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		childId := r.URL.Query().Get("childId")
+		sessionId := r.Header.Get("session-id")
+		sessionDeviceSaveView(sessionId, childId, "full")
+		if err := d._showDetail(sessionId, childId, w); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	})

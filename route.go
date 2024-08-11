@@ -32,5 +32,5 @@ func routesBuild() {
 		_routesBuild(child, child)
 	}
 
-	fmt.Printf("%#v\n", routes)
+	fmt.Printf("Routes %#v\n", routes)
 }
