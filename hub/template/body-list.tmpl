@@ -3,14 +3,14 @@
 					<div class="flex flex-row align-center cursor-pointer">
 						<span class="font-bold">Devices</span>
 					</div>
-					<img class="icon px-1" src="/device/{{.Device.Id}}/images/list-view.png"
-						hx-get="/device/{{.Device.Id}}/list"></img>
+					<img class="icon px-1" src="/device/{{.Device.Id}}/images/tile-view.png"
+						hx-get="/device/{{.Device.Id}}/full"></img>
 				</div>
-				<div class="flex flex-wrap px-4">
+				<div class="flex flex-col px-4">
 {{ range .Device.Children }}
 					<div class="cursor-pointer"
-						hx-get="/device/{{$.Device.Id}}/detail?childId={{.}}&prevView=full">
-	{{ $.Device.RenderChildHTML $.Vars.sessionId . "tile" }}
+						hx-get="/device/{{$.Device.Id}}/detail?childId={{.}}&prevView=list">
+	{{ $.Device.RenderChildHTML $.Vars.sessionId . "list" }}
 					</div>
 {{- else }}
 	{{- template "no-devices.tmpl" }}

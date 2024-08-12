@@ -53,6 +53,7 @@ func (d *Device) API() {
 	d.RHandle("/keepalive", d.keepAlive())
 	d.RHandle("/full", d.showFull())
 	d.RHandle("/tile", d.showTile())
+	d.RHandle("/list", d.showList())
 	d.RHandle("/detail", d.showDetail())
 	d.RHandle("/info", d.showInfo())
 	d.RHandle("/state", d.showState())
@@ -159,6 +160,23 @@ func (d *Device) showFull() http.Handler {
 	})
 }
 
+func (d *Device) _showList(sessionId string, w io.Writer) error {
+	return d.renderPage(w, "device-list.tmpl", pageVars{
+		"sessionId": sessionId,
+		"view":      "list",
+	})
+}
+
+func (d *Device) showList() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionId := r.Header.Get("session-id")
+		sessionDeviceSaveView(sessionId, d.Id, "list")
+		if err := d._showList(sessionId, w); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+	})
+}
+
 func (d *Device) _showTile(sessionId string, w io.Writer) error {
 	return d.renderPage(w, "device-tile.tmpl", pageVars{
 		"sessionId": sessionId,
@@ -176,20 +194,22 @@ func (d *Device) showTile() http.Handler {
 	})
 }
 
-func (d *Device) _showDetail(sessionId, childId string, w io.Writer) error {
-	return d.renderPage(w, "device-full-detail.tmpl", pageVars{
+func (d *Device) _showDetail(sessionId, childId, prevView string, w io.Writer) error {
+	return d.renderPage(w, "device-detail.tmpl", pageVars{
 		"sessionId": sessionId,
 		"childId":   childId,
-		"view":      "full",
+		"view":      "detail",
+		"prevView":  prevView,
 	})
 }
 
 func (d *Device) showDetail() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		childId := r.URL.Query().Get("childId")
+		prevView := r.URL.Query().Get("prevView")
 		sessionId := r.Header.Get("session-id")
-		sessionDeviceSaveView(sessionId, childId, "full")
-		if err := d._showDetail(sessionId, childId, w); err != nil {
+		sessionDeviceSaveView(sessionId, childId, "detail")
+		if err := d._showDetail(sessionId, childId, prevView, w); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	})

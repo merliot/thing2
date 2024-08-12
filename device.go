@@ -182,6 +182,8 @@ func (d *Device) _render(sessionId string, w io.Writer, view string) error {
 		return d._showFull(sessionId, w)
 	case "tile":
 		return d._showTile(sessionId, w)
+	case "list":
+		return d._showList(sessionId, w)
 	}
 	return nil
 }

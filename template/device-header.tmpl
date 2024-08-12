@@ -9,14 +9,14 @@
 					<span class="icon cursor-not-allowed">&#x1F512;</span>
 {{- end}}
 {{- if eq .Vars.view "download"}}
-					<a class="icon nono" disabled>&#x1F4E5;</a>
+					<a class="icon px-1 nono" disabled>&#x1F4E5;</a>
 {{- else}}
-					<a class="icon" hx-get="/device/{{.Device.Id}}/download">&#x1F4E5;</a>
+					<a class="icon px-1" hx-get="/device/{{.Device.Id}}/download">&#x1F4E5;</a>
 {{- end}}
 {{- if eq .Vars.view "info"}}
-					<a class="icon nono" disabled>&#x24D8;</a>
+					<a class="icon px-1 nono" disabled>&#x24D8;</a>
 {{- else}}
-					<a class="icon" hx-get="/device/{{.Device.Id}}/info">&#x24D8;</a>
+					<a class="icon px-1" hx-get="/device/{{.Device.Id}}/info">&#x24D8;</a>
 {{- end}}
 				</div>
 			</header>

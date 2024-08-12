@@ -546,6 +546,11 @@ video {
   padding-right: 0px;
 }
 
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 .px-2 {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
@@ -731,12 +736,13 @@ video {
 }
 */
 .icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
   font-size: 1.5rem;
-  line-height: 1.75rem;
-  color: currentColor;
   text-decoration-line: none;
 }
 
