@@ -50,7 +50,7 @@ func Run() {
 	http.Handle("/", basicAuthHandler(root))
 
 	// Install /ws websocket listener
-	http.HandleFunc("/ws", basicAuthHandlerFunc(ws))
+	http.HandleFunc("/ws", basicAuthHandlerFunc(wsHandle))
 
 	// Install /wsx websocket listener
 	http.HandleFunc("/wsx", basicAuthHandlerFunc(wsxHandle))

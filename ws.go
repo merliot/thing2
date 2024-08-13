@@ -21,7 +21,8 @@ type announcement struct {
 }
 
 // ws handles /ws requests
-func ws(w http.ResponseWriter, r *http.Request) {
+func wsHandle(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Install /ws websocket listener")
 	serv := websocket.Server{Handler: websocket.Handler(wsServer)}
 	serv.ServeHTTP(w, r)
 }
@@ -154,14 +155,15 @@ func wsDial(url *url.URL) {
 	for {
 		// Dial the websocket
 		conn, err := websocket.DialConfig(cfg)
-		if err != nil {
+		if err == nil {
+			// Service the client websocket
+			wsClient(conn)
+		} else {
 			fmt.Println("Dial error", url, err)
-			// Try again in a second
-			time.Sleep(time.Second)
-			continue
 		}
-		// Service the client websocket
-		wsClient(conn)
+
+		// Try again in a second
+		time.Sleep(time.Second)
 	}
 }
 

@@ -1,10 +1,10 @@
 			<div class="flex flex-col bg-white h-full rounded-t-2xl">
 				<div class="flex flex-row justify-between items-center mx-6 my-5">
-					<div class="flex flex-row align-center cursor-pointer">
+					<div class="flex flex-row align-center">
 						<span class="font-bold">Devices</span>
 					</div>
 					<img class="icon px-1" src="/device/{{.Device.Id}}/images/list-view.png"
-						hx-get="/device/{{.Device.Id}}/list"></img>
+						hx-get="/device/{{.Device.Id}}/list">
 				</div>
 				<div class="flex flex-wrap px-4">
 {{ range .Device.Children }}
@@ -13,7 +13,7 @@
 	{{ $.Device.RenderChildHTML $.Vars.sessionId . "tile" }}
 					</div>
 {{- else }}
-	{{- template "no-devices.tmpl" }}
+	{{- template "no-devices.tmpl" . }}
 {{- end }}
 				</div>
 			</div>

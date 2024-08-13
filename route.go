@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-var routes = make(map[string]string) // key: dst id, value: nexthop id
+var routes map[string]string // key: dst id, value: nexthop id
 var routesMu sync.RWMutex
 
 func _routesBuild(parent, base *Device) {
@@ -18,6 +18,11 @@ func _routesBuild(parent, base *Device) {
 }
 
 func routesBuild() {
+
+	routesMu.RLock()
+	defer routesMu.RUnlock()
+
+	routes = make(map[string]string)
 
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()

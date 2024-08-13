@@ -1,6 +1,6 @@
 			<header class="flex flex-row justify-between items-center p-4">
 				<div class="flex items-center">
-					<img class="w-10 h-10" src="/model/{{.Device.Model}}/images/icon.png"></img>
+					<img class="w-10 h-10" src="/model/{{.Device.Model}}/images/icon.png">
 					<span class="px-5 text-lg font-bold">{{.Device.Name}}</span>
 				</div>
 				<span class="rounded-2xl border-solid border-3 text-red-500 px-2.5 py-1" id="offline">Offline</span>
@@ -9,16 +9,16 @@
 					<span class="icon cursor-not-allowed">&#x1F512;</span>
 {{- end}}
 {{- if eq .Vars.view "download"}}
-					<img class="icon px-1 nono" src="/model/{{.Device.Model}}/images/download.png" disabled></img>
+					<img class="icon px-1 nono" src="/model/{{.Device.Model}}/images/download.png" disabled>
 {{- else}}
 					<img class="icon px-1" src="/model/{{.Device.Model}}/images/download.png"
-						hx-get="/device/{{.Device.Id}}/download"></img>
+						hx-get="/device/{{.Device.Id}}/download">
 {{- end}}
 {{- if eq .Vars.view "info"}}
-					<img class="icon px-1 nono" src="/model/{{.Device.Model}}/images/info.png" disabled></img>
+					<img class="icon px-1 nono" src="/model/{{.Device.Model}}/images/info.png" disabled>
 {{- else}}
 					<img class="icon px-1" src="/model/{{.Device.Model}}/images/info.png"
-						hx-get="/device/{{.Device.Id}}/info"></img>
+						hx-get="/device/{{.Device.Id}}/info">
 {{- end}}
 				</div>
 			</header>

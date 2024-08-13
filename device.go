@@ -135,6 +135,24 @@ func (d *Device) addChild(child *Device) error {
 	return nil
 }
 
+func (d *Device) removeChild(childId string) error {
+	devicesMu.Lock()
+	defer devicesMu.Unlock()
+	if _, ok := devices[childId]; ok {
+		delete(devices, childId)
+		for _, device := range devices {
+			device.Lock()
+			if index := slices.Index(device.Children, childId); index != -1 {
+				device.Children = slices.Delete(device.Children, index, index+1)
+				// TODO remove everything below child
+			}
+			device.Unlock()
+		}
+		return nil
+	}
+	return deviceNotFound(childId)
+}
+
 func (d *Device) SetDeployParams(params string) {
 	d.DeployParams = html.UnescapeString(params)
 }
