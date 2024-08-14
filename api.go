@@ -40,7 +40,6 @@ func (d *Device) API() {
 	d.HandleFunc("GET /list", d.showList)
 	d.HandleFunc("GET /detail", d.showDetail)
 	d.HandleFunc("GET /info", d.showInfo)
-	d.HandleFunc("GET /state", d.showState)
 	d.HandleFunc("GET /code", d.showCode)
 	d.HandleFunc("GET /download", d.showDownload)
 	d.HandleFunc("GET /download-target", d.showDownloadTarget)

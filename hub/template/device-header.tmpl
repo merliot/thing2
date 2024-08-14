@@ -3,7 +3,11 @@
 					<img class="w-10 h-10" src="/model/{{.Device.Model}}/images/icon.png">
 					<span class="px-5 text-lg font-bold">{{.Device.Name}}</span>
 				</div>
-				<span class="rounded-2xl border-solid border-3 text-red-500 px-2.5 py-1" id="offline">Offline</span>
+{{- if .Device.Online}}
+				<span class="display-online rounded-2xl border-solid border-3 text-red-500 px-2.5 py-1">Offline</span>
+{{- else }}
+				<span class="display-offline rounded-2xl border-solid border-3 text-red-500 px-2.5 py-1">Offline</span>
+{{- end }}
 {{if .State.Demo}}
 				<span class="demo-mode">Demo</span>
 {{end}}

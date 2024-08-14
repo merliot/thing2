@@ -28,9 +28,14 @@ func (g *Gadget) GetTargets() []string { return []string{"demo", "x86-64", "nano
 
 func (g *Gadget) GetHandlers() thing2.Handlers {
 	return thing2.Handlers{
+		"/state":   {g, g.state},
 		"/takeone": {nil, g.takeone},
-		"/tookone": {&Update{}, g.tookone},
+		"/tookone": {&Update{}, g.state},
 	}
+}
+
+func (g *Gadget) state(pkt *thing2.Packet) {
+	pkt.Unmarshal(g).RouteUp()
 }
 
 func (g *Gadget) takeone(pkt *thing2.Packet) {
@@ -39,8 +44,4 @@ func (g *Gadget) takeone(pkt *thing2.Packet) {
 		msg := Update{g.Bottles}
 		pkt.SetPath("/tookone").Marshal(msg).RouteUp()
 	}
-}
-
-func (g *Gadget) tookone(pkt *thing2.Packet) {
-	pkt.Unmarshal(g).RouteUp()
 }

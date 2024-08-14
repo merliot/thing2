@@ -9,7 +9,6 @@ import (
 
 // wsxHandle handles /wsx requests on an htmx WebSocket
 func wsxHandle(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Install /wsx websocket listener")
 	serv := websocket.Server{Handler: websocket.Handler(wsxServe)}
 	serv.ServeHTTP(w, r)
 }

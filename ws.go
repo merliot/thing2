@@ -15,14 +15,14 @@ type wsLink struct {
 }
 
 type announcement struct {
-	Id    string
-	Model string
-	Name  string
+	Id           string
+	Model        string
+	Name         string
+	DeployParams string
 }
 
 // ws handles /ws requests
 func wsHandle(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Install /ws websocket listener")
 	serv := websocket.Server{Handler: websocket.Handler(wsServer)}
 	serv.ServeHTTP(w, r)
 }
@@ -53,72 +53,9 @@ func (l *wsLink) receive() (*Packet, error) {
 
 func (l *wsLink) receiveTimeout(timeout time.Duration) (*Packet, error) {
 	l.conn.SetReadDeadline(time.Now().Add(timeout))
-	return l.receive()
-}
-
-func wsClient(conn *websocket.Conn) {
-	defer conn.Close()
-
-	var link = &wsLink{conn}
-	var ann = announcement{
-		Id:    root.Id,
-		Model: root.Model,
-		Name:  root.Name,
-	}
-	var pkt = &Packet{
-		Dst:  ann.Id,
-		Path: "/announce",
-	}
-
-	// Send announcement
-	err := link.Send(pkt.Marshal(&ann))
-	if err != nil {
-		fmt.Println("Send error:", err)
-		return
-	}
-
-	// Receive welcome within 1 sec
-	pkt, err = link.receiveTimeout(time.Second)
-	if err != nil {
-		fmt.Println("Receive error:", err)
-		return
-	}
-
-	if pkt.Path != "/welcome" {
-		fmt.Println("Not welcomed, got:", pkt.Path)
-		return
-	}
-
-	uplinksAdd(link)
-
-	// Send /state packets to all devices
-
-	devicesMu.RLock()
-	for id, d := range devices {
-		var pkt = &Packet{
-			Dst:  id,
-			Path: "/state",
-		}
-		d.RLock()
-		pkt.Marshal(d.GetState())
-		d.RUnlock()
-		link.Send(pkt)
-	}
-	devicesMu.RUnlock()
-
-	// Route incoming packets down to the destination device.  Stop and
-	// disconnect on EOF.
-
-	for {
-		pkt, err := link.receive()
-		if err != nil {
-			fmt.Println("Error receiving packet:", err)
-			break
-		}
-		deviceRouteDown(pkt.Dst, pkt)
-	}
-
-	uplinksRemove(link)
+	pkt, err := l.receive()
+	l.conn.SetReadDeadline(time.Time{})
+	return pkt, err
 }
 
 func newConfig(url *url.URL, user, passwd string) (*websocket.Config, error) {
@@ -167,6 +104,80 @@ func wsDial(url *url.URL) {
 	}
 }
 
+func wsClient(conn *websocket.Conn) {
+	defer conn.Close()
+
+	var link = &wsLink{conn}
+	var ann = announcement{
+		Id:           root.Id,
+		Model:        root.Model,
+		Name:         root.Name,
+		DeployParams: root.DeployParams,
+	}
+	var pkt = &Packet{
+		Dst:  ann.Id,
+		Path: "/announce",
+	}
+
+	// Send announcement
+	fmt.Println("Sending announment:", pkt)
+	err := link.Send(pkt.Marshal(&ann))
+	if err != nil {
+		fmt.Println("Send error:", err)
+		return
+	}
+
+	// Receive welcome within 1 sec
+	fmt.Println("Waiting for /welcome...")
+	pkt, err = link.receiveTimeout(time.Second)
+	if err != nil {
+		fmt.Println("Receive error:", err)
+		return
+	}
+
+	fmt.Println("Reply from announcement:", pkt)
+	if pkt.Path != "/welcome" {
+		fmt.Println("Not welcomed, got:", pkt.Path)
+		return
+	}
+
+	fmt.Println("Adding Uplink")
+	uplinksAdd(link)
+
+	// Send /state packets to all devices
+
+	fmt.Println("Sending /state to all devices")
+	devicesMu.RLock()
+	for id, d := range devices {
+		var pkt = &Packet{
+			Dst:  id,
+			Path: "/state",
+		}
+		d.RLock()
+		pkt.Marshal(d.GetState())
+		d.RUnlock()
+		fmt.Println("Sending:", pkt)
+		link.Send(pkt)
+	}
+	devicesMu.RUnlock()
+
+	// Route incoming packets down to the destination device.  Stop and
+	// disconnect on EOF.
+
+	fmt.Println("Receiving packets...")
+	for {
+		pkt, err := link.receive()
+		if err != nil {
+			fmt.Println("Error receiving packet:", err)
+			break
+		}
+		deviceRouteDown(pkt.Dst, pkt)
+	}
+
+	fmt.Println("Removing Uplink")
+	uplinksRemove(link)
+}
+
 func wsServer(conn *websocket.Conn) {
 
 	defer conn.Close()
@@ -175,12 +186,14 @@ func wsServer(conn *websocket.Conn) {
 
 	// First receive should be an /announce packet
 
+	fmt.Println("Waiting for /announce")
 	pkt, err := link.receive()
 	if err != nil {
 		fmt.Println("Error receiving first packet:", err)
 		return
 	}
 
+	fmt.Println("First packet:", pkt)
 	if pkt.Path != "/announce" {
 		fmt.Println("Not Announcement, got:", pkt.Path)
 		return
@@ -199,36 +212,40 @@ func wsServer(conn *websocket.Conn) {
 		return
 	}
 
-	if err := deviceCheck(ann.Id, ann.Model, ann.Name); err != nil {
-		fmt.Println("Device check error:", err)
+	fmt.Println("Device ONLINE")
+	if err := deviceOnline(ann); err != nil {
+		fmt.Println("Device online error:", err)
 		return
 	}
 
 	// Announcement is good, reply with /welcome packet
 
+	fmt.Println("Reply with /welcome")
 	link.Send(pkt.SetPath("/welcome"))
 
 	// Add as active download link
 
+	fmt.Println("Adding Downlink")
 	id := ann.Id
 	downlinksAdd(id, link)
 
 	// Route incoming packets up to the destination device.  Stop and
 	// disconnect on EOF.
 
+	fmt.Println("Route packets UP")
 	for {
 		pkt, err := link.receive()
 		if err != nil {
 			fmt.Println("Error receiving packet:", err)
 			break
 		}
+		fmt.Println("Route packet UP:", pkt)
 		deviceRouteUp(pkt.Dst, pkt)
 	}
 
+	fmt.Println("Removing Downlink")
 	downlinksRemove(id)
 
-	/*
-		deviceOffline(id)
-		sessionsRoute(id)
-	*/
+	fmt.Println("Device OFFLINE")
+	deviceOffline(id)
 }

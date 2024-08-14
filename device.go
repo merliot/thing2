@@ -226,6 +226,7 @@ func deviceRender(sessionId, id, view string, w io.Writer) error {
 	return deviceNotFound(id)
 }
 
+/*
 func deviceOnline(id string) error {
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
@@ -250,24 +251,51 @@ func deviceOffline(id string) {
 		d.Unlock()
 	}
 }
+*/
 
-func deviceCheck(id, model, name string) error {
+func deviceOnline(ann announcement) error {
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
 
-	if d, ok := devices[id]; ok {
-		if d.Model != model {
-			return fmt.Errorf("Device model wrong.  Want %s; have %s",
-				d.Model, model)
-		}
-		if d.Name != name {
-			return fmt.Errorf("Device name wrong.  Want %s; have %s",
-				d.Name, name)
-		}
-		return nil
+	d, ok := devices[ann.Id]
+	if !ok {
+		return deviceNotFound(ann.Id)
 	}
 
-	return deviceNotFound(id)
+	if d.Model != ann.Model {
+		return fmt.Errorf("Device model wrong.  Want %s; have %s",
+			d.Model, ann.Model)
+	}
+
+	if d.Name != ann.Name {
+		return fmt.Errorf("Device name wrong.  Want %s; have %s",
+			d.Name, ann.Name)
+	}
+
+	d.Lock()
+	d.DeployParams = ann.DeployParams
+	d.Online = true
+	d.Unlock()
+
+	return nil
+}
+
+func deviceOffline(id string) {
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+
+	d, ok := devices[id]
+	if ok {
+		d.Lock()
+		d.Online = false
+		d.Unlock()
+	}
+
+	pkt := &Packet{
+		Dst:  id,
+		Path: "/offline",
+	}
+	pkt.RouteUp()
 }
 
 func (d *Device) saveState(pkt *Packet) {
