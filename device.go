@@ -226,33 +226,6 @@ func deviceRender(sessionId, id, view string, w io.Writer) error {
 	return deviceNotFound(id)
 }
 
-/*
-func deviceOnline(id string) error {
-	devicesMu.RLock()
-	defer devicesMu.RUnlock()
-	if d, ok := devices[id]; ok {
-		if d.Online {
-			return fmt.Errorf("Device '%s' already online", id)
-		}
-		d.Lock()
-		d.Online = true
-		d.Unlock()
-		return nil
-	}
-	return deviceNotFound(id)
-}
-
-func deviceOffline(id string) {
-	devicesMu.RLock()
-	defer devicesMu.RUnlock()
-	if d, ok := devices[id]; ok {
-		d.Lock()
-		d.Online = false
-		d.Unlock()
-	}
-}
-*/
-
 func deviceOnline(ann announcement) error {
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
@@ -277,6 +250,9 @@ func deviceOnline(ann announcement) error {
 	d.Online = true
 	d.Unlock()
 
+	// We don't need to send a /online pkt up because /state is going to be
+	// sent UP
+
 	return nil
 }
 
@@ -285,11 +261,13 @@ func deviceOffline(id string) {
 	defer devicesMu.RUnlock()
 
 	d, ok := devices[id]
-	if ok {
-		d.Lock()
-		d.Online = false
-		d.Unlock()
+	if !ok {
+		return
 	}
+
+	d.Lock()
+	d.Online = false
+	d.Unlock()
 
 	pkt := &Packet{
 		Dst:  id,
