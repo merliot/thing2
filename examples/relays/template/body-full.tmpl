@@ -1,0 +1,11 @@
+			<div class="panel flex-row h-52 items-center justify-between">
+{{- range $i, $relay := .State.Relays }}
+				<div class="flex flex-col items-center"
+				     hx-post="/device/{{$.Device.Id}}/click?Relay={{$i}}"
+				     hx-swap="none">
+					<img src="/model/{{$.Device.Model}}/images/relay-{{$relay.State}}.png">
+					<span class="gpio">{{$relay.Gpio}}</span>
+					<span>{{$relay.Name}}</span>
+				</div>
+{{- end }}
+			</div>

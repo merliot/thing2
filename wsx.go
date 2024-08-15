@@ -3,6 +3,7 @@ package thing2
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"golang.org/x/net/websocket"
 )
@@ -25,8 +26,10 @@ func wsxServe(ws *websocket.Conn) {
 		return
 	}
 
+	url, _ := url.Parse("/full")
+
 	sessionConn(sessionId, ws)
-	sessionDeviceSaveView(sessionId, root.Id, "full")
+	sessionDeviceSave(sessionId, root.Id, url)
 	sessionDeviceRender(sessionId, root.Id)
 
 	var message string

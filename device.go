@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"net/url"
 	"sync"
 
 	"github.com/merliot/thing2/target"
@@ -62,6 +63,13 @@ func (d *Device) build(maker Maker) {
 	// Install the device-specific API handlers
 	d.Handlers = d.GetHandlers()
 	d.handlersInstall()
+
+	// Configure the device using DeployParams
+	cfg, err := url.ParseQuery(d.DeployParams)
+	if err != nil {
+		fmt.Println("Parsing DeployParams:", err, d)
+	}
+	d.Config(cfg)
 }
 
 func devicesMake() {
@@ -191,34 +199,34 @@ func deviceRouteUp(id string, pkt *Packet) {
 	}
 }
 
-func (d *Device) _render(sessionId string, w io.Writer, view string) error {
-	switch view {
-	case "full":
-		return d._showFull(sessionId, w)
-	case "tile":
-		return d._showTile(sessionId, w)
-	case "list":
-		return d._showList(sessionId, w)
+func (d *Device) _render(w io.Writer, sessionId string, url *url.URL) error {
+	switch url.Path {
+	case "/", "/full":
+		return d._showFull(w, sessionId)
+	case "/tile":
+		return d._showTile(w, sessionId)
+	case "/list":
+		return d._showList(w, sessionId)
 	}
 	return nil
 }
 
-func _deviceRender(sessionId string, id, view string, w io.Writer) error {
+func _deviceRender(w io.Writer, sessionId, id string, url *url.URL) error {
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
 	if d, ok := devices[id]; ok {
-		return d._render(sessionId, w, view)
+		return d._render(w, sessionId, url)
 	}
 	return deviceNotFound(id)
 }
 
-func deviceRender(sessionId, id, view string, w io.Writer) error {
+func deviceRender(w io.Writer, sessionId, id string, url *url.URL) error {
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
 	if d, ok := devices[id]; ok {
 		d.RLock()
 		defer d.RUnlock()
-		return d._render(sessionId, w, view)
+		return d._render(w, sessionId, url)
 	}
 	return deviceNotFound(id)
 }
@@ -242,9 +250,15 @@ func deviceOnline(ann announcement) error {
 			d.Name, ann.Name)
 	}
 
+	cfg, err := url.ParseQuery(ann.DeployParams)
+	if err != nil {
+		return fmt.Errorf("Parsing DeployParams: %w", err)
+	}
+
 	d.Lock()
-	d.DeployParams = ann.DeployParams
 	d.Online = true
+	d.DeployParams = ann.DeployParams
+	d.Config(cfg)
 	d.Unlock()
 
 	// We don't need to send a /online pkt up because /state is going to be

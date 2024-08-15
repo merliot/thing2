@@ -2,6 +2,8 @@ package hub
 
 import (
 	"embed"
+	"fmt"
+	"net/url"
 
 	"github.com/merliot/thing2"
 )
@@ -17,6 +19,7 @@ func NewModel() thing2.Modeler {
 	return &Hub{}
 }
 
+func (h *Hub) Config(cfg url.Values)        { fmt.Printf("%#v\n", cfg) }
 func (h *Hub) GetModel() string             { return "hub" }
 func (h *Hub) GetState() any                { return h }
 func (h *Hub) GetFS() *embed.FS             { return &fs }

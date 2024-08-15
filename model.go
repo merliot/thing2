@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type ModelSpec struct {
@@ -14,6 +15,7 @@ type ModelSpec struct {
 type ModelSpecs []ModelSpec
 
 type Modeler interface {
+	Config(cfg url.Values)
 	GetModel() string
 	GetState() any
 	GetFS() *embed.FS

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -18,7 +19,7 @@ type session struct {
 	sessionId  string
 	conn       *websocket.Conn
 	LastUpdate time.Time
-	LastView   map[string]string // key: device Id; value: view
+	LastURL    map[string]*url.URL // key: device Id; value: last URL
 }
 
 var sessions = make(map[string]*session)
@@ -33,7 +34,7 @@ func _newSession(sessionId string, conn *websocket.Conn) *session {
 		sessionId:  sessionId,
 		conn:       conn,
 		LastUpdate: time.Now(),
-		LastView:   make(map[string]string),
+		LastURL:    make(map[string]*url.URL),
 	}
 }
 
@@ -77,33 +78,40 @@ func sessionUpdate(sessionId string) {
 	}
 }
 
-func _sessionDeviceSaveView(sessionId, deviceId, view string) {
+func _sessionDeviceSave(sessionId, deviceId string, url *url.URL) {
 
+	println("------- SAVE DEVICE", deviceId, url.String())
 	if session, ok := sessions[sessionId]; ok {
 		session.LastUpdate = time.Now()
-		session.LastView[deviceId] = view
+		session.LastURL[deviceId] = url
 	}
 }
 
-func sessionDeviceSaveView(sessionId, deviceId, view string) {
+func sessionDeviceSave(sessionId, deviceId string, url *url.URL) {
 
-	sessionsMu.Lock()
-	defer sessionsMu.Unlock()
+	sessionsMu.RLock()
+	defer sessionsMu.RUnlock()
 
-	_sessionDeviceSaveView(sessionId, deviceId, view)
+	if session, ok := sessions[sessionId]; ok {
+		for deviceId, _ := range session.LastURL {
+			delete(session.LastURL, deviceId)
+		}
+	}
+
+	_sessionDeviceSave(sessionId, deviceId, url)
 }
 
-func (s session) _render(deviceId, view string) {
+func (s session) _render(deviceId string, url *url.URL) {
 	var buf bytes.Buffer
-	if err := _deviceRender(s.sessionId, deviceId, view, &buf); err != nil {
+	if err := _deviceRender(&buf, s.sessionId, deviceId, url); err != nil {
 		return
 	}
 	websocket.Message.Send(s.conn, string(buf.Bytes()))
 }
 
-func (s session) render(deviceId, view string) {
+func (s session) render(deviceId string, url *url.URL) {
 	var buf bytes.Buffer
-	if err := deviceRender(s.sessionId, deviceId, view, &buf); err != nil {
+	if err := deviceRender(&buf, s.sessionId, deviceId, url); err != nil {
 		return
 	}
 	websocket.Message.Send(s.conn, string(buf.Bytes()))
@@ -118,8 +126,8 @@ func sessionDeviceRender(sessionId, deviceId string) {
 		if session.conn == nil {
 			return
 		}
-		if view, ok := session.LastView[deviceId]; ok {
-			session.render(deviceId, view)
+		if url, ok := session.LastURL[deviceId]; ok {
+			session.render(deviceId, url)
 		}
 	}
 }
@@ -133,8 +141,8 @@ func sessionsRoute(deviceId string) {
 		if session.conn == nil {
 			continue
 		}
-		if view, ok := session.LastView[deviceId]; ok {
-			session._render(deviceId, view)
+		if url, ok := session.LastURL[deviceId]; ok {
+			session._render(deviceId, url)
 		}
 
 	}
