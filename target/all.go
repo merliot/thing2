@@ -1,7 +1,6 @@
 package target
 
-// NOTE If modified, go generate ./... to generate new
-// deployTargetGpios.js file.
+// TODO maybe store this in a JSON file?
 
 var AllTargets = Targets{
 	"demo": Target{
