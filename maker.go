@@ -7,6 +7,10 @@ type Makers []Maker
 
 var makers = make(map[string]Maker)
 
+func MakerFunc(maker Maker) Modeler {
+	return maker()
+}
+
 func (m Makers) Register() {
 	for _, maker := range m {
 		model := maker().GetModel()

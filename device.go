@@ -161,20 +161,17 @@ func deviceNotFound(id string) error {
 	return fmt.Errorf("Device '%s' not found", id)
 }
 
-func (d *Device) handle(pkt *Packet) {
-	d.Lock()
-	defer d.Unlock()
-	if handler, ok := d.Handlers[pkt.Path]; ok {
-		fmt.Println("Handling", pkt.String())
-		handler.Callback(pkt)
-	}
-}
-
 func (d *Device) routeDown(pkt *Packet) {
-	if pkt.Dst == d.Id {
+
+	// If device is the root device, deliver packet to device.  The root
+	// device is running on 'metal', so this is the packet's final
+	// destination.
+	if d == root {
 		d.handle(pkt)
 		return
 	}
+
+	// Otherwise, route the packet down
 	downlinkRoute(pkt)
 }
 

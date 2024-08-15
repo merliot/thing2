@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"runtime"
+	"strings"
 )
 
 // install installs /device/{id} pattern for device in default ServeMux
@@ -31,8 +32,16 @@ func devicesInstall() {
 	}
 }
 
+func (d *Device) serveFile(w http.ResponseWriter, r *http.Request) {
+	if strings.HasSuffix(r.URL.Path, ".gz") {
+		w.Header().Set("Content-Encoding", "gzip")
+		//w.Header().Set("Content-Type", "application/javascript")
+	}
+	http.FileServer(http.FS(d.layeredFS)).ServeHTTP(w, r)
+}
+
 func (d *Device) API() {
-	d.Handle("GET /", http.FileServer(http.FS(d.layeredFS)))
+	d.HandleFunc("GET /", d.serveFile)
 	d.HandleFunc("GET /{$}", d.showIndex)
 	d.HandleFunc("PUT /keepalive", d.keepAlive)
 	d.HandleFunc("GET /full", d.showFull)

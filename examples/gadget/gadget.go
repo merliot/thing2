@@ -13,7 +13,7 @@ type Gadget struct {
 	Bottles int
 }
 
-type Update struct {
+type MsgUpdate struct {
 	Bottles int
 }
 
@@ -28,9 +28,9 @@ func (g *Gadget) GetTargets() []string { return []string{"demo", "x86-64", "nano
 
 func (g *Gadget) GetHandlers() thing2.Handlers {
 	return thing2.Handlers{
-		"/state":   {g, g.state},
-		"/takeone": {nil, g.takeone},
-		"/tookone": {&Update{}, g.state},
+		"/state":   &thing2.Handler[Gadget]{g.state},
+		"/takeone": &thing2.Handler[thing2.NoMsgType]{g.takeone},
+		"/tookone": &thing2.Handler[MsgUpdate]{g.state},
 	}
 }
 
@@ -41,7 +41,7 @@ func (g *Gadget) state(pkt *thing2.Packet) {
 func (g *Gadget) takeone(pkt *thing2.Packet) {
 	if g.Bottles > 0 {
 		g.Bottles--
-		msg := Update{g.Bottles}
+		msg := MsgUpdate{g.Bottles}
 		pkt.SetPath("/tookone").Marshal(msg).RouteUp()
 	}
 }

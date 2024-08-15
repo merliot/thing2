@@ -20,7 +20,7 @@ func NewPacketFromURL(url *url.URL, v any) (*Packet, error) {
 	var pkt = &Packet{
 		Path: url.Path,
 	}
-	if v == nil {
+	if _, ok := v.(*NoMsgType); ok {
 		return pkt, nil
 	}
 	err := decoder.Decode(v, url.Query())
@@ -69,7 +69,7 @@ func (p *Packet) SetPath(path string) *Packet {
 }
 
 func (p *Packet) RouteDown() {
-	fmt.Println("RouteDown", p.String())
+	fmt.Println("RouteDown", p)
 	routesMu.RLock()
 	nexthop := routes[p.Dst]
 	routesMu.RUnlock()
@@ -77,7 +77,7 @@ func (p *Packet) RouteDown() {
 }
 
 func (p *Packet) RouteUp() {
-	fmt.Println("RouteUp", p.String())
+	fmt.Println("RouteUp", p)
 	sessionsRoute(p.Dst)
 	uplinksRoute(p)
 }
