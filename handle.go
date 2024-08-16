@@ -42,7 +42,7 @@ func (d *Device) handlersInstall() {
 func (d *Device) newPacketRoute(h Generator) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		msg := h.Gen()
-		pkt, err := NewPacketFromURL(r.URL, msg)
+		pkt, err := newPacketFromURL(r.URL, msg)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

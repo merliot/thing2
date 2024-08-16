@@ -16,7 +16,7 @@ type Packet struct {
 	Msg  json.RawMessage
 }
 
-func NewPacketFromURL(url *url.URL, v any) (*Packet, error) {
+func newPacketFromURL(url *url.URL, v any) (*Packet, error) {
 	var pkt = &Packet{
 		Path: url.Path,
 	}

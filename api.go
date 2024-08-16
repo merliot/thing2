@@ -40,7 +40,7 @@ func (d *Device) serveFile(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(http.FS(d.layeredFS)).ServeHTTP(w, r)
 }
 
-func (d *Device) API() {
+func (d *Device) api() {
 	d.HandleFunc("GET /", d.serveFile)
 	d.HandleFunc("GET /{$}", d.showIndex)
 	d.HandleFunc("PUT /keepalive", d.keepAlive)
@@ -231,7 +231,7 @@ func linuxTarget(target string) bool {
 	return target == "demo" || target == "x86-64" || target == "rpi"
 }
 
-func (d *Device) DeployValues() url.Values {
+func (d *Device) deployValues() url.Values {
 	values, err := url.ParseQuery(d.DeployParams)
 	if err != nil {
 		panic(err.Error())
@@ -249,13 +249,13 @@ func firstValue(values url.Values, key string) string {
 func (d *Device) currentTarget(params url.Values) string {
 	target := firstValue(params, "target")
 	if target == "" {
-		target = firstValue(d.DeployValues(), "target")
+		target = firstValue(d.deployValues(), "target")
 	}
 	return target
 }
 
 func (d *Device) showDownload(w http.ResponseWriter, r *http.Request) {
-	values := d.DeployValues()
+	values := d.deployValues()
 	target := firstValue(values, "target")
 	d.renderPage(w, "device-download.tmpl", pageVars{
 		"view":        "download",
@@ -266,7 +266,7 @@ func (d *Device) showDownload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
-	values := d.DeployValues()
+	values := d.deployValues()
 	target := d.currentTarget(r.URL.Query())
 	d.renderPage(w, "device-download-target.tmpl", pageVars{
 		"linuxTarget": linuxTarget(target),
@@ -286,7 +286,7 @@ func (d *Device) createChild(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Missing device name")
 }
 
-type MsgDestroy struct {
+type msgDestroy struct {
 	ChildId string
 }
 
@@ -303,8 +303,8 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 	routesBuild()
 
 	// Send /destroy msg up
-	var msg MsgDestroy
-	pkt, err := NewPacketFromURL(r.URL, &msg)
+	var msg msgDestroy
+	pkt, err := newPacketFromURL(r.URL, &msg)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

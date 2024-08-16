@@ -7,13 +7,6 @@ import (
 	"net/url"
 )
 
-type ModelSpec struct {
-	Package string
-	Maker   string
-}
-
-type ModelSpecs []ModelSpec
-
 type Modeler interface {
 	Config(cfg url.Values)
 	GetModel() string

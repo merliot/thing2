@@ -58,7 +58,7 @@ func (d *Device) build(maker Maker) {
 	d.templates = d.layeredFS.parseFS("template/*.tmpl")
 
 	// All devices have a base device API
-	d.API()
+	d.api()
 
 	// Install the device-specific API handlers
 	d.Handlers = d.GetHandlers()
