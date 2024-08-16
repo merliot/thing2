@@ -14,7 +14,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-//go:embed css images js template favicon.ico
+//go:embed css docs images js template favicon.ico
 var deviceFs embed.FS
 
 type Device struct {
