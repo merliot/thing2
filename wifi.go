@@ -1,6 +1,8 @@
 package thing2
 
-import "strings"
+import (
+	"strings"
+)
 
 var (
 	ssids       = GetEnv("WIFI_SSIDS", "")
@@ -8,7 +10,7 @@ var (
 	wifiAuths   = wifiAuthsInit()
 )
 
-type wifiAuthMap map[string]string
+type wifiAuthMap map[string]string //key: ssid; value: passphrase
 
 func wifiAuthsInit() wifiAuthMap {
 	auths := make(wifiAuthMap)

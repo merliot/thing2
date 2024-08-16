@@ -14,6 +14,8 @@ import (
 	"net/url"
 	"runtime"
 	"strings"
+
+	"golang.org/x/exp/maps"
 )
 
 // install installs /device/{id} pattern for device in default ServeMux
@@ -239,29 +241,22 @@ func (d *Device) deployValues() url.Values {
 	return values
 }
 
-func firstValue(values url.Values, key string) string {
-	if v, ok := values[key]; ok && len(v) > 0 {
-		return v[0]
-	}
-	return ""
-}
-
 func (d *Device) currentTarget(params url.Values) string {
-	target := firstValue(params, "target")
+	target := params.Get("target")
 	if target == "" {
-		target = firstValue(d.deployValues(), "target")
+		target = d.deployValues().Get("target")
 	}
 	return target
 }
 
 func (d *Device) showDownload(w http.ResponseWriter, r *http.Request) {
 	values := d.deployValues()
-	target := firstValue(values, "target")
+	target := values.Get("target")
 	d.renderPage(w, "device-download.tmpl", pageVars{
-		"view":        "download",
+		//"view":        "download",
 		"target":      target,
 		"linuxTarget": linuxTarget(target),
-		"port":        firstValue(values, "port"),
+		"port":        values.Get("port"),
 	})
 }
 
@@ -269,10 +264,12 @@ func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 	values := d.deployValues()
 	target := d.currentTarget(r.URL.Query())
 	d.renderPage(w, "device-download-target.tmpl", pageVars{
+		"target":      target,
 		"linuxTarget": linuxTarget(target),
 		"missingWifi": len(wifiAuths) == 0,
-		"ssid":        firstValue(values, "ssid"),
-		"port":        firstValue(values, "port"),
+		"ssids":       maps.Keys(wifiAuths),
+		"ssid":        values.Get("ssid"),
+		"port":        values.Get("port"),
 	})
 }
 

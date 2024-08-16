@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-type GpioPin int
-type GpioPins map[string]GpioPin
+type GpioPin int                 // machine Pin
+type GpioPins map[string]GpioPin // key: pin display name (e.g. 'D0'); value: machine Pin (e.g. 40)
 
 type Target struct {
 	FullName string
@@ -14,7 +14,7 @@ type Target struct {
 	TinyGo bool
 }
 
-type Targets map[string]Target
+type Targets map[string]Target // key: target short name (e.g. 'rpi')
 
 func MakeTargets(targets []string) Targets {
 	filtered := make(Targets)

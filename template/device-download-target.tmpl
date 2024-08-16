@@ -3,11 +3,11 @@
 					<label>
 						Wifi SSID:
 						<select name="ssid">
-	{{- range $key, $value := .Device.WifiAuth }}
-		{{- if eq $key $.Vars.ssid }}
-							<option value="{{ $key }}" selected>{{ $key }}</option>
+	{{- range $i, $ssid := $.Vars.ssids }}
+		{{- if eq $ssid $.Vars.ssid }}
+							<option value="{{$ssid}}" selected>{{$ssid}}</option>
 		{{- else }}
-							<option value="{{ $key }}">{{ $key }}</option>
+							<option value="{{$ssid}}">{{$ssid}}</option>
 		{{- end }}
 	{{- end }}
 						</select>
@@ -16,7 +16,26 @@
 	{{- if $.Vars.missingWifi  }}
 				 <div class="flex flex-row mb-5">
 					<span class="mx-5 my-0">&#9888;</span>
-					<span class="text-red-500">Missing Wifi Settings</span>
+					<div class="flex flex-col">
+						<span class="text-red-500">
+							Missing Wifi Settings.  This device target requires a Wifi SSID
+							and passphrase to connect to the device onto the network.  To
+							populate the Wifi SSID dropdown above, set one or more SSIDs/Passphrases
+							combinations using environment variables:
+						</span>
+						<p></p>
+						<!-- TODO not sure why border and padding aren't applied? -->
+						<div class="grid grid-cols-2 border border-gray-300 gap-2">
+							<div class="border border-gray-300 p-2 font-bold">Environment Variable</div>
+							<div class="border border-gray-300 p-2 font-bold">Description</div>
+							
+							<div class="border border-gray-300 p-2">WIFI_SSIDS</div>
+							<div class="border border-gray-300 p-2">Comma-separated list of SSIDs</div>
+
+							<div class="border border-gray-300 p-2">WIFI_PASSPHRASES</div>
+							<div class="border border-gray-300 p-2">Comma-separated list of passphrases</div>
+						</div>
+					</div>
 				</div>
 	{{- end }}
 {{- end }}
@@ -32,5 +51,5 @@
 					</div>
 				</div>
 {{- end }}
-				<hr>
+				<hr class="my-5">
 {{- template "download.tmpl" .}}
