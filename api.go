@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/merliot/thing2/target"
 	"golang.org/x/exp/maps"
 )
 
@@ -267,11 +268,11 @@ func (d *Device) currentTarget(params url.Values) string {
 
 func (d *Device) showDownload(w http.ResponseWriter, r *http.Request) {
 	values := d.deployValues()
-	target := values.Get("target")
+	t := values.Get("target")
 	d.renderPage(w, "device-download.tmpl", pageVars{
-		//"view":        "download",
-		"target":      target,
-		"linuxTarget": linuxTarget(target),
+		"targets":     target.MakeTargets(d.cfg.Targets),
+		"target":      t,
+		"linuxTarget": linuxTarget(t),
 		"port":        values.Get("port"),
 	})
 }

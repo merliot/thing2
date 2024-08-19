@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/merliot/thing2/target"
 	"golang.org/x/exp/slices"
 )
 
@@ -46,8 +45,6 @@ type Device struct {
 	DeployParams string
 	// Administratively locked
 	Locked bool `json:"-"`
-	// Targets supported by device
-	target.Targets `json:"-"`
 }
 
 var devices = make(map[string]*Device)
@@ -60,7 +57,6 @@ func (d *Device) build(maker Maker) {
 	d.cfg = d.GetConfig()
 	d.Online = false
 	d.ServeMux = http.NewServeMux()
-	d.Targets = target.MakeTargets(d.cfg.Targets)
 
 	// Build device's layered FS.  fs is stacked on top of
 	// deviceFs, so fs:foo.tmpl will override deviceFs:foo.tmpl,

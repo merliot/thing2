@@ -17,7 +17,7 @@
 							Select the target if specified
 							in DeployParams.
 						-->
-{{- range $key, $target := .Device.Targets }}
+{{- range $key, $target := .Vars.targets }}
 	{{- if eq $key $.Vars.target }}
 						<option value="{{ $key }}" selected>{{ $target.FullName }}</option>
 	{{- else }}
