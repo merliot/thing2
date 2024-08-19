@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/examples/gadget"
-	"github.com/merliot/thing2/examples/hub"
 	"github.com/merliot/thing2/examples/relays"
+	"github.com/merliot/thing2/hub"
 )
 
 func main() {

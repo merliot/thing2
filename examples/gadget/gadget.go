@@ -2,8 +2,6 @@ package gadget
 
 import (
 	"embed"
-	"fmt"
-	"net/url"
 
 	"github.com/merliot/thing2"
 )
@@ -19,15 +17,18 @@ type MsgUpdate struct {
 	Bottles int
 }
 
-func NewModel() thing2.Modeler {
+func NewModel() thing2.Devicer {
 	return &Gadget{Bottles: 99}
 }
 
-func (g *Gadget) Config(cfg url.Values) { fmt.Printf("%#v\n", cfg) }
-func (g *Gadget) GetModel() string      { return "gadget" }
-func (g *Gadget) GetState() any         { return g }
-func (g *Gadget) GetFS() *embed.FS      { return &fs }
-func (g *Gadget) GetTargets() []string  { return []string{"demo", "x86-64", "nano-rp2040"} }
+func (g *Gadget) GetConfig() thing2.Config {
+	return thing2.Config{
+		Model:   "gadget",
+		State:   g,
+		FS:      &fs,
+		Targets: []string{"demo", "x86-64", "nano-rp2040"},
+	}
+}
 
 func (g *Gadget) GetHandlers() thing2.Handlers {
 	return thing2.Handlers{

@@ -5,7 +5,7 @@
 		<span class="no-underline">Download</span>
 	</div>
 
-	<form>
+	<form hx-get="/device/{{.Device.Id}}/download-image" hx-swap="none">
 		<div class="flex flex-col">
 			<div class="flex flex-row mb-5">
 				<label>
@@ -43,11 +43,8 @@
 
 			<div class="flex flex-col mt-8">
 				<div class="flex flex-row justify-end mt-8">
-					<span class="hidden text-gray-700 mr-5" id="download-pacifier"></span>
-					<img class="hidden" id="gopher" src="images/gopher-workout.gif" width=30px>
-					<button class="btn" id="download-btn">Download</button>
+					<button class="btn" type="submit">Download</button>
 				</div>
-				<span class="pt-5" id="download-response"></span>
 			</div>
 
 		</div>

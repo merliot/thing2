@@ -3,7 +3,6 @@ package thing2
 import (
 	"embed"
 	"fmt"
-	"html"
 	"html/template"
 	"io"
 	"net/http"
@@ -17,17 +16,30 @@ import (
 //go:embed css docs images js template favicon.ico
 var deviceFs embed.FS
 
+type Devicer interface {
+	GetConfig() Config
+	GetHandlers() Handlers
+}
+
+type Config struct {
+	Model   string
+	State   any
+	FS      *embed.FS
+	Targets []string
+}
+
 type Device struct {
 	Id             string
 	Model          string
 	Name           string
 	Online         bool
 	Children       []string
-	Modeler        `json:"-"`
+	Devicer        `json:"-"`
 	Handlers       `json:"-"`
-	templates      *template.Template
 	*http.ServeMux `json:"-"`
 	sync.RWMutex   `json:"-"`
+	cfg            Config
+	templates      *template.Template
 
 	layeredFS
 	// DeployParams is device deploy configuration in an html param format
@@ -43,16 +55,18 @@ var devicesMu sync.RWMutex
 
 func (d *Device) build(maker Maker) {
 
-	d.Modeler = maker()
+	d.Devicer = maker()
+
+	d.cfg = d.GetConfig()
 	d.Online = false
 	d.ServeMux = http.NewServeMux()
-	d.Targets = target.MakeTargets(d.GetTargets())
+	d.Targets = target.MakeTargets(d.cfg.Targets)
 
 	// Build device's layered FS.  fs is stacked on top of
 	// deviceFs, so fs:foo.tmpl will override deviceFs:foo.tmpl,
 	// when searching for file foo.tmpl.
 	d.layeredFS.stack(deviceFs)
-	d.layeredFS.stack(d.GetFS())
+	d.layeredFS.stack(d.cfg.FS)
 
 	// Build the device templates
 	d.templates = d.layeredFS.parseFS("template/*.tmpl")
@@ -65,11 +79,10 @@ func (d *Device) build(maker Maker) {
 	d.handlersInstall()
 
 	// Configure the device using DeployParams
-	cfg, err := url.ParseQuery(d.DeployParams)
+	_, err := d.formConfig(d.DeployParams)
 	if err != nil {
-		fmt.Println("Parsing DeployParams:", err, d)
+		fmt.Println("Error configuring device using DeployParams:", err, d)
 	}
-	d.Config(cfg)
 }
 
 func devicesMake() {
@@ -161,8 +174,36 @@ func (d *Device) removeChild(childId string) error {
 	return deviceNotFound(childId)
 }
 
-func (d *Device) SetDeployParams(params string) {
-	d.DeployParams = html.UnescapeString(params)
+func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
+
+	// rawQuery is the proposed new DeployParams
+	proposedParams, err := url.QueryUnescape(rawQuery)
+	if err != nil {
+		return false, err
+	}
+	values, err := url.ParseQuery(proposedParams)
+	if err != nil {
+		return false, err
+	}
+
+	d.Lock()
+	defer d.Unlock()
+
+	fmt.Println("Proposed DeployParams:", proposedParams)
+
+	// Form-decode these values into the device to configure the device
+	if err := decoder.Decode(d.cfg.State, values); err != nil {
+		return false, err
+	}
+
+	if proposedParams == d.DeployParams {
+		// No change
+		return false, nil
+	}
+
+	// Save changes.  Stored DeployParams unescaped.
+	d.DeployParams = proposedParams
+	return true, nil
 }
 
 func deviceNotFound(id string) error {
@@ -241,24 +282,22 @@ func deviceOnline(ann announcement) error {
 	}
 
 	if d.Model != ann.Model {
-		return fmt.Errorf("Device model wrong.  Want %s; have %s",
+		return fmt.Errorf("Device model wrong.  Want %s; got %s",
 			d.Model, ann.Model)
 	}
 
 	if d.Name != ann.Name {
-		return fmt.Errorf("Device name wrong.  Want %s; have %s",
+		return fmt.Errorf("Device name wrong.  Want %s; got %s",
 			d.Name, ann.Name)
 	}
 
-	cfg, err := url.ParseQuery(ann.DeployParams)
-	if err != nil {
-		return fmt.Errorf("Parsing DeployParams: %w", err)
+	if d.DeployParams != ann.DeployParams {
+		return fmt.Errorf("Device DeployParams wrong.\nWant: %s\nGot: %s",
+			d.DeployParams, ann.DeployParams)
 	}
 
 	d.Lock()
 	d.Online = true
-	d.DeployParams = ann.DeployParams
-	d.Config(cfg)
 	d.Unlock()
 
 	// We don't need to send a /online pkt up because /state is going to be
@@ -285,9 +324,4 @@ func deviceOffline(id string) {
 		Path: "/offline",
 	}
 	pkt.RouteUp()
-}
-
-func (d *Device) saveState(pkt *Packet) {
-	// TODO check pkt Model and Name match device
-	pkt.Unmarshal(d.GetState()).RouteUp()
 }

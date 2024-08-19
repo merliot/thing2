@@ -4,6 +4,7 @@ import "sync"
 
 type linker interface {
 	Send(pkt *Packet) error
+	Close()
 }
 
 var uplinks = make(map[linker]bool) // keyed by linker
@@ -49,5 +50,13 @@ func downlinkRoute(pkt *Packet) {
 	defer downlinksMu.RUnlock()
 	if dl, ok := downlinks[pkt.Dst]; ok {
 		dl.Send(pkt)
+	}
+}
+
+func downlinkClose(id string) {
+	downlinksMu.RLock()
+	defer downlinksMu.RUnlock()
+	if dl, ok := downlinks[id]; ok {
+		dl.Close()
 	}
 }

@@ -18,6 +18,22 @@ import (
 	"golang.org/x/exp/maps"
 )
 
+// modelInstall installs /model/{model} pattern for device in default ServeMux
+func (d *Device) modelInstall() {
+	prefix := "/model/" + d.Model
+	handler := basicAuthHandler(http.StripPrefix(prefix, d))
+	http.Handle(prefix+"/", handler)
+	fmt.Println("modelInstall", prefix)
+}
+
+func modelsInstall() {
+	for model, maker := range makers {
+		var proto = &Device{Model: model}
+		proto.build(maker)
+		proto.modelInstall()
+	}
+}
+
 // install installs /device/{id} pattern for device in default ServeMux
 func (d *Device) deviceInstall() {
 	prefix := "/device/" + d.Id
@@ -55,7 +71,7 @@ func (d *Device) api() {
 	d.HandleFunc("GET /download", d.showDownload)
 	d.HandleFunc("GET /download-target", d.showDownloadTarget)
 	d.HandleFunc("GET /download-instructions", d.showDownloadInstructions)
-	// d.RHandleFunc("/deploy", d.deploy)
+	d.HandleFunc("GET /download-image", d.downloadImage)
 	d.HandleFunc("GET /create", d.createChild)
 	d.HandleFunc("DELETE /destroy", d.destroyChild)
 	d.HandleFunc("GET /newModal", d.showNewModal)
@@ -82,7 +98,7 @@ func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
 	return d.renderTemplate(w, name, &pageData{
 		Vars:   pageVars,
 		Device: d,
-		State:  d.GetState(),
+		State:  d.cfg.State,
 	})
 }
 
@@ -214,7 +230,7 @@ func (d *Device) showInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Device) showState(w http.ResponseWriter, r *http.Request) {
-	state, _ := json.MarshalIndent(d.GetState(), "", "\t")
+	state, _ := json.MarshalIndent(d.cfg.State, "", "\t")
 	d.renderTemplate(w, "state.tmpl", string(state))
 }
 

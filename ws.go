@@ -38,6 +38,10 @@ func (l *wsLink) Send(pkt *Packet) error {
 	return nil
 }
 
+func (l *wsLink) Close() {
+	l.conn.Close()
+}
+
 func (l *wsLink) receive() (*Packet, error) {
 	var data []byte
 	var pkt Packet
@@ -128,7 +132,6 @@ func wsClient(conn *websocket.Conn) {
 	}
 
 	// Receive welcome within 1 sec
-	fmt.Println("Waiting for /welcome...")
 	pkt, err = link.receiveTimeout(time.Second)
 	if err != nil {
 		fmt.Println("Receive error:", err)
@@ -154,7 +157,7 @@ func wsClient(conn *websocket.Conn) {
 			Path: "/state",
 		}
 		d.RLock()
-		pkt.Marshal(d.GetState())
+		pkt.Marshal(d.cfg.State)
 		d.RUnlock()
 		fmt.Println("Sending:", pkt)
 		link.Send(pkt)
@@ -186,7 +189,6 @@ func wsServer(conn *websocket.Conn) {
 
 	// First receive should be an /announce packet
 
-	fmt.Println("Waiting for /announce")
 	pkt, err := link.receive()
 	if err != nil {
 		fmt.Println("Error receiving first packet:", err)
@@ -212,7 +214,6 @@ func wsServer(conn *websocket.Conn) {
 		return
 	}
 
-	fmt.Println("Device ONLINE")
 	if err := deviceOnline(ann); err != nil {
 		fmt.Println("Device online error:", err)
 		return
@@ -220,7 +221,6 @@ func wsServer(conn *websocket.Conn) {
 
 	// Announcement is good, reply with /welcome packet
 
-	fmt.Println("Reply with /welcome")
 	link.Send(pkt.SetPath("/welcome"))
 
 	// Add as active download link
@@ -232,7 +232,6 @@ func wsServer(conn *websocket.Conn) {
 	// Route incoming packets up to the destination device.  Stop and
 	// disconnect on EOF.
 
-	fmt.Println("Route packets UP")
 	for {
 		pkt, err := link.receive()
 		if err != nil {
@@ -246,6 +245,5 @@ func wsServer(conn *websocket.Conn) {
 	fmt.Println("Removing Downlink")
 	downlinksRemove(id)
 
-	fmt.Println("Device OFFLINE")
 	deviceOffline(id)
 }

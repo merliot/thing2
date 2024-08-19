@@ -2,8 +2,6 @@ package relays
 
 import (
 	"embed"
-	"fmt"
-	"net/url"
 
 	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/io/relay"
@@ -25,15 +23,18 @@ type MsgClicked struct {
 	State bool
 }
 
-func NewModel() thing2.Modeler {
+func NewModel() thing2.Devicer {
 	return &Relays{}
 }
 
-func (r *Relays) Config(cfg url.Values) { fmt.Printf("%#v\n", cfg) }
-func (r *Relays) GetModel() string      { return "relays" }
-func (r *Relays) GetState() any         { return r }
-func (r *Relays) GetFS() *embed.FS      { return &fs }
-func (r *Relays) GetTargets() []string  { return []string{"demo", "rpi", "nano-rp2040", "wioterminal"} }
+func (r *Relays) GetConfig() thing2.Config {
+	return thing2.Config{
+		Model:   "relays",
+		State:   r,
+		FS:      &fs,
+		Targets: []string{"demo", "rpi", "nano-rp2040", "wioterminal"},
+	}
+}
 
 func (r *Relays) GetHandlers() thing2.Handlers {
 	return thing2.Handlers{

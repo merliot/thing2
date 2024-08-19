@@ -16,6 +16,10 @@ type Packet struct {
 	Msg  json.RawMessage
 }
 
+func DecodeValues(values url.Values, v any) error {
+	return decoder.Decode(v, values)
+}
+
 func newPacketFromURL(url *url.URL, v any) (*Packet, error) {
 	var pkt = &Packet{
 		Path: url.Path,

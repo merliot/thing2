@@ -2,18 +2,18 @@
 	<div class="flex flex-col">
 		<span>Relay Name</span>
 {{- range $i, $relay := .State.Relays }}
-	<input class="h-5 mr-2.5 w-36" type="text" placeholder="Relay #{{$i}}" name="relay{{$i}}">
+	<input class="h-5 mr-2.5 w-36" type="text" placeholder="Relay #{{$i}}" name="Relays[{{$i}}].Name" value="{{$relay.Name}}">
 {{- end }}
 	</div>
 	<div class="flex flex-col">
 		<span>GPIO</span>
 {{- range $i, $relay := .State.Relays }}
-		<select class="h-5" name="gpio{{$i}}">
+		<select class="h-5" name="Relays[{{$i}}].Gpio">
 			<option value="">Select GPIO</option>
 	{{- range $key, $target := $.Device.Targets }}
 		{{- if eq $key $.Vars.target }}
 			{{- range $gpio, $pin := $target.GpioPins }}
-			<option value="{{$pin}}">{{$gpio}}</option>
+			<option value="{{$gpio}}">{{$gpio}}</option>
 			{{- end }}
 		{{- end }}
 	{{- end }}

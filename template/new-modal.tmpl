@@ -2,7 +2,7 @@
 	<div class="modal-content">
 		<h3>Create a New Device</h3>
 		<br>
-		<form hx-get="/create" hx-target="#error" hx-swap="innerHTML">
+		<form hx-get="/device/{{.Device.Id}}/create" hx-target="#error" hx-swap="innerHTML">
 			<input type="hidden" id="model" name="Model" value="">
 {{- range $model, $ignore := .Vars.models }}
 			<div class="flex flex-col cursor-pointer"
