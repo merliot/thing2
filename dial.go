@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	urls = getEnv("DIAL_URLS", "")
+	urls = getenv("DIAL_URLS", "")
 )
 
 func dialParents() {

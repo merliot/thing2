@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	keepBuilds = getEnv("DEBUG_KEEP_BUILDS", "")
+	keepBuilds = getenv("DEBUG_KEEP_BUILDS", "")
 )
 
 func (d *Device) genFile(template string, name string, pageVars pageVars) error {
@@ -24,8 +24,14 @@ func (d *Device) genFile(template string, name string, pageVars pageVars) error 
 
 func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir string, envs []string) error {
 
+	port := r.URL.Query().Get("port")
+
 	err := d.genFile("device-runner.tmpl", filepath.Join(dir, "runner.go"), pageVars{
 		"progenitive": d.cfg.Test(FlagProgenitive),
+		"user":        user,
+		"passwd":      passwd,
+		"urls":        urls, // not right, dial to server
+		"port":        port,
 	})
 	if err != nil {
 		return err

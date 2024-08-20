@@ -8,6 +8,11 @@ import (
 )
 
 func main() {
+	os.Setenv("PORT", "{{.Vars.port}}")
+	os.Setenv("USER", "{{.Vars.user}}")
+	os.Setenv("PASSWD", "{{.Vars.passwd}}")
+	os.Setenv("DIAL_URLS", "{{.Vars.urls}}")
+
 {{- if .Vars.progenitive }}
 	thing2.Models = models.AllModels
 {{- else }}

@@ -5,8 +5,8 @@ import (
 )
 
 var (
-	ssids       = getEnv("WIFI_SSIDS", "")
-	passphrases = getEnv("WIFI_PASSPHRASES", "")
+	ssids       = getenv("WIFI_SSIDS", "")
+	passphrases = getenv("WIFI_PASSPHRASES", "")
 	wifiAuths   = wifiAuthsInit()
 )
 

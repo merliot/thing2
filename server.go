@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	port         = getEnv("PORT", "8000")
-	deployParams = getEnv("DEPLOY_PARAMS", "")
-	devicesFile  = getEnv("DEVICES_FILE", "devices.json")
+	port         = getenv("PORT", "8000")
+	deployParams = getenv("DEPLOY_PARAMS", "")
+	devicesFile  = getenv("DEVICES_FILE", "devices.json")
 	root         *Device
 )
 
