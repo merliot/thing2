@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	thing2.Models = models.Models
+	thing2.Models = models.AllModels
 	thing2.Run()
 }

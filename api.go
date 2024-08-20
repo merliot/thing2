@@ -51,7 +51,7 @@ func devicesInstall() {
 	}
 }
 
-func (d *Device) serveFile(w http.ResponseWriter, r *http.Request) {
+func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
 	if strings.HasSuffix(r.URL.Path, ".gz") {
 		w.Header().Set("Content-Encoding", "gzip")
 		//w.Header().Set("Content-Type", "application/javascript")
@@ -60,7 +60,7 @@ func (d *Device) serveFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Device) api() {
-	d.HandleFunc("GET /", d.serveFile)
+	d.HandleFunc("GET /", d.serveStaticFile)
 	d.HandleFunc("GET /{$}", d.showIndex)
 	d.HandleFunc("PUT /keepalive", d.keepAlive)
 	d.HandleFunc("GET /full", d.showFull)

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 
 	"golang.org/x/exp/slices"
@@ -18,19 +19,6 @@ var deviceFs embed.FS
 type Devicer interface {
 	GetConfig() Config
 	GetHandlers() Handlers
-}
-
-const (
-	FlagProgenitive uint32 = 1 << iota // May have children
-	FlagXXX
-)
-
-type Config struct {
-	Model   string
-	Flags   uint32
-	State   any
-	FS      *embed.FS
-	Targets []string
 }
 
 type Device struct {
@@ -71,7 +59,11 @@ func (d *Device) build(maker Maker) {
 	d.layeredFS.stack(d.cfg.FS)
 
 	// Build the device templates
-	d.templates = d.layeredFS.parseFS("template/*.tmpl")
+	d.templates = d.layeredFS.parseFS("template/*.tmpl", template.FuncMap{
+		"title": func(s string) string {
+			return strings.Title(s)
+		},
+	})
 
 	// All devices have a base device API
 	d.api()
@@ -191,7 +183,7 @@ func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
 	d.Lock()
 	defer d.Unlock()
 
-	fmt.Println("Proposed DeployParams:", proposedParams)
+	//	fmt.Println("Proposed DeployParams:", proposedParams)
 
 	// Form-decode these values into the device to configure the device
 	if err := decoder.Decode(d.cfg.State, values); err != nil {

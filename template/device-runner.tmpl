@@ -4,12 +4,16 @@ package main
 
 import (
 	"github.com/merliot/thing2"
+	"github.com/merliot/thing2/models"
 )
 
 func main() {
-	thing := {{.model}}.New("{{.id}}", "{{.model}}", "{{.name}}").(*{{.model}}.{{.modelTitle}})
-	thing.SetDeployParams("{{.deployParams}}")
-	server := dean.NewServer(thing, "{{.user}}", "{{.passwd}}", "{{.port}}")
-	server.Dials("{{.dialUrls}}")
-	server.Run()
+{{- if .Vars.progenitive }}
+	thing2.Models = models.AllModels
+{{- else }}
+	thing2.Models = thing2.ModelMap{
+		"{{.Device.Model}}": models.{{title .Device.Model}},
+	}
+{{- end }}
+	thing2.Run()
 }

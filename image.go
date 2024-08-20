@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
 var (
 	keepBuilds = getEnv("DEBUG_KEEP_BUILDS", "")
 )
 
-/*
-func (d *Device) genFile(templates *template.Template, template string, name string,
-	values map[string]string) error {
+func (d *Device) genFile(template string, name string, pageVars pageVars) error {
 
 	file, err := os.Create(name)
 	if err != nil {
@@ -20,16 +19,18 @@ func (d *Device) genFile(templates *template.Template, template string, name str
 	}
 	defer file.Close()
 
-	tmpl := templates.Lookup(template)
-	if tmpl == nil {
-		return fmt.Errorf("Template '%s' not found", template)
-	}
-
-	return tmpl.Execute(file, values)
+	return d.renderPage(file, template, pageVars)
 }
-*/
 
 func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir string, envs []string) error {
+
+	err := d.genFile("device-runner.tmpl", filepath.Join(dir, "runner.go"), pageVars{
+		"progenitive": d.cfg.Test(FlagProgenitive),
+	})
+	if err != nil {
+		return err
+	}
+
 	/*
 
 		// Generate build.go from server.tmpl

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"strings"
 	"text/template"
 )
 
@@ -16,7 +17,7 @@ type model struct {
 
 type models map[string]model
 
-const modelsTemplate = `// This file auto-generated from ./cmd/gen-models
+const modelsTemplate = `// This file auto-generated from ./cmd/gen-models using models.json as input
 
 package models
 
@@ -27,14 +28,19 @@ import (
 {{- end }}
 )
 
-var Models = map[string]thing2.Model{
+var AllModels = thing2.ModelMap{
 {{- range $key, $value := . }}
-	"{{$key}}": {
-		Package: "{{$value.Package}}",
-		Maker: {{$value.Maker}},
-	},
+	"{{$key}}": {{title $key}},
 {{- end }}
 }
+
+{{- range $key, $value := . }}
+var {{title $key}} = thing2.Model{
+	Package: "{{$value.Package}}",
+	Maker: {{$value.Maker}},
+}
+
+{{- end }}
 `
 
 func main() {
@@ -57,7 +63,11 @@ func main() {
 	defer outFile.Close()
 
 	// Use template to write the models.go file
-	tmpl, err := template.New("models").Parse(modelsTemplate)
+	tmpl, err := template.New("models").Funcs(template.FuncMap{
+		"title": func(s string) string {
+			return strings.Title(s)
+		},
+	}).Parse(modelsTemplate)
 	if err != nil {
 		panic(err)
 	}

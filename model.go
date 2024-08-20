@@ -7,4 +7,6 @@ type Model struct {
 	Maker
 }
 
-var Models = make(map[string]Model)
+type ModelMap map[string]Model
+
+var Models = ModelMap{}
