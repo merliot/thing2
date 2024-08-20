@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	keepBuilds = GetEnv("DEBUG_KEEP_BUILDS", "")
+	keepBuilds = getEnv("DEBUG_KEEP_BUILDS", "")
 )
 
 /*

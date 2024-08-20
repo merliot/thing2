@@ -28,9 +28,9 @@ func (d *Device) modelInstall() {
 }
 
 func modelsInstall() {
-	for model, maker := range makers {
-		var proto = &Device{Model: model}
-		proto.build(maker)
+	for name, model := range Models {
+		var proto = &Device{Model: name}
+		proto.build(model.Maker)
 		proto.modelInstall()
 	}
 }
@@ -150,7 +150,7 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 	d.renderPage(w, "index.tmpl", pageVars{
 		"sessionId": sessionId,
 		"view":      "full",
-		"models":    makers,
+		"models":    Models,
 	})
 }
 
@@ -328,7 +328,7 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) showNewModal(w http.ResponseWriter, r *http.Request) {
 	d.renderPage(w, "new-modal.tmpl", pageVars{
-		"models": makers,
+		"models": Models,
 	})
 }
 

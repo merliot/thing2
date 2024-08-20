@@ -20,8 +20,14 @@ type Devicer interface {
 	GetHandlers() Handlers
 }
 
+const (
+	FlagProgenitive uint32 = 1 << iota // May have children
+	FlagXXX
+)
+
 type Config struct {
 	Model   string
+	Flags   uint32
 	State   any
 	FS      *embed.FS
 	Targets []string
@@ -88,14 +94,14 @@ func devicesMake() {
 			delete(devices, id)
 			continue
 		}
-		maker, ok := makers[device.Model]
+		model, ok := Models[device.Model]
 		if !ok {
 			fmt.Println("Model", device.Model,
 				"not registered, skipping device id", id)
 			delete(devices, id)
 			continue
 		}
-		device.build(maker)
+		device.build(model.Maker)
 	}
 }
 

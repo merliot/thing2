@@ -8,14 +8,15 @@ import (
 )
 
 var (
-	port         = GetEnv("PORT", "8000")
-	deployParams = GetEnv("DEPLOY_PARAMS", "")
+	port         = getEnv("PORT", "8000")
+	deployParams = getEnv("DEPLOY_PARAMS", "")
+	devicesFile  = getEnv("DEVICES_FILE", "devices.json")
 	root         *Device
 )
 
 func Run() {
 
-	err := fileReadDevices()
+	err := fileReadJSON(devicesFile, &devices)
 	if err != nil {
 		fmt.Println("Error reading devices from file:", err)
 		return

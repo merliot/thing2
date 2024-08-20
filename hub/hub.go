@@ -20,6 +20,7 @@ func NewModel() thing2.Devicer {
 func (h *Hub) GetConfig() thing2.Config {
 	return thing2.Config{
 		Model:   "hub",
+		Flags:   thing2.FlagProgenitive,
 		State:   h,
 		FS:      &fs,
 		Targets: []string{"demo", "x86-64", "rpi"},

@@ -2,18 +2,10 @@ package main
 
 import (
 	"github.com/merliot/thing2"
-	"github.com/merliot/thing2/examples/gadget"
-	"github.com/merliot/thing2/examples/relays"
-	"github.com/merliot/thing2/hub"
+	"github.com/merliot/thing2/models"
 )
 
 func main() {
-
-	thing2.Makers{
-		hub.NewModel,
-		gadget.NewModel,
-		relays.NewModel,
-	}.Register()
-
+	thing2.Models = models.Models
 	thing2.Run()
 }

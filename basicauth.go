@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	user   = GetEnv("USER", "")
-	passwd = GetEnv("PASSWD", "")
+	user   = getEnv("USER", "")
+	passwd = getEnv("PASSWD", "")
 )
 
 // HTTP Basic Authentication middleware
