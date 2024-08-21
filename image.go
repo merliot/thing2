@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -12,80 +14,88 @@ var (
 )
 
 func (d *Device) genFile(template string, name string, pageVars pageVars) error {
-
 	file, err := os.Create(name)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-
 	return d.renderPage(file, template, pageVars)
 }
 
-func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir string, envs []string) error {
+func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir string,
+	envs []string, target string) error {
 
-	port := r.URL.Query().Get("port")
+	var user = getenv("USER", "")
+	var passwd = getenv("PASSWD", "")
+	var port = r.URL.Query().Get("port")
+	var url = r.Header["Hx-Current-Url"][0]
+	var dialurls = strings.Replace(url, "http", "ws", 1) + "ws"
+	var service = d.Model + "-" + d.Id
 
-	err := d.genFile("device-runner.tmpl", filepath.Join(dir, "runner.go"), pageVars{
+	// Generate runner.go from device-runner.tmpl
+	var runnerGo = filepath.Join(dir, "runner.go")
+	if err := d.genFile("device-runner.tmpl", runnerGo, pageVars{
 		"progenitive": d.cfg.Test(FlagProgenitive),
 		"user":        user,
 		"passwd":      passwd,
-		"urls":        urls, // not right, dial to server
+		"dialurls":    dialurls,
 		"port":        port,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
-	/*
+	// Generate installer.go from device-installer.tmpl
+	var installerGo = filepath.Join(dir, "installer.go")
+	if err := d.genFile("device-installer.tmpl", installerGo, pageVars{
+		"service": service,
+	}); err != nil {
+		return err
+	}
 
-		// Generate build.go from server.tmpl
-		if err := d.genFile(templates, "server.tmpl", filepath.Join(dir, "build.go"), values); err != nil {
-			return err
-		}
+	// Generate {{service}}.service from device-service.tmpl
+	var output = filepath.Join(dir, service+".service")
+	if err := d.genFile("device-service.tmpl", output, pageVars{
+		"service": service,
+	}); err != nil {
+		return err
+	}
 
-		// Generate installer.go from installer.tmpl
-		if err := genFile(templates, "installer.tmpl", filepath.Join(dir, "installer.go"), values); err != nil {
-			return err
-		}
+	// Generate {{service}}.conf from device-conf.tmpl
+	output = filepath.Join(dir, service+".conf")
+	if err := d.genFile("device-conf.tmpl", output, pageVars{
+		"service": service,
+	}); err != nil {
+		return err
+	}
 
-		// Generate model.service from service.tmpl
-		if err := genFile(templates, "service.tmpl", filepath.Join(dir, d.Model+".service"), values); err != nil {
-			return err
-		}
+	// Build runner binary
 
-		// Generate model.conf from log.tmpl
-		if err := genFile(templates, "log.tmpl", filepath.Join(dir, d.Model+".conf"), values); err != nil {
-			return err
-		}
+	// substitute "-" for "_" in target, ala TinyGo, when using as tag
+	var tag = strings.Replace(target, "-", "_", -1)
+	var binary = filepath.Join(dir, service)
 
-		// Build build.go -> model (binary)
+	cmd := exec.Command("go", "build", "-ldflags", "-s -w", "-o", binary, "-tags", tag, runnerGo)
+	fmt.Println(cmd.String())
+	cmd.Env = append(cmd.Environ(), envs...)
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%w: %s", err, stdoutStderr)
+	}
 
-		// substitute "-" for "_" in target, ala TinyGo, when using as tag
-		target := strings.Replace(values["target"], "-", "_", -1)
+	// Build installer
 
-		cmd := exec.Command("go", "build", "-ldflags", "-s -w", "-o", filepath.Join(dir, d.Model),
-			"-tags", target, filepath.Join(dir, "build.go"))
-		fmt.Println(cmd.String())
-		cmd.Env = append(cmd.Environ(), envs...)
-		stdoutStderr, err := cmd.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("%w: %s", err, stdoutStderr)
-		}
+	var installer = filepath.Join(dir, service+"-installer")
 
-		// Build installer and serve as download-able file
+	cmd = exec.Command("go", "build", "-ldflags", "-s -w", "-o", installer, installerGo)
+	fmt.Println(cmd.String())
+	cmd.Env = append(cmd.Environ(), envs...)
+	stdoutStderr, err = cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%w: %s", err, stdoutStderr)
+	}
 
-		installer := d.Id + "-installer"
-		cmd = exec.Command("go", "build", "-ldflags", "-s -w", "-o", filepath.Join(dir, installer), filepath.Join(dir, "installer.go"))
-		fmt.Println(cmd.String())
-		cmd.Env = append(cmd.Environ(), envs...)
-		stdoutStderr, err = cmd.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("%w: %s", err, stdoutStderr)
-		}
+	println("done")
 
-		return d.serveFile(dir, installer, w, r)
-	*/
 	return nil
 }
 
@@ -108,11 +118,11 @@ func (d *Device) buildImage(w http.ResponseWriter, r *http.Request) error {
 	switch target {
 	case "demo", "x86-64":
 		envs := []string{"CGO_ENABLED=0", "GOOS=linux", "GOARCH=amd64"}
-		return d.buildLinuxImage(w, r, dir, envs)
+		return d.buildLinuxImage(w, r, dir, envs, target)
 	case "rpi":
 		// TODO: do we want more targets for GOARM=7|8?
 		envs := []string{"CGO_ENABLED=0", "GOOS=linux", "GOARCH=arm", "GOARM=5"}
-		return d.buildLinuxImage(w, r, dir, envs)
+		return d.buildLinuxImage(w, r, dir, envs, target)
 		/*
 			case "nano-rp2040", "wioterminal", "pyportal":
 				//return d.deployTinyGo(dir, values, envs, templates, w, r)
@@ -143,6 +153,8 @@ func (d *Device) downloadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Built it!
+
 	if err := d.buildImage(w, r); err != nil {
 		http.Error(w, err.Error(), http.StatusNotAcceptable)
 		return
@@ -155,6 +167,7 @@ func (d *Device) downloadImage(w http.ResponseWriter, r *http.Request) {
 	// will connect.
 
 	if changed {
+		dirty.Store(true)
 		downlinkClose(d.Id)
 	}
 }

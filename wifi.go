@@ -4,15 +4,12 @@ import (
 	"strings"
 )
 
-var (
-	ssids       = getenv("WIFI_SSIDS", "")
-	passphrases = getenv("WIFI_PASSPHRASES", "")
-	wifiAuths   = wifiAuthsInit()
-)
-
 type wifiAuthMap map[string]string //key: ssid; value: passphrase
 
-func wifiAuthsInit() wifiAuthMap {
+func wifiAuths() wifiAuthMap {
+	var ssids = getenv("WIFI_SSIDS", "")
+	var passphrases = getenv("WIFI_PASSPHRASES", "")
+
 	auths := make(wifiAuthMap)
 	if ssids == "" {
 		return auths

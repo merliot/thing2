@@ -3,6 +3,7 @@ package thing2
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"net/url"
 	"time"
@@ -18,7 +19,7 @@ type announcement struct {
 	Id           string
 	Model        string
 	Name         string
-	DeployParams string
+	DeployParams template.HTML
 }
 
 // ws handles /ws requests
@@ -63,8 +64,8 @@ func (l *wsLink) receiveTimeout(timeout time.Duration) (*Packet, error) {
 }
 
 func newConfig(url *url.URL, user, passwd string) (*websocket.Config, error) {
-	surl := url.String()
-	origin := "http://localhost/"
+	var surl = url.String()
+	var origin = "http://localhost/"
 
 	// Configure the websocket
 	config, err := websocket.NewConfig(surl, origin)
@@ -86,6 +87,8 @@ func newConfig(url *url.URL, user, passwd string) (*websocket.Config, error) {
 }
 
 func wsDial(url *url.URL) {
+	var user = getenv("USER", "")
+	var passwd = getenv("PASSWD", "")
 
 	cfg, err := newConfig(url, user, passwd)
 	if err != nil {

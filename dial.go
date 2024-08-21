@@ -6,11 +6,9 @@ import (
 	"strings"
 )
 
-var (
-	urls = getenv("DIAL_URLS", "")
-)
-
 func dialParents() {
+	var urls = getenv("DIAL_URLS", "")
+
 	for _, u := range strings.Split(urls, ",") {
 		if u == "" {
 			continue

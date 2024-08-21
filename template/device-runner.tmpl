@@ -3,6 +3,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/models"
 )
@@ -11,14 +13,25 @@ func main() {
 	os.Setenv("PORT", "{{.Vars.port}}")
 	os.Setenv("USER", "{{.Vars.user}}")
 	os.Setenv("PASSWD", "{{.Vars.passwd}}")
-	os.Setenv("DIAL_URLS", "{{.Vars.urls}}")
+	os.Setenv("DIAL_URLS", "{{.Vars.dialurls}}")
 
-{{- if .Vars.progenitive }}
+	os.Setenv("DEVICES", `{
+	"{{.Device.Id}}": {
+		"Id": "{{.Device.Id}}",
+		"Model": "{{.Device.Model}}",
+		"Name": "{{.Device.Name}}",
+		"Online": {{.Device.Online}},
+		"Children": [],
+		"DeployParams": "{{.Device.DeployParams}}"
+	}
+}`)
+{{ if .Vars.progenitive }}
 	thing2.Models = models.AllModels
 {{- else }}
 	thing2.Models = thing2.ModelMap{
 		"{{.Device.Model}}": models.{{title .Device.Model}},
 	}
 {{- end }}
+
 	thing2.Run()
 }

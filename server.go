@@ -1,25 +1,36 @@
 package thing2
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"sync/atomic"
 )
 
 var (
-	port         = getenv("PORT", "8000")
-	deployParams = getenv("DEPLOY_PARAMS", "")
-	devicesFile  = getenv("DEVICES_FILE", "devices.json")
-	root         *Device
+	root  *Device
+	dirty atomic.Bool
 )
 
 func Run() {
 
-	err := fileReadJSON(devicesFile, &devices)
-	if err != nil {
-		fmt.Println("Error reading devices from file:", err)
-		return
+	var port = getenv("PORT", "8000")
+	var devicesFile = getenv("DEVICES_FILE", "devices.json")
+	var devicesJSON = getenv("DEVICES", "")
+	var err error
+
+	if devicesJSON != "" {
+		if err := json.Unmarshal([]byte(devicesJSON), &devices); err != nil {
+			fmt.Printf("Error parsing devices: %s\n", err)
+			return
+		}
+	} else {
+		if err := fileReadJSON(devicesFile, &devices); err != nil {
+			fmt.Println("Error reading devices from file:", err)
+			return
+		}
 	}
 
 	devicesMake()
@@ -36,10 +47,12 @@ func Run() {
 	// Dial parents
 	dialParents()
 
-	// (Optional) run as web server, if port given
+	// If no port was given, don't run as a web server
 	if port == "" {
-		return
+		select {}
 	}
+
+	// Running as a web server...
 
 	// Install /model/{model} patterns for makers
 	modelsInstall()

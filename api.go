@@ -69,6 +69,7 @@ func (d *Device) api() {
 	d.HandleFunc("GET /detail", d.showDetail)
 	d.HandleFunc("GET /info", d.showInfo)
 	d.HandleFunc("GET /code", d.showCode)
+	d.HandleFunc("GET /devices", d.showDevices)
 	d.HandleFunc("GET /download", d.showDownload)
 	d.HandleFunc("GET /download-target", d.showDownloadTarget)
 	d.HandleFunc("GET /download-instructions", d.showDownloadInstructions)
@@ -145,10 +146,12 @@ func (d *Device) RenderChildHTML(sessionId, childId, rawUrl string) (template.HT
 }
 
 func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
+	println("showIndex", r.Host, r.URL.String())
 	sessionId := newSession()
 	sessionDeviceSave(sessionId, d.Id, r.URL)
 	d.renderPage(w, "index.tmpl", pageVars{
 		"sessionId": sessionId,
+		"dirty":     dirty.Load(),
 		"view":      "full",
 		"models":    Models,
 	})
@@ -162,6 +165,7 @@ func (d *Device) keepAlive(w http.ResponseWriter, r *http.Request) {
 func (d *Device) _showFull(w io.Writer, sessionId string) error {
 	return d.renderPage(w, "device-full.tmpl", pageVars{
 		"sessionId": sessionId,
+		"dirty":     dirty.Load(),
 		"view":      "full",
 	})
 }
@@ -177,6 +181,7 @@ func (d *Device) showFull(w http.ResponseWriter, r *http.Request) {
 func (d *Device) _showList(w io.Writer, sessionId string) error {
 	return d.renderPage(w, "device-list.tmpl", pageVars{
 		"sessionId": sessionId,
+		"dirty":     dirty.Load(),
 		"view":      "list",
 	})
 }
@@ -209,6 +214,7 @@ func (d *Device) _showDetail(w io.Writer, sessionId string, url *url.URL) error 
 	prevView := url.Query().Get("prevView")
 	return d.renderPage(w, "device-detail.tmpl", pageVars{
 		"sessionId": sessionId,
+		"dirty":     dirty.Load(),
 		"childId":   childId,
 		"view":      "detail",
 		"prevView":  prevView,
@@ -231,8 +237,9 @@ func (d *Device) showInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Device) showState(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	state, _ := json.MarshalIndent(d.cfg.State, "", "\t")
-	d.renderTemplate(w, "state.tmpl", string(state))
+	w.Write(state)
 }
 
 func (d *Device) showCode(w http.ResponseWriter, r *http.Request) {
@@ -246,12 +253,29 @@ func (d *Device) showCode(w http.ResponseWriter, r *http.Request) {
 	d.renderTemplate(w, "code.tmpl", names)
 }
 
+func (d *Device) showDevices(w http.ResponseWriter, r *http.Request) {
+	var childDevices = make(devicesMap)
+
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+
+	for _, childId := range d.Children {
+		child := devices[childId]
+		childDevices[childId] = child
+	}
+	childDevices[d.Id] = d // add self
+
+	w.Header().Set("Content-Type", "application/json")
+	state, _ := json.MarshalIndent(childDevices, "", "\t")
+	w.Write(state)
+}
+
 func linuxTarget(target string) bool {
 	return target == "demo" || target == "x86-64" || target == "rpi"
 }
 
 func (d *Device) deployValues() url.Values {
-	values, err := url.ParseQuery(d.DeployParams)
+	values, err := url.ParseQuery(string(d.DeployParams))
 	if err != nil {
 		panic(err.Error())
 	}
@@ -280,6 +304,7 @@ func (d *Device) showDownload(w http.ResponseWriter, r *http.Request) {
 func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 	values := d.deployValues()
 	target := d.currentTarget(r.URL.Query())
+	wifiAuths := wifiAuths()
 	d.renderPage(w, "device-download-target.tmpl", pageVars{
 		"target":      target,
 		"linuxTarget": linuxTarget(target),

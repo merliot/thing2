@@ -16,6 +16,10 @@ import (
 //go:embed css docs images js template favicon.ico
 var deviceFs embed.FS
 
+type devicesMap map[string]*Device // key: device id
+var devices = make(devicesMap)
+var devicesMu sync.RWMutex
+
 type Devicer interface {
 	GetConfig() Config
 	GetHandlers() Handlers
@@ -36,13 +40,10 @@ type Device struct {
 
 	layeredFS
 	// DeployParams is device deploy configuration in an html param format
-	DeployParams string
+	DeployParams template.HTML
 	// Administratively locked
 	Locked bool `json:"-"`
 }
-
-var devices = make(map[string]*Device)
-var devicesMu sync.RWMutex
 
 func (d *Device) build(maker Maker) {
 
@@ -73,7 +74,7 @@ func (d *Device) build(maker Maker) {
 	d.handlersInstall()
 
 	// Configure the device using DeployParams
-	_, err := d.formConfig(d.DeployParams)
+	_, err := d.formConfig(string(d.DeployParams))
 	if err != nil {
 		fmt.Println("Error configuring device using DeployParams:", err, d)
 	}
@@ -190,13 +191,13 @@ func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
 		return false, err
 	}
 
-	if proposedParams == d.DeployParams {
+	if proposedParams == string(d.DeployParams) {
 		// No change
 		return false, nil
 	}
 
 	// Save changes.  Stored DeployParams unescaped.
-	d.DeployParams = proposedParams
+	d.DeployParams = template.HTML(proposedParams)
 	return true, nil
 }
 
