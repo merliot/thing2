@@ -1,7 +1,11 @@
 package thing2
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -12,6 +16,61 @@ import (
 var (
 	keepBuilds = getenv("DEBUG_KEEP_BUILDS", "")
 )
+
+func gzipFile(src, dst string) error {
+	inputFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer inputFile.Close()
+
+	outputFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+
+	gzipWriter := gzip.NewWriter(outputFile)
+	defer gzipWriter.Close()
+
+	_, err = io.Copy(gzipWriter, inputFile)
+	return err
+}
+
+func serveFile(w http.ResponseWriter, r *http.Request, fileName string) error {
+
+	// Calculate MD5 checksum
+	cmd := exec.Command("md5sum", fileName)
+	fmt.Println(cmd.String())
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%w: %s", err, stdoutStderr)
+	}
+	md5sum := bytes.Fields(stdoutStderr)[0]
+	md5sumBase64 := base64.StdEncoding.EncodeToString(md5sum)
+
+	// Set the Content-Disposition header to suggest the original filename for download
+	downloadName := filepath.Base(fileName)
+	w.Header().Set("Content-Disposition", "attachment; filename="+downloadName)
+	// Set the MD5 checksum header
+	w.Header().Set("Content-MD5", md5sumBase64)
+
+	w.Header().Set("Content-Encoding", "gzip")
+	gzipName := fileName + ".gz"
+	err = gzipFile(fileName, gzipName)
+	if err != nil {
+		return err
+	}
+
+	//w.Header().Set("HX-Redirect", "/foo")
+	//w.Header().Set("HX-Replace-Url", "false")
+
+	println("Serving", gzipName)
+	http.ServeFile(w, r, gzipName)
+	println("Done serving", gzipName)
+
+	return nil
+}
 
 func (d *Device) genFile(template string, name string, pageVars pageVars) error {
 	file, err := os.Create(name)
@@ -28,14 +87,14 @@ func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir str
 	var user = getenv("USER", "")
 	var passwd = getenv("PASSWD", "")
 	var port = r.URL.Query().Get("port")
-	var url = r.Header["Hx-Current-Url"][0]
+	var url = r.Header["Referer"][0]
 	var dialurls = strings.Replace(url, "http", "ws", 1) + "ws"
 	var service = d.Model + "-" + d.Id
 
 	// Generate runner.go from device-runner.tmpl
 	var runnerGo = filepath.Join(dir, "runner.go")
 	if err := d.genFile("device-runner.tmpl", runnerGo, pageVars{
-		"progenitive": d.cfg.Test(FlagProgenitive),
+		"progenitive": d.Flags.IsSet(FlagProgenitive),
 		"user":        user,
 		"passwd":      passwd,
 		"dialurls":    dialurls,
@@ -94,9 +153,9 @@ func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir str
 		return fmt.Errorf("%w: %s", err, stdoutStderr)
 	}
 
-	println("done")
+	// Serve installer file for download
 
-	return nil
+	return serveFile(w, r, installer)
 }
 
 func (d *Device) buildImage(w http.ResponseWriter, r *http.Request) error {
@@ -137,7 +196,7 @@ func (d *Device) buildImage(w http.ResponseWriter, r *http.Request) error {
 
 func (d *Device) downloadImage(w http.ResponseWriter, r *http.Request) {
 
-	if d.Locked {
+	if d.Flags.IsSet(flagLocked) {
 		http.Error(w, "Refusing to download, device is locked", http.StatusLocked)
 		return
 	}
@@ -167,7 +226,7 @@ func (d *Device) downloadImage(w http.ResponseWriter, r *http.Request) {
 	// will connect.
 
 	if changed {
-		dirty.Store(true)
+		d.Flags.Set(flagDirty)
 		downlinkClose(d.Id)
 	}
 }

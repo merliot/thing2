@@ -13,7 +13,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-//go:embed css docs images js template favicon.ico
+//go:embed css docs images js template
 var deviceFs embed.FS
 
 type devicesMap map[string]*Device // key: device id
@@ -29,35 +29,31 @@ type Device struct {
 	Id             string
 	Model          string
 	Name           string
-	Online         bool
 	Children       []string
+	DeployParams   template.HTML
+	Flags          `json:"-"`
+	Config         `json:"-"`
 	Devicer        `json:"-"`
 	Handlers       `json:"-"`
 	*http.ServeMux `json:"-"`
 	sync.RWMutex   `json:"-"`
-	cfg            Config
 	templates      *template.Template
-
 	layeredFS
-	// DeployParams is device deploy configuration in an html param format
-	DeployParams template.HTML
-	// Administratively locked
-	Locked bool `json:"-"`
 }
 
 func (d *Device) build(maker Maker) {
 
 	d.Devicer = maker()
 
-	d.cfg = d.GetConfig()
-	d.Online = false
+	d.Config = d.GetConfig()
+	d.Flags = d.Config.Flags
 	d.ServeMux = http.NewServeMux()
 
 	// Build device's layered FS.  fs is stacked on top of
 	// deviceFs, so fs:foo.tmpl will override deviceFs:foo.tmpl,
 	// when searching for file foo.tmpl.
 	d.layeredFS.stack(deviceFs)
-	d.layeredFS.stack(d.cfg.FS)
+	d.layeredFS.stack(d.FS)
 
 	// Build the device templates
 	d.templates = d.layeredFS.parseFS("template/*.tmpl", template.FuncMap{
@@ -127,7 +123,7 @@ func devicesFindRoot() (*Device, error) {
 	switch {
 	case len(roots) == 1:
 		root := roots[0]
-		root.Online = true
+		root.Flags.Set(flagOnline)
 		return root, nil
 	case len(roots) > 1:
 		return nil, fmt.Errorf("More than one tree found in devices, aborting")
@@ -187,8 +183,15 @@ func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
 	//	fmt.Println("Proposed DeployParams:", proposedParams)
 
 	// Form-decode these values into the device to configure the device
-	if err := decoder.Decode(d.cfg.State, values); err != nil {
+	if err := decoder.Decode(d.State, values); err != nil {
 		return false, err
+	}
+
+	target := values.Get("target")
+	if target == "demo" {
+		d.Flags.Set(flagDemo)
+	} else {
+		d.Flags.Unset(flagDemo)
 	}
 
 	if proposedParams == string(d.DeployParams) {
@@ -196,7 +199,7 @@ func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
 		return false, nil
 	}
 
-	// Save changes.  Stored DeployParams unescaped.
+	// Save changes.  Store DeployParams unescaped.
 	d.DeployParams = template.HTML(proposedParams)
 	return true, nil
 }
@@ -292,7 +295,7 @@ func deviceOnline(ann announcement) error {
 	}
 
 	d.Lock()
-	d.Online = true
+	d.Flags.Set(flagOnline)
 	d.Unlock()
 
 	// We don't need to send a /online pkt up because /state is going to be
@@ -311,7 +314,7 @@ func deviceOffline(id string) {
 	}
 
 	d.Lock()
-	d.Online = false
+	d.Flags.Unset(flagOnline)
 	d.Unlock()
 
 	pkt := &Packet{

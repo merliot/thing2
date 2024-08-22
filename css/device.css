@@ -703,6 +703,10 @@ video {
   color: rgb(239, 68, 68);
 }
 
+.text-emerald-500 {
+  color: rgb(16 185 129);
+}
+
 .text-gray-700 {
   color: rgb(74, 85, 104);
 }

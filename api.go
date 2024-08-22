@@ -9,10 +9,8 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
-	"log"
 	"net/http"
 	"net/url"
-	"runtime"
 	"strings"
 
 	"github.com/merliot/thing2/target"
@@ -97,13 +95,25 @@ type pageData struct {
 }
 
 func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
+
+	values := d.deployValues()
+	target := values.Get("target")
+
+	// Add common Vars for all pages
+	pageVars["target"] = target
+	pageVars["online"] = d.Flags.IsSet(flagOnline)
+	pageVars["demo"] = d.Flags.IsSet(flagDemo)
+	pageVars["dirty"] = d.Flags.IsSet(flagDirty)
+	pageVars["locked"] = d.Flags.IsSet(flagLocked)
+
 	return d.renderTemplate(w, name, &pageData{
 		Vars:   pageVars,
 		Device: d,
-		State:  d.cfg.State,
+		State:  d.State,
 	})
 }
 
+/*
 func dumpStackTrace() {
 	buf := make([]byte, 1024)
 	for {
@@ -116,6 +126,7 @@ func dumpStackTrace() {
 	}
 	log.Printf("Stack trace:\n%s", buf)
 }
+*/
 
 func (d *Device) RenderChildHTML(sessionId, childId, rawUrl string) (template.HTML, error) {
 
@@ -151,7 +162,6 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 	sessionDeviceSave(sessionId, d.Id, r.URL)
 	d.renderPage(w, "index.tmpl", pageVars{
 		"sessionId": sessionId,
-		"dirty":     dirty.Load(),
 		"view":      "full",
 		"models":    Models,
 	})
@@ -159,13 +169,16 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) keepAlive(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	sessionUpdate(sessionId)
+	if !sessionUpdate(sessionId) {
+		// Session expired, force full page refresh to start new
+		// session
+		w.Header().Set("HX-Refresh", "true")
+	}
 }
 
 func (d *Device) _showFull(w io.Writer, sessionId string) error {
 	return d.renderPage(w, "device-full.tmpl", pageVars{
 		"sessionId": sessionId,
-		"dirty":     dirty.Load(),
 		"view":      "full",
 	})
 }
@@ -181,7 +194,6 @@ func (d *Device) showFull(w http.ResponseWriter, r *http.Request) {
 func (d *Device) _showList(w io.Writer, sessionId string) error {
 	return d.renderPage(w, "device-list.tmpl", pageVars{
 		"sessionId": sessionId,
-		"dirty":     dirty.Load(),
 		"view":      "list",
 	})
 }
@@ -214,7 +226,6 @@ func (d *Device) _showDetail(w io.Writer, sessionId string, url *url.URL) error 
 	prevView := url.Query().Get("prevView")
 	return d.renderPage(w, "device-detail.tmpl", pageVars{
 		"sessionId": sessionId,
-		"dirty":     dirty.Load(),
 		"childId":   childId,
 		"view":      "detail",
 		"prevView":  prevView,
@@ -238,7 +249,7 @@ func (d *Device) showInfo(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) showState(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	state, _ := json.MarshalIndent(d.cfg.State, "", "\t")
+	state, _ := json.MarshalIndent(d.State, "", "\t")
 	w.Write(state)
 }
 
@@ -282,7 +293,7 @@ func (d *Device) deployValues() url.Values {
 	return values
 }
 
-func (d *Device) currentTarget(params url.Values) string {
+func (d *Device) selectedTarget(params url.Values) string {
 	target := params.Get("target")
 	if target == "" {
 		target = d.deployValues().Get("target")
@@ -294,8 +305,7 @@ func (d *Device) showDownload(w http.ResponseWriter, r *http.Request) {
 	values := d.deployValues()
 	t := values.Get("target")
 	d.renderPage(w, "device-download.tmpl", pageVars{
-		"targets":     target.MakeTargets(d.cfg.Targets),
-		"target":      t,
+		"targets":     target.MakeTargets(d.Targets),
 		"linuxTarget": linuxTarget(t),
 		"port":        values.Get("port"),
 	})
@@ -303,20 +313,20 @@ func (d *Device) showDownload(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 	values := d.deployValues()
-	target := d.currentTarget(r.URL.Query())
+	selectedTarget := d.selectedTarget(r.URL.Query())
 	wifiAuths := wifiAuths()
 	d.renderPage(w, "device-download-target.tmpl", pageVars{
-		"target":      target,
-		"linuxTarget": linuxTarget(target),
-		"missingWifi": len(wifiAuths) == 0,
-		"ssids":       maps.Keys(wifiAuths),
-		"ssid":        values.Get("ssid"),
-		"port":        values.Get("port"),
+		"selectedTarget": selectedTarget,
+		"linuxTarget":    linuxTarget(selectedTarget),
+		"missingWifi":    len(wifiAuths) == 0,
+		"ssids":          maps.Keys(wifiAuths),
+		"ssid":           values.Get("ssid"),
+		"port":           values.Get("port"),
 	})
 }
 
 func (d *Device) showDownloadInstructions(w http.ResponseWriter, r *http.Request) {
-	target := d.currentTarget(r.URL.Query())
+	target := d.selectedTarget(r.URL.Query())
 	template := "instructions-" + target + ".tmpl"
 	d.renderPage(w, template, pageVars{})
 }

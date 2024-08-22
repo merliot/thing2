@@ -160,7 +160,7 @@ func wsClient(conn *websocket.Conn) {
 			Path: "/state",
 		}
 		d.RLock()
-		pkt.Marshal(d.cfg.State)
+		pkt.Marshal(d.State)
 		d.RUnlock()
 		fmt.Println("Sending:", pkt)
 		link.Send(pkt)

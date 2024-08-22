@@ -3,13 +3,15 @@
 					<img class="w-10 h-10" src="/model/{{.Device.Model}}/images/icon.png">
 					<span class="px-5 text-lg font-bold">{{.Device.Name}}</span>
 				</div>
-{{- if .Device.Online}}
-				<span class="display-online rounded-2xl border-solid text-red-500 px-2.5 py-1">Offline</span>
-{{- else }}
-				<span class="display-offline rounded-2xl border-solid text-red-500 px-2.5 py-1">Offline</span>
-{{- end }}
 				<div class="flex items-center">
-{{- if .Device.Locked}}
+{{- if .Vars.online}}
+					<span class="display-online bg-red-500 text-white px-2.5">Offline</span>
+{{- else }}
+					<span class="display-offline bg-red-500 text-white px-2.5">Offline</span>
+{{- end }}
+				</div>
+				<div class="flex items-center">
+{{- if .Vars.locked}}
 					<span class="icon cursor-not-allowed">&#x1F512;</span>
 {{- end}}
 {{- if eq .Vars.view "download"}}

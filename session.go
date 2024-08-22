@@ -66,16 +66,16 @@ func sessionConn(sessionId string, conn *websocket.Conn) {
 	}
 }
 
-func sessionUpdate(sessionId string) {
+func sessionUpdate(sessionId string) bool {
 
 	sessionsMu.Lock()
 	defer sessionsMu.Unlock()
 
 	if session, ok := sessions[sessionId]; ok {
 		session.LastUpdate = time.Now()
-	} else {
-		sessions[sessionId] = _newSession(sessionId, nil)
+		return true
 	}
+	return false
 }
 
 func _sessionDeviceSave(sessionId, deviceId string, url *url.URL) {

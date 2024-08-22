@@ -10,7 +10,6 @@ import (
 var fs embed.FS
 
 type Hub struct {
-	Demo bool `json:"-"`
 }
 
 func NewModel() thing2.Devicer {

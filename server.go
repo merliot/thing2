@@ -6,13 +6,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"sync/atomic"
 )
 
-var (
-	root  *Device
-	dirty atomic.Bool
-)
+var root *Device
 
 func Run() {
 
