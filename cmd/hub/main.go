@@ -21,7 +21,6 @@ var device = `{
 func main() {
 	id := thing2.GenerateRandomId()
 	devices := fmt.Sprintf(device, id, id)
-	println(devices)
 	os.Setenv("DEVICES", devices)
 	thing2.Models = models.AllModels
 	thing2.Run()

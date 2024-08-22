@@ -6,7 +6,7 @@ import (
 	"github.com/merliot/thing2"
 )
 
-//go:embed css images template
+//go:embed images *.go template
 var fs embed.FS
 
 type Hub struct {

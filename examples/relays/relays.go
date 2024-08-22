@@ -7,7 +7,7 @@ import (
 	"github.com/merliot/thing2/io/relay"
 )
 
-//go:embed css images *.go template
+//go:embed images *.go template
 var fs embed.FS
 
 type Relays struct {

@@ -8,9 +8,6 @@
 		<title>{{.Device.Model}} - {{.Device.Name}}</title>
 
 		<link rel="stylesheet" type="text/css" href="/css/device.css.gz">
-{{- range $model, $ignore := .Vars.models }}
-		<link rel="stylesheet" type="text/css" href="/model/{{$model}}/css/{{$model}}.css">
-{{- end }}
 		<script src="/js/htmx.min.js.gz"></script>
 		<script src="/js/htmx-ext-ws.js.gz"></script>
 	</head>

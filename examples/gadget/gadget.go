@@ -6,7 +6,7 @@ import (
 	"github.com/merliot/thing2"
 )
 
-//go:embed css *.go template
+//go:embed *.go template
 var fs embed.FS
 
 type Gadget struct {
