@@ -1,0 +1,14 @@
+{
+	"hub": {
+		"Package": "github.com/merliot/thing2/hub",
+		"Maker": "hub.NewModel"
+	},
+	"gadget": {
+		"Package": "github.com/merliot/thing2/examples/gadget",
+		"Maker": "gadget.NewModel"
+	},
+	"relays": {
+		"Package": "github.com/merliot/thing2/examples/relays",
+		"Maker": "relays.NewModel"
+	}
+}

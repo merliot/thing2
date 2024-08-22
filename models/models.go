@@ -5,24 +5,24 @@ package models
 import (
 	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/examples/gadget"
-	"github.com/merliot/thing2/examples/relays"
 	"github.com/merliot/thing2/hub"
+	"github.com/merliot/thing2/examples/relays"
 )
 
 var AllModels = thing2.ModelMap{
 	"gadget": Gadget,
-	"hub":    Hub,
+	"hub": Hub,
 	"relays": Relays,
 }
 var Gadget = thing2.Model{
 	Package: "github.com/merliot/thing2/examples/gadget",
-	Maker:   gadget.NewModel,
+	Maker: gadget.NewModel,
 }
 var Hub = thing2.Model{
 	Package: "github.com/merliot/thing2/hub",
-	Maker:   hub.NewModel,
+	Maker: hub.NewModel,
 }
 var Relays = thing2.Model{
 	Package: "github.com/merliot/thing2/examples/relays",
-	Maker:   relays.NewModel,
+	Maker: relays.NewModel,
 }
