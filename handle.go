@@ -54,8 +54,10 @@ func (d *Device) newPacketRoute(h Generator) http.Handler {
 func (d *Device) handle(pkt *Packet) {
 	d.Lock()
 	defer d.Unlock()
-	if handler, ok := d.Handlers[pkt.Path]; ok {
-		fmt.Println("Handling", pkt.String())
-		handler.Cb(pkt)
+	if d.Flags.IsSet(flagOnline) {
+		if handler, ok := d.Handlers[pkt.Path]; ok {
+			fmt.Println("Handling", pkt.String())
+			handler.Cb(pkt)
+		}
 	}
 }

@@ -316,6 +316,7 @@ func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 	selectedTarget := d.selectedTarget(r.URL.Query())
 	wifiAuths := wifiAuths()
 	d.renderPage(w, "device-download-target.tmpl", pageVars{
+		"targets":        target.MakeTargets(d.Targets),
 		"selectedTarget": selectedTarget,
 		"linuxTarget":    linuxTarget(selectedTarget),
 		"missingWifi":    len(wifiAuths) == 0,

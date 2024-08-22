@@ -1,4 +1,4 @@
-			<div class="panel flex-row h-52 items-center justify-between">
+			<div class="panel flex-row h-52 items-center justify-center">
 {{- range $i, $relay := .State.Relays }}
 				<div class="flex flex-col items-center"
 				     hx-post="/device/{{$.Device.Id}}/click?Relay={{$i}}"

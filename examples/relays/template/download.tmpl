@@ -11,7 +11,7 @@
 		<select class="h-5" name="Relays[{{$i}}].Gpio">
 			<option value="">Select GPIO</option>
 	{{- range $key, $target := $.Vars.targets }}
-		{{- if eq $key $.Vars.target }}
+		{{- if eq $key $.Vars.selectedTarget }}
 			{{- range $gpio, $pin := $target.GpioPins }}
 			<option value="{{$gpio}}">{{$gpio}}</option>
 			{{- end }}
