@@ -4,20 +4,12 @@
 					<span class="px-5 text-lg font-bold">{{.Device.Name}}</span>
 				</div>
 				<div class="flex items-center">
-{{- if .Vars.online }}
-					<span class="display-online bg-red-500 text-white px-2.5">Offline</span>
-{{- else }}
-					<span class="display-offline bg-red-500 text-white px-2.5">Offline</span>
-{{- end }}
+{{ template "button-offline.tmpl" . }}
 				</div>
 				<div class="flex items-center">
-{{- if .Vars.locked }}
-					<span class="icon cursor-not-allowed">&#x1F512;</span>
-{{- end }}
-{{- if .Vars.dirty }}
-					<img class="icon px-1" src="/model/{{.Device.Model}}/images/save.png">
-{{- end }}
-{{ template "new-button.tmpl" . }}
+{{ template "button-locked.tmpl" . }}
+{{ template "button-save.tmpl" . }}
+{{ template "button-new.tmpl" . }}
 				</div>
 			</header>
 			<hr>

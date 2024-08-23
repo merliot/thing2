@@ -259,6 +259,16 @@ func _deviceRender(w io.Writer, sessionId, id string, url *url.URL) error {
 	return deviceNotFound(id)
 }
 
+func _deviceRenderUpdate(w io.Writer, id, template string, pageVars pageVars) error {
+	println("_deviceRenderUpdate", id)
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+	if d, ok := devices[id]; ok {
+		return d.renderPage(w, template, pageVars)
+	}
+	return deviceNotFound(id)
+}
+
 func deviceRender(w io.Writer, sessionId, id string, url *url.URL) error {
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
@@ -322,4 +332,28 @@ func deviceOffline(id string) {
 		Path: "/offline",
 	}
 	pkt.RouteUp()
+}
+
+func (d *Device) dirty() {
+	println("d.dirty")
+	d.Lock()
+	d.Flags.Set(flagDirty)
+	d.Unlock()
+	sessionsRouteUpdate(d.Id, "button-save.tmpl", pageVars{})
+}
+
+func deviceDirty(id string) {
+	println("deviceDirty")
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+	for deviceId, device := range devices {
+		if deviceId == id {
+			device.dirty()
+		}
+		// Set parent dirty also
+		if slices.Contains(device.Children, id) {
+			devices[deviceId].dirty()
+		}
+		// TODO does dirtyness go all the way to the root?
+	}
 }

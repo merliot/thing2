@@ -226,7 +226,7 @@ func (d *Device) downloadImage(w http.ResponseWriter, r *http.Request) {
 	// will connect.
 
 	if changed {
-		d.Flags.Set(flagDirty)
+		deviceDirty(d.Id)
 		downlinkClose(d.Id)
 	}
 }

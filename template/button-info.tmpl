@@ -1,0 +1,6 @@
+{{- if eq .Vars.view "info"}}
+					<img class="icon px-1 nono" src="/model/{{.Device.Model}}/images/info.png" disabled>
+{{- else}}
+					<img class="icon px-1" src="/model/{{.Device.Model}}/images/info.png"
+						hx-get="/device/{{.Device.Id}}/info">
+{{- end}}

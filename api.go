@@ -52,7 +52,6 @@ func devicesInstall() {
 func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
 	if strings.HasSuffix(r.URL.Path, ".gz") {
 		w.Header().Set("Content-Encoding", "gzip")
-		//w.Header().Set("Content-Type", "application/javascript")
 	}
 	http.FileServer(http.FS(d.layeredFS)).ServeHTTP(w, r)
 }
@@ -83,7 +82,11 @@ func (d *Device) renderTemplate(w io.Writer, name string, data any) error {
 	if tmpl == nil {
 		return fmt.Errorf("Template '%s' not found", name)
 	}
-	return tmpl.Execute(w, data)
+	err := tmpl.Execute(w, data)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return err
 }
 
 type pageVars map[string]any
@@ -105,6 +108,8 @@ func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
 	pageVars["demo"] = d.Flags.IsSet(flagDemo)
 	pageVars["dirty"] = d.Flags.IsSet(flagDirty)
 	pageVars["locked"] = d.Flags.IsSet(flagLocked)
+
+	//fmt.Println("renderPage", name, pageVars)
 
 	return d.renderTemplate(w, name, &pageData{
 		Vars:   pageVars,
@@ -158,7 +163,11 @@ func (d *Device) RenderChildHTML(sessionId, childId, rawUrl string) (template.HT
 
 func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 	println("showIndex", r.Host, r.URL.String())
-	sessionId := newSession()
+	sessionId, ok := newSession()
+	if !ok {
+		http.Error(w, "no more sessions", http.StatusTooManyRequests)
+		return
+	}
 	sessionDeviceSave(sessionId, d.Id, r.URL)
 	d.renderPage(w, "index.tmpl", pageVars{
 		"sessionId": sessionId,

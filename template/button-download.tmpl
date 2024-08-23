@@ -1,0 +1,6 @@
+{{- if eq .Vars.view "download"}}
+					<img class="icon px-1 nono" src="/model/{{.Device.Model}}/images/download.png" disabled>
+{{- else}}
+					<img class="icon px-1" src="/model/{{.Device.Model}}/images/download.png"
+						hx-get="/device/{{.Device.Id}}/download">
+{{- end}}

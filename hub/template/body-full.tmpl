@@ -3,8 +3,7 @@
 					<div class="flex flex-row align-center">
 						<span class="font-bold">Devices</span>
 					</div>
-					<img class="icon px-1" src="/device/{{.Device.Id}}/images/list-view.png"
-						hx-get="/device/{{.Device.Id}}/list">
+{{ template "button-list.tmpl" . }}
 				</div>
 				<div class="flex flex-wrap px-4">
 {{ range .Device.Children }}

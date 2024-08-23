@@ -69,7 +69,7 @@ func Run() {
 	http.HandleFunc("/server/sessions", basicAuthHandlerFunc(sessionsShow))
 
 	addr := ":" + port
-	println("ListenAndServe on", addr)
+	fmt.Println("ListenAndServe on", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
 

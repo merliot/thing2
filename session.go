@@ -3,6 +3,7 @@ package thing2
 import (
 	"bytes"
 	_ "embed"
+	"fmt"
 	"net/http"
 	"net/url"
 	"sync"
@@ -24,6 +25,8 @@ type session struct {
 
 var sessions = make(map[string]*session)
 var sessionsMu sync.RWMutex
+var sessionCount uint32
+var sessionCountMax = uint32(1000)
 
 func init() {
 	go gcSessions()
@@ -38,15 +41,19 @@ func _newSession(sessionId string, conn *websocket.Conn) *session {
 	}
 }
 
-func newSession() string {
-	// TODO check and limit number of sessions
-
+func newSession() (string, bool) {
 	sessionsMu.Lock()
 	defer sessionsMu.Unlock()
 
+	if sessionCount >= sessionCountMax {
+		return "", false
+	}
+
 	sessionId := uuid.New().String()
 	sessions[sessionId] = _newSession(sessionId, nil)
-	return sessionId
+	sessionCount += 1
+
+	return sessionId, true
 }
 
 func (s session) Age() string {
@@ -75,6 +82,8 @@ func sessionUpdate(sessionId string) bool {
 		session.LastUpdate = time.Now()
 		return true
 	}
+
+	// Session expired
 	return false
 }
 
@@ -104,6 +113,15 @@ func sessionDeviceSave(sessionId, deviceId string, url *url.URL) {
 func (s session) _render(deviceId string, url *url.URL) {
 	var buf bytes.Buffer
 	if err := _deviceRender(&buf, s.sessionId, deviceId, url); err != nil {
+		return
+	}
+	websocket.Message.Send(s.conn, string(buf.Bytes()))
+}
+
+func (s session) _renderUpdate(deviceId, template string, pageVars pageVars) {
+	var buf bytes.Buffer
+	if err := _deviceRenderUpdate(&buf, deviceId, template, pageVars); err != nil {
+		fmt.Println("Error rendering template:", err)
 		return
 	}
 	websocket.Message.Send(s.conn, string(buf.Bytes()))
@@ -148,6 +166,20 @@ func sessionsRoute(deviceId string) {
 	}
 }
 
+func sessionsRouteUpdate(deviceId, template string, pageVars pageVars) {
+	println("sessionsRouteUpdate")
+
+	sessionsMu.RLock()
+	defer sessionsMu.RUnlock()
+
+	for _, session := range sessions {
+		if session.conn == nil {
+			continue
+		}
+		session._renderUpdate(deviceId, template, pageVars)
+	}
+}
+
 func sessionsShow(w http.ResponseWriter, r *http.Request) {
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
@@ -155,14 +187,15 @@ func sessionsShow(w http.ResponseWriter, r *http.Request) {
 }
 
 func gcSessions() {
-	dur := 1 * time.Minute
-	ticker := time.NewTicker(dur)
+	minute := 1 * time.Minute
+	ticker := time.NewTicker(minute)
 	defer ticker.Stop()
 	for range ticker.C {
 		sessionsMu.Lock()
 		for sessionId, session := range sessions {
-			if time.Since(session.LastUpdate) > dur {
+			if time.Since(session.LastUpdate) > minute {
 				delete(sessions, sessionId)
+				sessionCount -= 1
 			}
 		}
 		sessionsMu.Unlock()
