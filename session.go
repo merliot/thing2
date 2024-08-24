@@ -25,8 +25,8 @@ type session struct {
 
 var sessions = make(map[string]*session)
 var sessionsMu sync.RWMutex
-var sessionCount uint32
-var sessionCountMax = uint32(1000)
+var sessionCount int32
+var sessionCountMax = int32(1000)
 
 func init() {
 	go gcSessions()
@@ -70,6 +70,7 @@ func sessionConn(sessionId string, conn *websocket.Conn) {
 		session.LastUpdate = time.Now()
 	} else {
 		sessions[sessionId] = _newSession(sessionId, conn)
+		sessionCount += 1
 	}
 }
 
