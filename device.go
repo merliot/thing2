@@ -334,10 +334,14 @@ func deviceOffline(id string) {
 	pkt.RouteUp()
 }
 
-func (d *Device) dirty() {
-	println("d.dirty")
+func (d *Device) updateDirty(dirty bool) {
+	println("d.update")
 	d.Lock()
-	d.Flags.Set(flagDirty)
+	if dirty {
+		d.Flags.Set(flagDirty)
+	} else {
+		d.Flags.Unset(flagDirty)
+	}
 	d.Unlock()
 	sessionsRouteUpdate(d.Id, "button-save.tmpl", pageVars{})
 }
@@ -348,12 +352,24 @@ func deviceDirty(id string) {
 	defer devicesMu.RUnlock()
 	for deviceId, device := range devices {
 		if deviceId == id {
-			device.dirty()
+			device.updateDirty(true)
 		}
 		// Set parent dirty also
 		if slices.Contains(device.Children, id) {
-			devices[deviceId].dirty()
+			devices[deviceId].updateDirty(true)
 		}
-		// TODO does dirtyness go all the way to the root?
+	}
+}
+
+func deviceSave(id string) {
+	println("deviceSave")
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+	d, ok := devices[id]
+	if ok {
+		d.updateDirty(false)
+		for _, childId := range d.Children {
+			devices[childId].updateDirty(false)
+		}
 	}
 }

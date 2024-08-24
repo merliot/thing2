@@ -1,5 +1,7 @@
 				<div id="save-button-{{.Device.Id}}">
 {{- if .Vars.dirty }}
-					<img class="icon px-1" src="/model/{{.Device.Model}}/images/save.png">
+					<img class="icon px-1" src="/model/{{.Device.Model}}/images/save.png"
+						hx-get="/device/{{.Device.Id}}/save"
+						hx-swap="none">
 {{- end }}
 				</div>
