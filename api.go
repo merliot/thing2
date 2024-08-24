@@ -377,8 +377,9 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Device) showNewModal(w http.ResponseWriter, r *http.Request) {
-	d.renderPage(w, "new-modal.tmpl", pageVars{
+	d.renderPage(w, "modal-new.tmpl", pageVars{
 		"models": Models,
+		"newid":  GenerateRandomId(),
 	})
 }
 

@@ -212,6 +212,10 @@ textarea {
   width: 9rem;
 }
 
+.w-1\/5 {
+  width: 20%;
+}
+
 .w-full {
   width: 100%;
 }
@@ -356,6 +360,10 @@ textarea {
   margin: 0px;
 }
 
+.m-1 {
+  margin: 0.25rem;
+}
+
 .m-2\.5 {
   margin: 0.625rem;
 }
@@ -402,6 +410,10 @@ textarea {
 .my-0 {
   margin-top: 0rem;
   margin-bottom: 0rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
 }
 
 .mb-5 {
@@ -505,6 +517,10 @@ textarea {
 
 .overflow-hidden {
   overflow: hidden;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
 }
 
 .grid {

@@ -367,6 +367,10 @@ func deviceSave(id string) {
 	defer devicesMu.RUnlock()
 	d, ok := devices[id]
 	if ok {
+		// TODO save devices to disk or clipboard
+		// - if saved to disk, we can mark devices clean
+		// - if saved to clipboard, we keep devices dirty and wait for
+		//   user to update DEVICES env and restart hub
 		d.updateDirty(false)
 		for _, childId := range d.Children {
 			devices[childId].updateDirty(false)
