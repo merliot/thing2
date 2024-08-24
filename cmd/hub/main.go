@@ -21,7 +21,7 @@ var device = `{
 func main() {
 	id := thing2.GenerateRandomId()
 	devices := fmt.Sprintf(device, id, id)
-	if !os.LookupEnv("DEVICES") {
+	if _, exists := os.LookupEnv("DEVICES"); !exists {
 		os.Setenv("DEVICES", devices)
 	}
 	thing2.Models = models.AllModels
