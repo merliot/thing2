@@ -75,7 +75,6 @@ func (d *Device) api() {
 	d.HandleFunc("GET /create", d.createChild)
 	d.HandleFunc("DELETE /destroy", d.destroyChild)
 	d.HandleFunc("GET /newModal", d.showNewModal)
-	d.HandleFunc("GET /selectModel", d.selectModel)
 }
 
 func (d *Device) renderTemplate(w io.Writer, name string, data any) error {
@@ -134,9 +133,9 @@ func dumpStackTrace() {
 }
 */
 
-func (d *Device) RenderChildHTML(sessionId, childId, rawUrl string) (template.HTML, error) {
+func (d *Device) RenderChildHTML(sessionId, childId, view string) (template.HTML, error) {
 
-	println("RenderChildHTML", sessionId, childId, rawUrl)
+	println("RenderChildHTML", sessionId, childId, view)
 	//dumpStackTrace()
 
 	child, ok := devices[childId]
@@ -144,18 +143,13 @@ func (d *Device) RenderChildHTML(sessionId, childId, rawUrl string) (template.HT
 		return template.HTML(""), deviceNotFound(childId)
 	}
 
-	url, err := url.Parse(rawUrl)
-	if err != nil {
-		return template.HTML(""), err
-	}
-
-	_sessionDeviceSave(sessionId, childId, url)
+	_sessionDeviceSave(sessionId, childId, view)
 
 	child.RLock()
 	defer child.RUnlock()
 
 	var buf bytes.Buffer
-	if err := child._render(&buf, sessionId, url); err != nil {
+	if err := child._render(&buf, sessionId, view); err != nil {
 		return template.HTML(""), err
 	}
 
@@ -169,7 +163,7 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no more sessions", http.StatusTooManyRequests)
 		return
 	}
-	sessionDeviceSave(sessionId, d.Id, r.URL)
+	sessionDeviceSave(sessionId, d.Id, "full")
 	d.renderPage(w, "index.tmpl", pageVars{
 		"sessionId": sessionId,
 		"view":      "full",
@@ -195,7 +189,7 @@ func (d *Device) _showFull(w io.Writer, sessionId string) error {
 
 func (d *Device) showFull(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	sessionDeviceSave(sessionId, d.Id, r.URL)
+	sessionDeviceSave(sessionId, d.Id, "full")
 	if err := d._showFull(w, sessionId); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -210,7 +204,7 @@ func (d *Device) _showList(w io.Writer, sessionId string) error {
 
 func (d *Device) showList(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	sessionDeviceSave(sessionId, d.Id, r.URL)
+	sessionDeviceSave(sessionId, d.Id, "list")
 	if err := d._showList(w, sessionId); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -225,7 +219,7 @@ func (d *Device) _showTile(w io.Writer, sessionId string) error {
 
 func (d *Device) showTile(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	sessionDeviceSave(sessionId, d.Id, r.URL)
+	sessionDeviceSave(sessionId, d.Id, "tile")
 	if err := d._showTile(w, sessionId); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -244,7 +238,7 @@ func (d *Device) _showDetail(w io.Writer, sessionId string, url *url.URL) error 
 
 func (d *Device) showDetail(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	sessionDeviceSave(sessionId, d.Id, r.URL)
+	sessionDeviceSave(sessionId, d.Id, "detail")
 	if err := d._showDetail(w, sessionId, r.URL); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -381,9 +375,4 @@ func (d *Device) showNewModal(w http.ResponseWriter, r *http.Request) {
 		"models": Models,
 		"newid":  GenerateRandomId(),
 	})
-}
-
-func (d *Device) selectModel(w http.ResponseWriter, r *http.Request) {
-	value := r.FormValue("value")
-	fmt.Fprintf(w, `<input type="hidden" id="model" name="Model" value="%s">`, value)
 }

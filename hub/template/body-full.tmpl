@@ -9,7 +9,7 @@
 {{ range .Device.Children }}
 					<div class="cursor-pointer"
 						hx-get="/device/{{$.Device.Id}}/detail?childId={{.}}&prevView=full">
-	{{ $.Device.RenderChildHTML $.Vars.sessionId . "/tile" }}
+	{{ $.Device.RenderChildHTML $.Vars.sessionId . "tile" }}
 					</div>
 {{- else }}
 	{{- template "no-devices.tmpl" . }}

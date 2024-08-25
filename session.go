@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"fmt"
 	"net/http"
-	"net/url"
 	"sync"
 	"time"
 
@@ -20,7 +19,7 @@ type session struct {
 	sessionId  string
 	conn       *websocket.Conn
 	LastUpdate time.Time
-	LastURL    map[string]*url.URL // key: device Id; value: last URL
+	LastView   map[string]string // key: device Id; value: last view
 }
 
 var sessions = make(map[string]*session)
@@ -37,7 +36,7 @@ func _newSession(sessionId string, conn *websocket.Conn) *session {
 		sessionId:  sessionId,
 		conn:       conn,
 		LastUpdate: time.Now(),
-		LastURL:    make(map[string]*url.URL),
+		LastView:   make(map[string]string),
 	}
 }
 
@@ -88,52 +87,52 @@ func sessionUpdate(sessionId string) bool {
 	return false
 }
 
-func _sessionDeviceSave(sessionId, deviceId string, url *url.URL) {
+func _sessionDeviceSave(sessionId, deviceId, view string) {
 
-	println("------- SAVE DEVICE", deviceId, url.String())
+	println("------- SAVE DEVICE", deviceId, view)
 	if session, ok := sessions[sessionId]; ok {
 		session.LastUpdate = time.Now()
-		session.LastURL[deviceId] = url
+		session.LastView[deviceId] = view
 	}
 }
 
-func sessionDeviceSave(sessionId, deviceId string, url *url.URL) {
+func sessionDeviceSave(sessionId, deviceId, view string) {
 
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
 
 	if session, ok := sessions[sessionId]; ok {
-		for deviceId, _ := range session.LastURL {
-			delete(session.LastURL, deviceId)
+		for deviceId, _ := range session.LastView {
+			delete(session.LastView, deviceId)
 		}
 	}
 
-	_sessionDeviceSave(sessionId, deviceId, url)
+	_sessionDeviceSave(sessionId, deviceId, view)
 }
 
-func (s session) _render(deviceId string, url *url.URL) {
-	var buf bytes.Buffer
-	if err := _deviceRender(&buf, s.sessionId, deviceId, url); err != nil {
-		return
+func (s session) renderPkt(pkt *Packet) {
+	fmt.Println("XXXXXXXXXX s.renderPkt", pkt)
+	view, ok := s.LastView[pkt.Dst]
+	if ok {
+		var buf bytes.Buffer
+		if err := deviceRenderPkt(&buf, s.sessionId, pkt.Dst, view, pkt); err != nil {
+			fmt.Println("Error rendering pkt:", err)
+			return
+		}
+		websocket.Message.Send(s.conn, string(buf.Bytes()))
 	}
-	websocket.Message.Send(s.conn, string(buf.Bytes()))
 }
 
-func (s session) _renderUpdate(deviceId, template string, pageVars pageVars) {
-	var buf bytes.Buffer
-	if err := _deviceRenderUpdate(&buf, deviceId, template, pageVars); err != nil {
-		fmt.Println("Error rendering template:", err)
-		return
+func (s session) render(deviceId string) {
+	view, ok := s.LastView[deviceId]
+	if ok {
+		var buf bytes.Buffer
+		if err := deviceRender(&buf, s.sessionId, deviceId, view); err != nil {
+			fmt.Println("Error rendering device:", err)
+			return
+		}
+		websocket.Message.Send(s.conn, string(buf.Bytes()))
 	}
-	websocket.Message.Send(s.conn, string(buf.Bytes()))
-}
-
-func (s session) render(deviceId string, url *url.URL) {
-	var buf bytes.Buffer
-	if err := deviceRender(&buf, s.sessionId, deviceId, url); err != nil {
-		return
-	}
-	websocket.Message.Send(s.conn, string(buf.Bytes()))
 }
 
 func sessionDeviceRender(sessionId, deviceId string) {
@@ -145,13 +144,11 @@ func sessionDeviceRender(sessionId, deviceId string) {
 		if session.conn == nil {
 			return
 		}
-		if url, ok := session.LastURL[deviceId]; ok {
-			session.render(deviceId, url)
-		}
+		session.render(deviceId)
 	}
 }
 
-func sessionsRoute(deviceId string) {
+func sessionsRoute(pkt *Packet) {
 
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
@@ -160,11 +157,18 @@ func sessionsRoute(deviceId string) {
 		if session.conn == nil {
 			continue
 		}
-		if url, ok := session.LastURL[deviceId]; ok {
-			session._render(deviceId, url)
-		}
-
+		fmt.Println("=== sessionsRoute", pkt)
+		session.renderPkt(pkt)
 	}
+}
+
+func (s session) _renderUpdate(deviceId, template string, pageVars pageVars) {
+	var buf bytes.Buffer
+	if err := _deviceRenderUpdate(&buf, deviceId, template, pageVars); err != nil {
+		fmt.Println("Error rendering template:", err)
+		return
+	}
+	websocket.Message.Send(s.conn, string(buf.Bytes()))
 }
 
 func sessionsRouteUpdate(deviceId, template string, pageVars pageVars) {

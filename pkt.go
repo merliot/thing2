@@ -78,6 +78,6 @@ func (p *Packet) RouteDown() {
 
 func (p *Packet) RouteUp() {
 	fmt.Println("RouteUp", p)
-	sessionsRoute(p.Dst)
+	sessionsRoute(p)
 	uplinksRoute(p)
 }

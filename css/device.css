@@ -220,6 +220,10 @@ textarea {
   width: 100%;
 }
 
+.cursor-default {
+  cursor: default;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -650,13 +654,11 @@ textarea {
 /***** MODAL DIALOGS ****/
 
 .modal {
-  /* Underlay covers entire screen. */
-  position: fixed;
+  position: absolute;
   top:0px;
   bottom: 0px;
   left:0px;
   right:0px;
-  background-color:rgba(0,0,0,0.5);
   z-index:1000;
 
   /* Flexbox centers the .modal-content vertically and horizontally */

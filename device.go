@@ -238,23 +238,40 @@ func deviceRouteUp(id string, pkt *Packet) {
 	}
 }
 
-func (d *Device) _render(w io.Writer, sessionId string, url *url.URL) error {
-	switch url.Path {
-	case "/", "/full":
+func (d *Device) _render(w io.Writer, sessionId, view string) error {
+	println("+++ _render", view)
+	switch view {
+	case "full":
 		return d._showFull(w, sessionId)
-	case "/tile":
+	case "tile":
 		return d._showTile(w, sessionId)
-	case "/list":
+	case "list":
 		return d._showList(w, sessionId)
 	}
 	return nil
 }
 
-func _deviceRender(w io.Writer, sessionId, id string, url *url.URL) error {
+func deviceRenderPkt(w io.Writer, sessionId, id, view string, pkt *Packet) error {
+	fmt.Println("deviceRenderPath", pkt)
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
 	if d, ok := devices[id]; ok {
-		return d._render(w, sessionId, url)
+		path := strings.TrimPrefix(pkt.Path, "/")
+		return d.renderPage(w, path+"-"+view+".tmpl", pageVars{
+			"sessionId": sessionId,
+			"view":      view,
+		})
+	}
+	return deviceNotFound(id)
+}
+
+func deviceRender(w io.Writer, sessionId, id, view string) error {
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+	if d, ok := devices[id]; ok {
+		d.RLock()
+		defer d.RUnlock()
+		return d._render(w, sessionId, view)
 	}
 	return deviceNotFound(id)
 }
@@ -265,17 +282,6 @@ func _deviceRenderUpdate(w io.Writer, id, template string, pageVars pageVars) er
 	defer devicesMu.RUnlock()
 	if d, ok := devices[id]; ok {
 		return d.renderPage(w, template, pageVars)
-	}
-	return deviceNotFound(id)
-}
-
-func deviceRender(w io.Writer, sessionId, id string, url *url.URL) error {
-	devicesMu.RLock()
-	defer devicesMu.RUnlock()
-	if d, ok := devices[id]; ok {
-		d.RLock()
-		defer d.RUnlock()
-		return d._render(w, sessionId, url)
 	}
 	return deviceNotFound(id)
 }
