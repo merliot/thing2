@@ -19,6 +19,27 @@ import (
 	"golang.org/x/exp/maps"
 )
 
+func (d *Device) api() {
+	d.HandleFunc("GET /", d.serveStaticFile)
+	d.HandleFunc("GET /{$}", d.showIndex)
+	d.HandleFunc("PUT /keepalive", d.keepAlive)
+	d.HandleFunc("GET /full", d.showFull)
+	d.HandleFunc("GET /tile", d.showTile)
+	d.HandleFunc("GET /list", d.showList)
+	d.HandleFunc("GET /detail", d.showDetail)
+	d.HandleFunc("GET /info", d.showInfo)
+	d.HandleFunc("GET /code", d.showCode)
+	d.HandleFunc("GET /save", d.saveDevice)
+	d.HandleFunc("GET /devices", d.showDevices)
+	d.HandleFunc("GET /download", d.showDownload)
+	d.HandleFunc("GET /download-target", d.showDownloadTarget)
+	d.HandleFunc("GET /download-instructions", d.showDownloadInstructions)
+	d.HandleFunc("GET /download-image", d.downloadImage)
+	d.HandleFunc("GET /create", d.createChild)
+	d.HandleFunc("DELETE /destroy", d.destroyChild)
+	d.HandleFunc("GET /newModal", d.showNewModal)
+}
+
 // modelInstall installs /model/{model} pattern for device in default ServeMux
 func (d *Device) modelInstall() {
 	prefix := "/model/" + d.Model
@@ -49,34 +70,6 @@ func devicesInstall() {
 	for _, device := range devices {
 		device.deviceInstall()
 	}
-}
-
-func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
-	if strings.HasSuffix(r.URL.Path, ".gz") {
-		w.Header().Set("Content-Encoding", "gzip")
-	}
-	http.FileServer(http.FS(d.layeredFS)).ServeHTTP(w, r)
-}
-
-func (d *Device) api() {
-	d.HandleFunc("GET /", d.serveStaticFile)
-	d.HandleFunc("GET /{$}", d.showIndex)
-	d.HandleFunc("PUT /keepalive", d.keepAlive)
-	d.HandleFunc("GET /full", d.showFull)
-	d.HandleFunc("GET /tile", d.showTile)
-	d.HandleFunc("GET /list", d.showList)
-	d.HandleFunc("GET /detail", d.showDetail)
-	d.HandleFunc("GET /info", d.showInfo)
-	d.HandleFunc("GET /code", d.showCode)
-	d.HandleFunc("GET /save", d.saveDevice)
-	d.HandleFunc("GET /devices", d.showDevices)
-	d.HandleFunc("GET /download", d.showDownload)
-	d.HandleFunc("GET /download-target", d.showDownloadTarget)
-	d.HandleFunc("GET /download-instructions", d.showDownloadInstructions)
-	d.HandleFunc("GET /download-image", d.downloadImage)
-	d.HandleFunc("GET /create", d.createChild)
-	d.HandleFunc("DELETE /destroy", d.destroyChild)
-	d.HandleFunc("GET /newModal", d.showNewModal)
 }
 
 func (d *Device) renderTemplate(w io.Writer, name string, data any) error {
@@ -120,13 +113,17 @@ func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
 	})
 }
 
-func (d *Device) renderPath(w io.Writer, sessionId, view, path string) error {
+func (d *Device) renderPkt(w io.Writer, sessionId, view string, pkt *Packet) error {
+	path := strings.TrimPrefix(pkt.Path, "/")
 	template := path + "-" + view + ".tmpl"
 	fmt.Println("renderPath", d.Id, template)
-	return d.renderPage(w, template, pageVars{
+	var pageVars = pageVars{
 		"sessionId": sessionId,
 		"view":      view,
-	})
+	}
+	pkt.Unmarshal(&pageVars)
+	fmt.Println("renderPath", d.Id, pageVars)
+	return d.renderPage(w, template, pageVars)
 }
 
 func dumpStackTrace() {
@@ -158,11 +155,19 @@ func (d *Device) RenderChildHTML(sessionId, childId, view string) (template.HTML
 	defer child.RUnlock()
 
 	var buf bytes.Buffer
-	if err := child.renderPath(&buf, sessionId, view, "state"); err != nil {
+	var pkt = Packet{Path: "/state"}
+	if err := child.renderPkt(&buf, sessionId, view, &pkt); err != nil {
 		return template.HTML(""), err
 	}
 
 	return template.HTML(buf.String()), nil
+}
+
+func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
+	if strings.HasSuffix(r.URL.Path, ".gz") {
+		w.Header().Set("Content-Encoding", "gzip")
+	}
+	http.FileServer(http.FS(d.layeredFS)).ServeHTTP(w, r)
 }
 
 func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {

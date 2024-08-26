@@ -198,11 +198,11 @@ func wsServer(conn *websocket.Conn) {
 		return
 	}
 
-	fmt.Println("First packet:", pkt)
 	if pkt.Path != "/announce" {
 		fmt.Println("Not Announcement, got:", pkt.Path)
 		return
 	}
+	fmt.Println("Announcement", pkt)
 
 	var ann announcement
 	pkt.Unmarshal(&ann)

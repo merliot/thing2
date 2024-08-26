@@ -52,8 +52,10 @@ func (p *Packet) Marshal(v any) *Packet {
 
 // Unmarshal the packet message payload as JSON into v
 func (p *Packet) Unmarshal(v any) *Packet {
-	if err := json.Unmarshal(p.Msg, v); err != nil {
-		fmt.Printf("JSON unmarshal error %s\r\n", err.Error())
+	if len(p.Msg) > 0 {
+		if err := json.Unmarshal(p.Msg, v); err != nil {
+			fmt.Printf("JSON unmarshal error %s\r\n", err.Error())
+		}
 	}
 	return p
 }

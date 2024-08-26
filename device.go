@@ -205,7 +205,7 @@ func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
 }
 
 func deviceNotFound(id string) error {
-	dumpStackTrace()
+	//dumpStackTrace()
 	return fmt.Errorf("Device '%s' not found", id)
 }
 
@@ -244,9 +244,7 @@ func deviceRenderPkt(w io.Writer, sessionId, id, view string, pkt *Packet) error
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
 	if d, ok := devices[id]; ok {
-		path := strings.TrimPrefix(pkt.Path, "/")
-		d.renderPath(w, sessionId, view, path)
-		return nil
+		return d.renderPkt(w, sessionId, view, pkt)
 	}
 	return deviceNotFound(id)
 }
@@ -298,10 +296,7 @@ func deviceOffline(id string) {
 	d.Flags.Unset(flagOnline)
 	d.Unlock()
 
-	pkt := &Packet{
-		Dst:  id,
-		Path: "/offline",
-	}
+	pkt := &Packet{Dst: id, Path: "/offline"}
 	pkt.RouteUp()
 }
 
@@ -315,10 +310,7 @@ func (d *Device) updateDirty(dirty bool) {
 	}
 	d.Unlock()
 
-	pkt := &Packet{
-		Dst:  d.Id,
-		Path: "/dirty",
-	}
+	pkt := &Packet{Dst: d.Id, Path: "/dirty"}
 	pkt.RouteUp()
 }
 
