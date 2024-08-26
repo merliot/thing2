@@ -10,10 +10,10 @@
         <div>
             <h2>Session ID: {{$id}}</h2>
             <p>Last Update: {{$session.Age}}</p>
-            <h3>Last URLs:</h3>
+            <h3>Last Views:</h3>
             <ul>
-                {{range $deviceId, $url := $session.LastURL}}
-			<li>Device ID: {{$deviceId}} - {{$url}}</li>
+                {{range $deviceId, $view := $session.LastView}}
+			<li>Device ID: {{$deviceId}} - {{$view}}</li>
                 {{end}}
             </ul>
         </div>

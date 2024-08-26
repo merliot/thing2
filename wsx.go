@@ -26,12 +26,21 @@ func wsxServe(ws *websocket.Conn) {
 	}
 
 	sessionConn(sessionId, ws)
-	sessionDeviceSave(sessionId, root.Id, "full")
-	sessionDeviceRender(sessionId, root.Id)
 
-	var message string
+	// Force a refresh of root full view on successful ws connection, in
+	// case anything has changed since last connect
+
+	sessionDeviceSave(sessionId, root.Id, "full")
+	pkt := Packet{Dst: root.Id, Path: "/state"}
+	sessionRoute(sessionId, &pkt)
+
+	// Htmx websockets are one-direction only, from the server to the
+	// client, and only used for sending HTML snippets back to the client.
+	// Keep the websocket connection open, waiting for receives (which will
+	// never come).  Break on EOF or other error.
+
 	for {
-		// Read message from the client
+		var message string
 		if err := websocket.Message.Receive(ws, &message); err != nil {
 			fmt.Println("Can't receive:", err)
 			break

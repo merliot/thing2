@@ -205,6 +205,7 @@ func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
 }
 
 func deviceNotFound(id string) error {
+	dumpStackTrace()
 	return fmt.Errorf("Device '%s' not found", id)
 }
 
@@ -238,50 +239,14 @@ func deviceRouteUp(id string, pkt *Packet) {
 	}
 }
 
-func (d *Device) _render(w io.Writer, sessionId, view string) error {
-	println("+++ _render", view)
-	switch view {
-	case "full":
-		return d._showFull(w, sessionId)
-	case "tile":
-		return d._showTile(w, sessionId)
-	case "list":
-		return d._showList(w, sessionId)
-	}
-	return nil
-}
-
 func deviceRenderPkt(w io.Writer, sessionId, id, view string, pkt *Packet) error {
-	fmt.Println("deviceRenderPath", pkt)
+	//fmt.Println("deviceRenderPkt", pkt)
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
 	if d, ok := devices[id]; ok {
 		path := strings.TrimPrefix(pkt.Path, "/")
-		return d.renderPage(w, path+"-"+view+".tmpl", pageVars{
-			"sessionId": sessionId,
-			"view":      view,
-		})
-	}
-	return deviceNotFound(id)
-}
-
-func deviceRender(w io.Writer, sessionId, id, view string) error {
-	devicesMu.RLock()
-	defer devicesMu.RUnlock()
-	if d, ok := devices[id]; ok {
-		d.RLock()
-		defer d.RUnlock()
-		return d._render(w, sessionId, view)
-	}
-	return deviceNotFound(id)
-}
-
-func _deviceRenderUpdate(w io.Writer, id, template string, pageVars pageVars) error {
-	println("_deviceRenderUpdate", id)
-	devicesMu.RLock()
-	defer devicesMu.RUnlock()
-	if d, ok := devices[id]; ok {
-		return d.renderPage(w, template, pageVars)
+		d.renderPath(w, sessionId, view, path)
+		return nil
 	}
 	return deviceNotFound(id)
 }
@@ -349,7 +314,12 @@ func (d *Device) updateDirty(dirty bool) {
 		d.Flags.Unset(flagDirty)
 	}
 	d.Unlock()
-	sessionsRouteUpdate(d.Id, "button-save.tmpl", pageVars{})
+
+	pkt := &Packet{
+		Dst:  d.Id,
+		Path: "/dirty",
+	}
+	pkt.RouteUp()
 }
 
 func deviceDirty(id string) {

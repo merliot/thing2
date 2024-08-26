@@ -89,7 +89,6 @@ func sessionUpdate(sessionId string) bool {
 
 func _sessionDeviceSave(sessionId, deviceId, view string) {
 
-	println("------- SAVE DEVICE", deviceId, view)
 	if session, ok := sessions[sessionId]; ok {
 		session.LastUpdate = time.Now()
 		session.LastView[deviceId] = view
@@ -111,7 +110,6 @@ func sessionDeviceSave(sessionId, deviceId, view string) {
 }
 
 func (s session) renderPkt(pkt *Packet) {
-	fmt.Println("XXXXXXXXXX s.renderPkt", pkt)
 	view, ok := s.LastView[pkt.Dst]
 	if ok {
 		var buf bytes.Buffer
@@ -123,65 +121,29 @@ func (s session) renderPkt(pkt *Packet) {
 	}
 }
 
-func (s session) render(deviceId string) {
-	view, ok := s.LastView[deviceId]
-	if ok {
-		var buf bytes.Buffer
-		if err := deviceRender(&buf, s.sessionId, deviceId, view); err != nil {
-			fmt.Println("Error rendering device:", err)
-			return
-		}
-		websocket.Message.Send(s.conn, string(buf.Bytes()))
-	}
-}
-
-func sessionDeviceRender(sessionId, deviceId string) {
-
-	sessionsMu.RLock()
-	defer sessionsMu.RUnlock()
-
-	if session, ok := sessions[sessionId]; ok {
-		if session.conn == nil {
-			return
-		}
-		session.render(deviceId)
-	}
-}
-
 func sessionsRoute(pkt *Packet) {
 
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
 
 	for _, session := range sessions {
-		if session.conn == nil {
-			continue
+		if session.conn != nil {
+			//fmt.Println("=== sessionsRoute", pkt)
+			session.renderPkt(pkt)
 		}
-		fmt.Println("=== sessionsRoute", pkt)
-		session.renderPkt(pkt)
 	}
 }
 
-func (s session) _renderUpdate(deviceId, template string, pageVars pageVars) {
-	var buf bytes.Buffer
-	if err := _deviceRenderUpdate(&buf, deviceId, template, pageVars); err != nil {
-		fmt.Println("Error rendering template:", err)
-		return
-	}
-	websocket.Message.Send(s.conn, string(buf.Bytes()))
-}
-
-func sessionsRouteUpdate(deviceId, template string, pageVars pageVars) {
-	println("sessionsRouteUpdate")
+func sessionRoute(sessionId string, pkt *Packet) {
 
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
 
-	for _, session := range sessions {
-		if session.conn == nil {
-			continue
+	if session, ok := sessions[sessionId]; ok {
+		if session.conn != nil {
+			//fmt.Println("=== sessionRoute", pkt)
+			session.renderPkt(pkt)
 		}
-		session._renderUpdate(deviceId, template, pageVars)
 	}
 }
 
