@@ -114,7 +114,7 @@ func (s session) renderPkt(pkt *Packet) {
 	if ok {
 		var buf bytes.Buffer
 		if err := deviceRenderPkt(&buf, s.sessionId, pkt.Dst, view, pkt); err != nil {
-			fmt.Println("Error rendering pkt:", err)
+			fmt.Println("\nError rendering pkt:", err, "\n")
 			return
 		}
 		websocket.Message.Send(s.conn, string(buf.Bytes()))

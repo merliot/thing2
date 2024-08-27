@@ -132,29 +132,48 @@ func devicesFindRoot() (*Device, error) {
 	return nil, fmt.Errorf("No tree found in devices")
 }
 
-func (d *Device) addChild(child *Device) error {
+func (d *Device) addChild(id, model, name string) error {
+	var child = &Device{Id: id, Model: model, Name: name}
+
+	maker, ok := Models[model]
+	if !ok {
+		return fmt.Errorf("Unknown model")
+	}
+
+	devicesMu.Lock()
+	defer devicesMu.Unlock()
+
+	if _, ok := devices[id]; ok {
+		return fmt.Errorf("Child device already exists")
+	}
 
 	d.Lock()
 	defer d.Unlock()
 
-	if slices.Contains(d.Children, child.Id) {
-		return fmt.Errorf("child '%s' already exists", child.Id)
+	child.build(maker.Maker)
+
+	if slices.Contains(d.Children, id) {
+		return fmt.Errorf("Device's children already includes child")
 	}
 
-	d.Children = append(d.Children, child.Id)
+	d.Children = append(d.Children, id)
+
+	devices[id] = child
 	child.deviceInstall()
 
 	return nil
 }
 
-func (d *Device) removeChild(childId string) error {
+func (d *Device) removeChild(id string) error {
+
 	devicesMu.Lock()
 	defer devicesMu.Unlock()
-	if _, ok := devices[childId]; ok {
-		delete(devices, childId)
+
+	if _, ok := devices[id]; ok {
+		delete(devices, id)
 		for _, device := range devices {
 			device.Lock()
-			if index := slices.Index(device.Children, childId); index != -1 {
+			if index := slices.Index(device.Children, id); index != -1 {
 				device.Children = slices.Delete(device.Children, index, index+1)
 				// TODO remove everything below child
 			}
@@ -162,7 +181,8 @@ func (d *Device) removeChild(childId string) error {
 		}
 		return nil
 	}
-	return deviceNotFound(childId)
+
+	return deviceNotFound(id)
 }
 
 func (d *Device) formConfig(rawQuery string) (changed bool, err error) {

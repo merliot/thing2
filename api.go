@@ -116,13 +116,11 @@ func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
 func (d *Device) renderPkt(w io.Writer, sessionId, view string, pkt *Packet) error {
 	path := strings.TrimPrefix(pkt.Path, "/")
 	template := path + "-" + view + ".tmpl"
-	fmt.Println("renderPath", d.Id, template)
 	var pageVars = pageVars{
 		"sessionId": sessionId,
 		"view":      view,
 	}
-	pkt.Unmarshal(&pageVars)
-	fmt.Println("renderPath", d.Id, pageVars)
+	fmt.Println("renderPath", d.Id, template, &pageVars)
 	return d.renderPage(w, template, pageVars)
 }
 
@@ -357,18 +355,17 @@ func (d *Device) showDownloadInstructions(w http.ResponseWriter, r *http.Request
 }
 
 func (d *Device) createChild(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Missing device name")
-}
+	var child Device
 
-type msgDestroy struct {
-	ChildId string
-}
+	pkt, err := newPacketFromURL(r.URL, &child)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
+	// TODO validate msg.Id, msg.Model, msg.Name
 
-	// Remove the child from devices
-	childId := r.URL.Query().Get("ChildId")
-	if err := d.removeChild(childId); err != nil {
+	if err := d.addChild(child.Id, child.Model, child.Name); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -376,13 +373,33 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 	// Rebuild routing table
 	routesBuild()
 
-	// Send /destroy msg up
+	// send /create msg up
+	pkt.SetDst(d.Id).RouteUp()
+}
+
+type msgDestroy struct {
+	ChildId string
+}
+
+func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 	var msg msgDestroy
+
 	pkt, err := newPacketFromURL(r.URL, &msg)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	// Remove the child from devices
+	if err := d.removeChild(msg.ChildId); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Rebuild routing table
+	routesBuild()
+
+	// send /destroy msg up
 	pkt.SetDst(d.Id).RouteUp()
 }
 

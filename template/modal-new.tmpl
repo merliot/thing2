@@ -19,7 +19,7 @@
 
 	<div class="modal-content">
 		<h3>Create a New Device</h3>
-		<form hx-get="/device/{{.Device.Id}}/create" hx-target="#error" hx-swap="innerHTML">
+		<form hx-get="/device/{{.Device.Id}}/create" hx-target=".modal" hx-swap="delete">
 			<div class="flex flex-col mb-5">
 				<label class="font-bold mb-2">Name the Device</label>
 				<input type="text" name="Name" placeholder="Name">
@@ -28,6 +28,7 @@
 				<label class="font-bold mb-2">Device ID</label>
 				<div class="flex flex-row">
 					<input disabled type="text" name="Id" placeholder="ID" value="{{.Vars.newid}}">
+					<input type="hidden" name="Id" value="{{.Vars.newid}}">
 					<span class="icon">&#x1F512;</span>
 				</div>
 			</div>
