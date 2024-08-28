@@ -208,6 +208,7 @@ func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
 	}
 
 	target := values.Get("target")
+	fmt.Println("\nFORM CONFIG", target, "\n")
 	if target == "demo" {
 		d.Flags.Set(flagDemo)
 	} else {

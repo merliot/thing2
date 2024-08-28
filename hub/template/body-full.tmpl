@@ -15,4 +15,7 @@
 	{{- template "no-devices.tmpl" . }}
 {{- end }}
 				</div>
+{{- if .Vars.demo }}
+	{{ template "demo-full.tmpl" . }}
+{{- end }}
 			</div>

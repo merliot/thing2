@@ -284,6 +284,10 @@ textarea {
   border-style: solid;
 }
 
+.border-dashed {
+  border-style: dashed;
+}
+
 .border-separate {
   border-collapse: separate;
 }
@@ -411,6 +415,11 @@ textarea {
   margin-bottom: 1.25rem;
 }
 
+.my-16 {
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}
+
 .my-0 {
   margin-top: 0rem;
   margin-bottom: 0rem;
@@ -432,6 +441,10 @@ textarea {
   margin-right: 0.625rem;
 }
 
+.text-center {
+  text-align: center;
+}
+
 .text-right {
   text-align: right;
 }
@@ -444,6 +457,11 @@ textarea {
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
 }
 
 .text-6xl {
