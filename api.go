@@ -99,6 +99,7 @@ func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
 
 	// Add common Vars for all pages
 	pageVars["target"] = target
+	pageVars["root"] = (d == root)
 	pageVars["online"] = d.Flags.IsSet(flagOnline)
 	pageVars["demo"] = d.Flags.IsSet(flagDemo)
 	pageVars["dirty"] = d.Flags.IsSet(flagDirty)
@@ -319,6 +320,7 @@ func (d *Device) showDownload(w http.ResponseWriter, r *http.Request) {
 	values := d.deployValues()
 	t := values.Get("target")
 	err := d.renderPage(w, "device-download.tmpl", pageVars{
+		"view":        "download",
 		"targets":     target.MakeTargets(d.Targets),
 		"linuxTarget": linuxTarget(t),
 		"port":        values.Get("port"),
