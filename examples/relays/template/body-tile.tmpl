@@ -1,8 +1,15 @@
-								<div class="flex flex-row w-full items-center justify-evenly">
+								<div id="{{.Device.Model}}-{{.Device.Id}}" class="flex flex-row w-full items-center justify-evenly">
+{{- $added := false }}
 {{- range $relay := .State.Relays }}
+	{{- if and (ne $relay.Gpio "") (ne $relay.Name "") }}
+		{{- $added = true }}
 									<div class="flex flex-col items-center">
-										<img src="/model/{{$.Device.Model}}/images/relay-{{$relay.State}}.png">
+										<img class="h-14" src="/model/{{$.Device.Model}}/images/relay-{{$relay.State}}.png">
 										<span class="text-sm">{{$relay.Name}}</span>
 									</div>
+	{{- end }}
+{{- end }}
+{{- if not $added }}
+									<span>Undefined</span>
 {{- end }}
 								</div>

@@ -1,5 +1,8 @@
 			<div id="{{.Device.Model}}-{{.Device.Id}}" class="panel flex-row h-52 items-center justify-center">
+{{- $added := false }}
 {{- range $i, $relay := .State.Relays }}
+	{{- if and (ne $relay.Gpio "") (ne $relay.Name "") }}
+		{{- $added = true }}
 				<div class="flex flex-col items-center"
 				     hx-post="/device/{{$.Device.Id}}/click?Relay={{$i}}"
 				     hx-swap="none">
@@ -7,5 +10,9 @@
 					<span class="h-4 mb-5 px-2.5 text-sm bg-amber-500 text-white rounded">{{$relay.Gpio}}</span>
 					<span>{{$relay.Name}}</span>
 				</div>
+	{{- end }}
+{{- end }}
+{{- if not $added }}
+	{{ template "device-undefined.tmpl" . }}
 {{- end }}
 			</div>

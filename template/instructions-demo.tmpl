@@ -18,7 +18,7 @@
 
 <pre>
 <code>
-	{{.Device.Id}}-installer
+	{{.Device.Model}}-{{.Device.Id}}-installer
 </code>
 </pre>
 
@@ -28,7 +28,7 @@
 
 <pre>
 <code>
-	$ md5sum {{.Device.Id}}-installer
+	$ md5sum {{.Device.Model}}-{{.Device.Id}}-installer
 </code>
 </pre>
 
@@ -38,21 +38,21 @@
 
 <pre>
 <code>
-	$ chmod +x {{.Device.Id}}-installer
-	$ sudo ./{{.Device.Id}}-installer
+	$ chmod +x {{.Device.Model}}-{{.Device.Id}}-installer
+	$ sudo ./{{.Device.Model}}-{{.Device.Id}}-installer
 
-	Intalling {{.Device.Model}}...
-	Intalling logging for {{.Device.Model}}...
-	Intalling systemd service for {{.Device.Model}}...
+	Intalling {{.Device.Model}}-{{.Device.Id}}...
+	Intalling logging for {{.Device.Model}}-{{.Device.Id}}...
+	Intalling systemd service for {{.Device.Model}}-{{.Device.Id}}...
 	Success!
 </code>
 </pre>
 
-<p>The installer will install the device as a service named "{{.Device.Model}}".  To uninstall:</p>
+<p>The installer will install the device as a service named "{{.Device.Model}}-{{.Device.Model}}".  To uninstall:</p>
 
 <pre>
 <code>
-	$ sudo ./{{.Device.Id}}-installer -u
+	$ sudo ./{{.Device.Model}}-{{.Device.Id}}-installer -u
 </code>
 </pre>
 
@@ -60,6 +60,6 @@
 
 <pre>
 <code>
-	$ sudo tail -f /var/log/{{.Device.Model}}.log
+	$ sudo tail -f /var/log/{{.Device.Model}}-{{.Device.Id}}.log
 </code>
 </p>

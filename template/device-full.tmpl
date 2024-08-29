@@ -5,6 +5,8 @@
 {{- if ne .Device.DeployParams ""}}
 	{{- template "body-full.tmpl" .}}
 {{- else}}
+			<div class="panel h-52 items-center justify-center">
 	{{- template "device-undefined.tmpl" .}}
+			</div>
 {{- end}}
 		</div>

@@ -13,7 +13,11 @@
 	{{- range $key, $target := $.Vars.targets }}
 		{{- if eq $key $.Vars.selectedTarget }}
 			{{- range $gpio, $pin := $target.GpioPins }}
+				{{- if eq $gpio $relay.Gpio }}
+			<option selected value="{{$gpio}}">{{$gpio}}</option>
+				{{- else }}
 			<option value="{{$gpio}}">{{$gpio}}</option>
+				{{- end }}
 			{{- end }}
 		{{- end }}
 	{{- end }}

@@ -5,8 +5,8 @@
 <p>Use a <a target="_blank" href="https://wiki.seeedstudio.com/Wio-Terminal-Getting-Started/">Seeed Studio Wio Terminal</a> microcontroller to build a {{.Device.Model}} device.</p>
 
 <center>
-	<a target="_blank" href="images/wioterminal-{{.Device.Model}}.png">
-	       <img src="images/wioterminal-{{.Device.Model}}.png" width="100%">
+	<a target="_blank" href="/device/{{.Device.Id}}/images/wioterminal-{{.Device.Model}}.png">
+		<img src="/device/{{.Device.Id}}/images/wioterminal-{{.Device.Model}}.png" width="100%">
 	</a>
 </center>
 
@@ -25,7 +25,7 @@
 
 <pre>
 <code>
-	{{.Device.Id}}-installer.uf2
+	{{.Device.Model}}-{{.Device.Id}}-installer.uf2
 </code>
 </pre>
 
@@ -35,7 +35,7 @@
 
 <pre>
 <code>
-	$ md5sum {{.Device.Id}}-installer.uf2
+	$ md5sum {{.Device.Model}}-{{.Device.Id}}-installer.uf2
 </code>
 </pre>
 
@@ -53,7 +53,7 @@
 <p>Copy the UF2 firmware image to the "Arduino" USB drive.  The firmware is installed on the device and the device restarts automatically.</p>
 
 <center>
-	<img src="images/arduino-install.png" width="100%">
+	<img src="/device/{{.Device.Id}}/images/arduino-install.png" width="100%">
 </center>
 
 <div class="note">
