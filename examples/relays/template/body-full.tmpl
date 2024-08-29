@@ -1,14 +1,14 @@
-			<div id="{{.Device.Model}}-{{.Device.Id}}" class="panel flex-row h-52 items-center justify-center">
+			<div id="{{.Device.Model}}-{{.Device.Id}}" class="panel flex-col h-52 items-center justify-center">
 {{- $added := false }}
 {{- range $i, $relay := .State.Relays }}
 	{{- if and (ne $relay.Gpio "") (ne $relay.Name "") }}
 		{{- $added = true }}
-				<div class="flex flex-col items-center"
+				<div class="flex flex-row items-center"
 				     hx-post="/device/{{$.Device.Id}}/click?Relay={{$i}}"
 				     hx-swap="none">
-					<img class="h-24" src="/model/{{$.Device.Model}}/images/relay-{{$relay.State}}.png">
-					<span class="h-4 mb-5 px-2.5 text-sm bg-amber-500 text-white rounded">{{$relay.Gpio}}</span>
-					<span>{{$relay.Name}}</span>
+					<span class="w-16 text-right mx-6">{{$relay.Name}}</span>
+					<img class="h-10" src="/model/{{$.Device.Model}}/images/relay-{{$relay.State}}.png">
+					<span class="mx-6 px-2.5 text-sm bg-amber-500 text-white rounded">{{$relay.Gpio}}</span>
 				</div>
 	{{- end }}
 {{- end }}

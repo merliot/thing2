@@ -1,11 +1,11 @@
-								<div id="{{.Device.Model}}-{{.Device.Id}}" class="flex flex-row w-full items-center justify-evenly">
+								<div id="{{.Device.Model}}-{{.Device.Id}}" class="flex flex-col w-full items-center justify-evenly">
 {{- $added := false }}
 {{- range $relay := .State.Relays }}
 	{{- if and (ne $relay.Gpio "") (ne $relay.Name "") }}
 		{{- $added = true }}
-									<div class="flex flex-col items-center">
-										<img class="h-14" src="/model/{{$.Device.Model}}/images/relay-{{$relay.State}}.png">
-										<span class="text-sm">{{$relay.Name}}</span>
+									<div class="flex flex-row items-center">
+										<span class="text-sm text-right">{{$relay.Name}}</span>
+										<img class="h-6" src="/model/{{$.Device.Model}}/images/relay-{{$relay.State}}.png">
 									</div>
 	{{- end }}
 {{- end }}
