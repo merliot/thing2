@@ -15,6 +15,7 @@ func Run() {
 	var port = getenv("PORT", "8000")
 	var devicesFile = getenv("DEVICES_FILE", "devices.json")
 	var devicesJSON = getenv("DEVICES", "")
+	var demo = (getenv("DEMO", "") == "true")
 	var err error
 
 	if devicesJSON != "" {
@@ -35,6 +36,10 @@ func Run() {
 	if err != nil {
 		fmt.Println("Error finding root device:", err)
 		return
+	}
+
+	if demo {
+		root.Set(flagDemo)
 	}
 
 	// Build route table from root's perpective
