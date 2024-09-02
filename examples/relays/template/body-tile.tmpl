@@ -4,7 +4,7 @@
 	{{- if and (ne $relay.Gpio "") (ne $relay.Name "") }}
 		{{- $added = true }}
 									<div class="flex flex-row items-center">
-										<span class="text-sm text-right">{{$relay.Name}}</span>
+										<span class="text-sm text-right mr-2.5">{{$relay.Name}}</span>
 										<img class="h-6" src="/model/{{$.Device.Model}}/images/relay-{{$relay.State}}.png">
 									</div>
 	{{- end }}

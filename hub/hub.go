@@ -29,3 +29,6 @@ func (h *Hub) GetConfig() thing2.Config {
 func (h *Hub) GetHandlers() thing2.Handlers {
 	return thing2.Handlers{}
 }
+
+func (h *Hub) Setup() error { return nil }
+func (h *Hub) Poll()        {}

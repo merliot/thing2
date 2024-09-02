@@ -15,7 +15,7 @@ type Relay struct {
 	pin   machine.Pin
 }
 
-func (r *Relay) Configure() {
+func (r *Relay) Setup() error {
 	r.pin = machine.NoPin
 	if pin, ok := target.Pin(r.Gpio); ok {
 		r.pin = machine.Pin(pin)
@@ -24,14 +24,13 @@ func (r *Relay) Configure() {
 	}
 }
 
-func (r *Relay) On() {
+func (r *Relay) Set(state bool) {
 	if r.pin != machine.NoPin {
-		r.pin.High()
-	}
-}
-
-func (r *Relay) Off() {
-	if r.pin != machine.NoPin {
-		r.pin.Low()
+		r.State = state
+		if state {
+			r.pin.High()
+		} else {
+			r.pin.Low()
+		}
 	}
 }

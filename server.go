@@ -1,7 +1,6 @@
 package thing2
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -13,21 +12,12 @@ var root *Device
 func Run() {
 
 	var port = getenv("PORT", "8000")
-	var devicesFile = getenv("DEVICES_FILE", "devices.json")
-	var devicesJSON = getenv("DEVICES", "")
 	var demo = (getenv("DEMO", "") == "true")
 	var err error
 
-	if devicesJSON != "" {
-		if err := json.Unmarshal([]byte(devicesJSON), &devices); err != nil {
-			fmt.Printf("Error parsing devices: %s\n", err)
-			return
-		}
-	} else {
-		if err := fileReadJSON(devicesFile, &devices); err != nil {
-			fmt.Println("Error reading devices from file:", err)
-			return
-		}
+	if err := devicesLoad(); err != nil {
+		fmt.Println("Error loading devices:", err)
+		return
 	}
 
 	devicesMake()
@@ -40,6 +30,11 @@ func Run() {
 
 	if demo {
 		root.Set(flagDemo)
+	}
+
+	if err := root.Setup(); err != nil {
+		fmt.Println("Error setting up root device:", err)
+		return
 	}
 
 	// Build route table from root's perpective

@@ -29,7 +29,7 @@ func (d *Device) api() {
 	d.HandleFunc("GET /detail", d.showDetail)
 	d.HandleFunc("GET /info", d.showInfo)
 	d.HandleFunc("GET /code", d.showCode)
-	d.HandleFunc("GET /save", d.saveDevice)
+	d.HandleFunc("GET /save", d.saveDevices)
 	d.HandleFunc("GET /devices", d.showDevices)
 	d.HandleFunc("GET /download", d.showDownload)
 	d.HandleFunc("GET /download-target", d.showDownloadTarget)
@@ -275,8 +275,15 @@ func (d *Device) showCode(w http.ResponseWriter, r *http.Request) {
 	d.renderTemplate(w, "code.tmpl", names)
 }
 
-func (d *Device) saveDevice(w http.ResponseWriter, r *http.Request) {
-	deviceSave(d.Id)
+func (d *Device) saveDevices(w http.ResponseWriter, r *http.Request) {
+	if d != root {
+		http.Error(w, fmt.Sprintf("Only root device can save"), http.StatusBadRequest)
+		return
+	}
+	if err := devicesSave(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	devicesClean()
 }
 
 func (d *Device) showDevices(w http.ResponseWriter, r *http.Request) {

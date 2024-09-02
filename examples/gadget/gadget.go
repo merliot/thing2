@@ -38,6 +38,9 @@ func (g *Gadget) GetHandlers() thing2.Handlers {
 	}
 }
 
+func (g *Gadget) Setup() error { return nil }
+func (g *Gadget) Poll()        {}
+
 func (g *Gadget) state(pkt *thing2.Packet) {
 	pkt.Unmarshal(g).RouteUp()
 }

@@ -161,7 +161,7 @@ func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir str
 func (d *Device) buildImage(w http.ResponseWriter, r *http.Request) error {
 
 	// Create temp build directory
-	dir, err := os.MkdirTemp("./", d.Id+"-")
+	dir, err := os.MkdirTemp("./", d.Model+"-"+d.Id+"-")
 	if err != nil {
 		return err
 	}

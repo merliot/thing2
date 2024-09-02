@@ -2,6 +2,7 @@ package thing2
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -17,12 +18,15 @@ import (
 var deviceFs embed.FS
 
 type devicesMap map[string]*Device // key: device id
+
 var devices = make(devicesMap)
 var devicesMu sync.RWMutex
 
 type Devicer interface {
 	GetConfig() Config
 	GetHandlers() Handlers
+	Setup() error
+	Poll()
 }
 
 type Device struct {
@@ -41,7 +45,7 @@ type Device struct {
 	layeredFS
 }
 
-func (d *Device) build(maker Maker) {
+func (d *Device) build(maker Maker) error {
 
 	d.Devicer = maker()
 
@@ -74,6 +78,8 @@ func (d *Device) build(maker Maker) {
 	if err != nil {
 		fmt.Println("Error configuring device using DeployParams:", err, d)
 	}
+
+	return nil
 }
 
 func devicesMake() {
@@ -90,7 +96,11 @@ func devicesMake() {
 			delete(devices, id)
 			continue
 		}
-		device.build(model.Maker)
+		if err := device.build(model.Maker); err != nil {
+			fmt.Println("Device setup failed, skipping device id", id, err)
+			delete(devices, id)
+			continue
+		}
 	}
 }
 
@@ -124,6 +134,7 @@ func devicesFindRoot() (*Device, error) {
 	case len(roots) == 1:
 		root := roots[0]
 		root.Flags.Set(flagOnline)
+		root.Flags.Set(flagMetal)
 		return root, nil
 	case len(roots) > 1:
 		return nil, fmt.Errorf("More than one tree found in devices, aborting")
@@ -150,7 +161,9 @@ func (d *Device) addChild(id, model, name string) error {
 	d.Lock()
 	defer d.Unlock()
 
-	child.build(maker.Maker)
+	if err := child.build(maker.Maker); err != nil {
+		return err
+	}
 
 	if slices.Contains(d.Children, id) {
 		return fmt.Errorf("Device's children already includes child")
@@ -322,6 +335,7 @@ func deviceOffline(id string) {
 
 func (d *Device) updateDirty(dirty bool) {
 	println("d.update")
+
 	d.Lock()
 	if dirty {
 		d.Flags.Set(flagDirty)
@@ -349,19 +363,40 @@ func deviceDirty(id string) {
 	}
 }
 
-func deviceSave(id string) {
-	println("deviceSave")
+func devicesClean() {
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
-	d, ok := devices[id]
-	if ok {
-		// TODO save devices to disk or clipboard
-		// - if saved to disk, we can mark devices clean
-		// - if saved to clipboard, we keep devices dirty and wait for
-		//   user to update DEVICES env and restart hub
-		d.updateDirty(false)
-		for _, childId := range d.Children {
-			devices[childId].updateDirty(false)
-		}
+	for _, device := range devices {
+		device.updateDirty(false)
 	}
+}
+
+func devicesLoad() error {
+	var devicesJSON = getenv("DEVICES", "")
+	var devicesFile = getenv("DEVICES_FILE", "devices.json")
+
+	devicesMu.Lock()
+	defer devicesMu.Unlock()
+
+	// Give DEVICES priority over DEVICES_FILE
+
+	if devicesJSON == "" {
+		return fileReadJSON(devicesFile, &devices)
+	}
+
+	return json.Unmarshal([]byte(devicesJSON), &devices)
+}
+
+func devicesSave() error {
+	var devicesJSON = getenv("DEVICES", "")
+	var devicesFile = getenv("DEVICES_FILE", "devices.json")
+
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+
+	if devicesJSON == "" {
+		return fileWriteJSON(devicesFile, &devices)
+	}
+
+	return nil
 }

@@ -2,6 +2,7 @@ package relays
 
 import (
 	"embed"
+	"fmt"
 
 	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/io/relay"
@@ -44,6 +45,19 @@ func (r *Relays) GetHandlers() thing2.Handlers {
 	}
 }
 
+func (r *Relays) Setup() error {
+	for i := range r.Relays {
+		relay := &r.Relays[i]
+		if err := relay.Setup(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *Relays) Poll() {
+}
+
 func (r *Relays) state(pkt *thing2.Packet) {
 	pkt.Unmarshal(r).RouteUp()
 }
@@ -51,15 +65,18 @@ func (r *Relays) state(pkt *thing2.Packet) {
 func (r *Relays) click(pkt *thing2.Packet) {
 	var click MsgClick
 	pkt.Unmarshal(&click)
-	i := click.Relay
-	r.Relays[i].State = !r.Relays[i].State
-	var clicked = MsgClicked{i, r.Relays[i].State}
+	relay := &r.Relays[click.Relay]
+	fmt.Println("CLICK", relay.State)
+	relay.Set(!relay.State)
+	fmt.Println("CLICK", relay.State)
+	var clicked = MsgClicked{click.Relay, relay.State}
 	pkt.SetPath("/clicked").Marshal(&clicked).RouteUp()
 }
 
 func (r *Relays) clicked(pkt *thing2.Packet) {
 	var clicked MsgClicked
 	pkt.Unmarshal(&clicked)
-	r.Relays[clicked.Relay].State = clicked.State
+	relay := &r.Relays[clicked.Relay]
+	relay.Set(clicked.State)
 	pkt.RouteUp()
 }

@@ -8,6 +8,7 @@ const (
 	flagDirty                         // Has unsaved changes
 	flagLocked                        // Administratively locked
 	flagDemo                          // Running in demo mode
+	flagMetal                         // Device is running on real hardware
 )
 
 func (f *Flags) Set(flags Flags) {
