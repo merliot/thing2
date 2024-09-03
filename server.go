@@ -45,7 +45,8 @@ func Run() {
 
 	// If no port was given, don't run as a web server
 	if port == "" {
-		select {}
+		run()
+		return
 	}
 
 	// Running as a web server...
@@ -70,7 +71,9 @@ func Run() {
 
 	addr := ":" + port
 	fmt.Println("ListenAndServe on", addr)
-	log.Fatal(http.ListenAndServe(addr, nil))
+	go log.Fatal(http.ListenAndServe(addr, nil))
+
+	run()
 }
 
 func templateShow(w http.ResponseWriter, temp string, data any) {

@@ -20,9 +20,7 @@ type Relay struct {
 func (r *Relay) Setup() error {
 	if pin, ok := target.Pin(r.Gpio); ok {
 		spin := strconv.Itoa(int(pin))
-		fmt.Println(r.Gpio, pin, spin)
-		r.driver = gpio.NewRelayDriver(target.Adaptor, spin)
-		fmt.Println("Setup r.driver", r, r.driver)
+		r.driver = gpio.NewRelayDriver(target.GetAdaptor(), spin)
 		r.driver.Start()
 		r.driver.Off()
 		return nil
@@ -31,19 +29,12 @@ func (r *Relay) Setup() error {
 }
 
 func (r *Relay) Set(state bool) {
-	fmt.Println("Set r.driver", r.driver)
 	if r.driver != nil {
 		r.State = state
 		if state {
-			fmt.Println(state, r.driver.State())
-			fmt.Println("ON")
 			r.driver.On()
-			fmt.Println(state, r.driver.State())
 		} else {
-			fmt.Println(state, r.driver.State())
-			fmt.Println("OFF")
 			r.driver.Off()
-			fmt.Println(state, r.driver.State())
 		}
 	}
 }

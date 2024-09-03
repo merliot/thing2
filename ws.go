@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"net"
 	"net/http"
 	"net/url"
 	"time"
@@ -12,7 +13,9 @@ import (
 )
 
 type wsLink struct {
-	conn *websocket.Conn
+	conn     *websocket.Conn
+	lastRecv time.Time
+	lastSend time.Time
 }
 
 type announcement struct {
@@ -36,6 +39,7 @@ func (l *wsLink) Send(pkt *Packet) error {
 	if err := websocket.Message.Send(l.conn, string(data)); err != nil {
 		return fmt.Errorf("Send error: %w", err)
 	}
+	l.lastSend = time.Now()
 	return nil
 }
 
@@ -48,8 +52,9 @@ func (l *wsLink) receive() (*Packet, error) {
 	var pkt Packet
 
 	if err := websocket.Message.Receive(l.conn, &data); err != nil {
-		return nil, fmt.Errorf("Disconnecting: %w", err)
+		return nil, err
 	}
+	l.lastRecv = time.Now()
 	if err := json.Unmarshal(data, &pkt); err != nil {
 		return nil, fmt.Errorf("Unmarshalling error: %w", err)
 	}
@@ -61,6 +66,34 @@ func (l *wsLink) receiveTimeout(timeout time.Duration) (*Packet, error) {
 	pkt, err := l.receive()
 	l.conn.SetReadDeadline(time.Time{})
 	return pkt, err
+}
+
+var pingDuration = 4 * time.Second
+var pingTimeout = 2*pingDuration + time.Second
+
+func (l *wsLink) receivePoll() (*Packet, error) {
+	for {
+		if time.Since(l.lastSend) >= pingDuration {
+			if err := l.Send(&Packet{Path: "/ping"}); err != nil {
+				return nil, err
+			}
+		}
+		pkt, err := l.receiveTimeout(time.Second)
+		if err == nil {
+			if pkt.Path == "/ping" {
+				continue
+			}
+			return pkt, nil
+		}
+		if netErr, ok := err.(*net.OpError); ok && netErr.Timeout() {
+			if time.Since(l.lastRecv) > pingTimeout {
+				return nil, err
+			}
+			continue
+		}
+		return nil, err
+	}
+	return nil, nil
 }
 
 func newConfig(url *url.URL, user, passwd string) (*websocket.Config, error) {
@@ -114,7 +147,7 @@ func wsDial(url *url.URL) {
 func wsClient(conn *websocket.Conn) {
 	defer conn.Close()
 
-	var link = &wsLink{conn}
+	var link = &wsLink{conn: conn}
 	var ann = announcement{
 		Id:           root.Id,
 		Model:        root.Model,
@@ -172,11 +205,12 @@ func wsClient(conn *websocket.Conn) {
 
 	fmt.Println("Receiving packets...")
 	for {
-		pkt, err := link.receive()
+		pkt, err := link.receivePoll()
 		if err != nil {
 			fmt.Println("Error receiving packet:", err)
 			break
 		}
+		fmt.Println("Route packet DOWN:", pkt)
 		deviceRouteDown(pkt.Dst, pkt)
 	}
 
@@ -188,7 +222,7 @@ func wsServer(conn *websocket.Conn) {
 
 	defer conn.Close()
 
-	var link = &wsLink{conn}
+	var link = &wsLink{conn: conn}
 
 	// First receive should be an /announce packet
 
@@ -236,7 +270,7 @@ func wsServer(conn *websocket.Conn) {
 	// disconnect on EOF.
 
 	for {
-		pkt, err := link.receive()
+		pkt, err := link.receivePoll()
 		if err != nil {
 			fmt.Println("Error receiving packet:", err)
 			break

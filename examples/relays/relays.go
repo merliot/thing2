@@ -2,7 +2,6 @@ package relays
 
 import (
 	"embed"
-	"fmt"
 
 	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/io/relay"
@@ -66,9 +65,7 @@ func (r *Relays) click(pkt *thing2.Packet) {
 	var click MsgClick
 	pkt.Unmarshal(&click)
 	relay := &r.Relays[click.Relay]
-	fmt.Println("CLICK", relay.State)
 	relay.Set(!relay.State)
-	fmt.Println("CLICK", relay.State)
 	var clicked = MsgClicked{click.Relay, relay.State}
 	pkt.SetPath("/clicked").Marshal(&clicked).RouteUp()
 }
