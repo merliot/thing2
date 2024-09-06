@@ -2,6 +2,8 @@ package relays
 
 import (
 	"embed"
+	"fmt"
+	"time"
 
 	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/io/relay"
@@ -29,10 +31,11 @@ func NewModel() thing2.Devicer {
 
 func (r *Relays) GetConfig() thing2.Config {
 	return thing2.Config{
-		Model:   "relays",
-		State:   r,
-		FS:      &fs,
-		Targets: []string{"demo", "rpi", "nano-rp2040", "wioterminal"},
+		Model:    "relays",
+		State:    r,
+		FS:       &fs,
+		Targets:  []string{"demo", "rpi", "nano-rp2040", "wioterminal"},
+		PollFreq: time.Second,
 	}
 }
 
@@ -55,6 +58,7 @@ func (r *Relays) Setup() error {
 }
 
 func (r *Relays) Poll() {
+	fmt.Println("Poll", r)
 }
 
 func (r *Relays) state(pkt *thing2.Packet) {

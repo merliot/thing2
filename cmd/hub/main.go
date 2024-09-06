@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/models"
@@ -21,9 +20,7 @@ var device = `{
 func main() {
 	id := thing2.GenerateRandomId()
 	devices := fmt.Sprintf(device, id, id)
-	if _, exists := os.LookupEnv("DEVICES"); !exists {
-		os.Setenv("DEVICES", devices)
-	}
+	thing2.Setenv(thing2.Getenv("DEVICES", devices))
 	thing2.Models = models.AllModels
 	thing2.Run()
 }

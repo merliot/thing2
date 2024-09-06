@@ -1,9 +1,10 @@
-//go:generate go run main.go
+//go:generate go run ./
 
 package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -76,4 +77,6 @@ func main() {
 	if err := tmpl.Execute(outFile, models); err != nil {
 		panic(err)
 	}
+
+	fmt.Println("Created Models from models.json")
 }

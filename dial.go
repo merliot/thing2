@@ -7,7 +7,7 @@ import (
 )
 
 func dialParents() {
-	var urls = getenv("DIAL_URLS", "")
+	var urls = Getenv("DIAL_URLS", "")
 
 	for _, u := range strings.Split(urls, ",") {
 		if u == "" {

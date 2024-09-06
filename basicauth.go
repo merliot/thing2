@@ -1,3 +1,5 @@
+//go:build !tinygo
+
 package thing2
 
 import (
@@ -8,8 +10,8 @@ import (
 
 // HTTP Basic Authentication middleware
 func basicAuth(w http.ResponseWriter, r *http.Request) bool {
-	var user = getenv("USER", "")
-	var passwd = getenv("PASSWD", "")
+	var user = Getenv("USER", "")
+	var passwd = Getenv("PASSWD", "")
 
 	// skip basic authentication if no user
 	if user == "" {

@@ -29,10 +29,10 @@
 			<td colspan="2"><hr></td>
 		</tr>
 
-{{- if ne .Vars.modulePath "" }}
+{{- if ne .Vars.package "" }}
 		<tr>
-			<th>Module Path</th>
-			<td><a target="_blank" href="https://{{ .Vars.modulePath }}">{{ .Vars.modulePath }}</a></td>
+			<th>Model Package</th>
+			<td><a target="_blank" href="https://{{ .Vars.package }}">{{ .Vars.package }}</a></td>
 		</tr>
 {{- end }}
 	</table>

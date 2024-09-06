@@ -8,7 +8,6 @@ require (
 	github.com/merliot/device v0.0.0-20240428031616-1bedc47f4c55
 	gobot.io/x/gobot/v2 v2.3.0
 	golang.org/x/exp v0.0.0-20240822175202-778ce7bba035
-	golang.org/x/mod v0.20.0
 	golang.org/x/net v0.27.0
 )
 

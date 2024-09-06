@@ -17,7 +17,7 @@ func _routesBuild(parent, base *Device) {
 	}
 }
 
-func routesBuild() {
+func routesBuild(root *Device) {
 
 	routesMu.RLock()
 	defer routesMu.RUnlock()

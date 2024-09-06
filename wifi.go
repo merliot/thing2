@@ -1,3 +1,5 @@
+//go:build !tinygo
+
 package thing2
 
 import (
@@ -7,8 +9,8 @@ import (
 type wifiAuthMap map[string]string //key: ssid; value: passphrase
 
 func wifiAuths() wifiAuthMap {
-	var ssids = getenv("WIFI_SSIDS", "")
-	var passphrases = getenv("WIFI_PASSPHRASES", "")
+	var ssids = Getenv("WIFI_SSIDS", "")
+	var passphrases = Getenv("WIFI_PASSPHRASES", "")
 
 	auths := make(wifiAuthMap)
 	if ssids == "" {

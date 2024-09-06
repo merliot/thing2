@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/merliot/thing2/target"
 	"gobot.io/x/gobot/v2/drivers/gpio"
@@ -23,12 +24,21 @@ func failSafe() {
 
 }
 
-func run() {
+func (d *Device) run() {
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 
-	select {
-	case <-c:
-		failSafe()
+	ticker := time.NewTicker(d.PollFreq)
+
+	for {
+		select {
+		case <-c:
+			failSafe()
+			return
+		case <-ticker.C:
+			d.Lock()
+			d.Poll()
+			d.Unlock()
+		}
 	}
 }

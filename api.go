@@ -250,8 +250,8 @@ func (d *Device) showDetail(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) showInfo(w http.ResponseWriter, r *http.Request) {
 	err := d.renderPage(w, "device-info.tmpl", pageVars{
-		"view":       "info",
-		"modulePath": d.modulePath(),
+		"view":    "info",
+		"package": Models[d.Model].Package,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -380,7 +380,7 @@ func (d *Device) createChild(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Rebuild routing table
-	routesBuild()
+	routesBuild(root)
 
 	// send /create msg up
 	pkt.SetDst(d.Id).RouteUp()
@@ -406,7 +406,7 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Rebuild routing table
-	routesBuild()
+	routesBuild(root)
 
 	// send /destroy msg up
 	pkt.SetDst(d.Id).RouteUp()

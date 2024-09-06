@@ -3,8 +3,6 @@
 package target
 
 import (
-	"fmt"
-
 	"gobot.io/x/gobot/v2/platforms/raspi"
 )
 
@@ -16,7 +14,6 @@ func GetAdaptor() *raspi.Adaptor {
 		if err := adaptor.Connect(); err != nil {
 			return nil
 		}
-		fmt.Println("GetAdaptor connected")
 		adaptorConnected = true
 	}
 	return adaptor

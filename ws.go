@@ -1,3 +1,5 @@
+//go:build !tinygo
+
 package thing2
 
 import (
@@ -120,8 +122,8 @@ func newConfig(url *url.URL, user, passwd string) (*websocket.Config, error) {
 }
 
 func wsDial(url *url.URL) {
-	var user = getenv("USER", "")
-	var passwd = getenv("PASSWD", "")
+	var user = Getenv("USER", "")
+	var passwd = Getenv("PASSWD", "")
 
 	cfg, err := newConfig(url, user, passwd)
 	if err != nil {

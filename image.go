@@ -1,9 +1,12 @@
+//go:build !tinygo
+
 package thing2
 
 import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,10 +14,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/merliot/device/uf2"
 )
 
 var (
-	keepBuilds = getenv("DEBUG_KEEP_BUILDS", "")
+	keepBuilds = Getenv("DEBUG_KEEP_BUILDS", "")
 )
 
 func gzipFile(src, dst string) error {
@@ -84,21 +89,18 @@ func (d *Device) genFile(template string, name string, pageVars pageVars) error 
 func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir string,
 	envs []string, target string) error {
 
-	var user = getenv("USER", "")
-	var passwd = getenv("PASSWD", "")
-	var port = r.URL.Query().Get("port")
 	var url = r.Header["Referer"][0]
 	var dialurls = strings.Replace(url, "http", "ws", 1) + "ws"
 	var service = d.Model + "-" + d.Id
 
-	// Generate runner.go from device-runner.tmpl
+	// Generate runner.go from device-runner-linux.tmpl
 	var runnerGo = filepath.Join(dir, "runner.go")
-	if err := d.genFile("device-runner.tmpl", runnerGo, pageVars{
+	if err := d.genFile("device-runner-linux.tmpl", runnerGo, pageVars{
 		"progenitive": d.Flags.IsSet(FlagProgenitive),
-		"user":        user,
-		"passwd":      passwd,
+		"user":        Getenv("USER", ""),
+		"passwd":      Getenv("PASSWD", ""),
 		"dialurls":    dialurls,
-		"port":        port,
+		"port":        r.URL.Query().Get("port"),
 	}); err != nil {
 		return err
 	}
@@ -158,6 +160,58 @@ func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir str
 	return serveFile(w, r, installer)
 }
 
+func (d *Device) buildTinyGoImage(w http.ResponseWriter, r *http.Request, dir, target string) error {
+
+	var url = r.Header["Referer"][0]
+	var dialurls = strings.Replace(url, "http", "ws", 1) + "ws"
+	var ssid = r.URL.Query().Get("ssid")
+	var wifiAuths = wifiAuths()
+	var passphrase = wifiAuths[ssid]
+
+	var p = Uf2Params{
+		MagicStart:   uf2Magic,
+		Ssid:         ssid,
+		Passphrase:   passphrase,
+		Id:           d.Id,
+		Model:        d.Model,
+		Name:         d.Name,
+		DeployParams: d.DeployParams,
+		User:         Getenv("USER", ""),
+		Passwd:       Getenv("PASSWD", ""),
+		DialURLs:     dialurls,
+		MagicEnd:     uf2Magic,
+	}
+
+	base := filepath.Join("uf2s", d.Model+"-"+target+".uf2")
+	installer := filepath.Join(dir, d.Model+"-"+d.Id+"-installer.uf2")
+
+	// Re-write the base uf2 file and save as the installer uf2 file.
+	// The paramsMem area is replaced by json-encoded params.
+
+	uf2, err := uf2.Read(base)
+	if err != nil {
+		return err
+	}
+
+	oldBytes := bytes.Repeat([]byte{byte('x')}, 2048)
+	newBytes := make([]byte, 2048)
+
+	newParams, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+	copy(newBytes, newParams)
+
+	uf2.ReplaceBytes(oldBytes, newBytes)
+
+	err = uf2.Write(installer)
+	if err != nil {
+		return err
+	}
+
+	return serveFile(w, r, installer)
+}
+
 func (d *Device) buildImage(w http.ResponseWriter, r *http.Request) error {
 
 	// Create temp build directory
@@ -182,11 +236,8 @@ func (d *Device) buildImage(w http.ResponseWriter, r *http.Request) error {
 		// TODO: do we want more targets for GOARM=7|8?
 		envs := []string{"CGO_ENABLED=0", "GOOS=linux", "GOARCH=arm", "GOARM=5"}
 		return d.buildLinuxImage(w, r, dir, envs, target)
-		/*
-			case "nano-rp2040", "wioterminal", "pyportal":
-				//return d.deployTinyGo(dir, values, envs, templates, w, r)
-				return d.deployTinyGoUF2(dir, values, envs, templates, w, r)
-		*/
+	case "nano-rp2040", "wioterminal", "pyportal":
+		return d.buildTinyGoImage(w, r, dir, target)
 	default:
 		return fmt.Errorf("Target '%s' not supported", target)
 	}

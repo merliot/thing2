@@ -1,3 +1,5 @@
+//go:build !tinygo
+
 package thing2
 
 import (
@@ -11,8 +13,8 @@ var root *Device
 
 func Run() {
 
-	var port = getenv("PORT", "8000")
-	var demo = (getenv("DEMO", "") == "true")
+	var port = Getenv("PORT", "8000")
+	var demo = (Getenv("DEMO", "") == "true")
 	var err error
 
 	if err := devicesLoad(); err != nil {
@@ -38,14 +40,14 @@ func Run() {
 	}
 
 	// Build route table from root's perpective
-	routesBuild()
+	routesBuild(root)
 
 	// Dial parents
 	dialParents()
 
 	// If no port was given, don't run as a web server
 	if port == "" {
-		run()
+		root.run()
 		return
 	}
 
@@ -69,11 +71,11 @@ func Run() {
 	// Install /server/* patterns for debug info
 	http.HandleFunc("/server/sessions", basicAuthHandlerFunc(sessionsShow))
 
+	go root.run()
+
 	addr := ":" + port
 	fmt.Println("ListenAndServe on", addr)
-	go log.Fatal(http.ListenAndServe(addr, nil))
-
-	run()
+	log.Fatal(http.ListenAndServe(addr, nil))
 }
 
 func templateShow(w http.ResponseWriter, temp string, data any) {

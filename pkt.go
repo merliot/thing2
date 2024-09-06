@@ -8,6 +8,8 @@ import (
 	"github.com/go-playground/form"
 )
 
+type NoMsgType struct{}
+
 var decoder = form.NewDecoder()
 
 type Packet struct {
