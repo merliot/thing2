@@ -5,7 +5,7 @@ package relay
 import (
 	"machine"
 
-	"github.com/merliot/device/target"
+	"github.com/merliot/thing2/target"
 )
 
 type Relay struct {
@@ -22,6 +22,7 @@ func (r *Relay) Setup() error {
 		r.pin.Configure(machine.PinConfig{Mode: machine.PinOutput})
 		r.pin.Low()
 	}
+	return nil
 }
 
 func (r *Relay) Set(state bool) {

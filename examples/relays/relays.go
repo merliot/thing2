@@ -1,16 +1,12 @@
 package relays
 
 import (
-	"embed"
 	"fmt"
 	"time"
 
 	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/io/relay"
 )
-
-//go:embed images *.go template
-var fs embed.FS
 
 type Relays struct {
 	Relays [4]relay.Relay

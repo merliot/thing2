@@ -1,3 +1,5 @@
+//go:build !tinygo
+
 package thing2
 
 import (
@@ -38,4 +40,11 @@ func routesBuild(root *Device) {
 	}
 
 	fmt.Printf("Routes %#v\n", routes)
+}
+
+func downlinksRoute(p *Packet) {
+	routesMu.RLock()
+	nexthop := routes[p.Dst]
+	routesMu.RUnlock()
+	deviceRouteDown(nexthop, p)
 }

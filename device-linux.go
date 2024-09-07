@@ -332,3 +332,20 @@ func devicesSave() error {
 
 	return nil
 }
+
+func devicesSendState(l linker) {
+	fmt.Println("Sending /state to all devices")
+	devicesMu.RLock()
+	for id, d := range devices {
+		var pkt = &Packet{
+			Dst:  id,
+			Path: "/state",
+		}
+		d.RLock()
+		pkt.Marshal(d.State)
+		d.RUnlock()
+		fmt.Println("Sending:", pkt)
+		l.Send(pkt)
+	}
+	devicesMu.RUnlock()
+}
