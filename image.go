@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/merliot/device/uf2"
+	"github.com/merliot/thing2/uf2"
 )
 
 var (
