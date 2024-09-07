@@ -4,9 +4,9 @@ package main
 
 import (
 	"github.com/merliot/thing2"
-	"github.com/merliot/thing2/examples/relays"
+	"{{.Vars.model.Package}}"
 )
 
 func main() {
-	thing2.Run(relays.NewModel)
+	thing2.Run({{.Device.Model}}.NewModel)
 }
