@@ -21,4 +21,4 @@
 go.work
 go.work.sum
 devices.json*
-uf2s/*
+uf2s/*.uf2
