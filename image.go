@@ -60,15 +60,13 @@ func serveFile(w http.ResponseWriter, r *http.Request, fileName string) error {
 	// Set the MD5 checksum header
 	w.Header().Set("Content-MD5", md5sumBase64)
 
+	// Gzip the file
 	w.Header().Set("Content-Encoding", "gzip")
 	gzipName := fileName + ".gz"
 	err = gzipFile(fileName, gzipName)
 	if err != nil {
 		return err
 	}
-
-	//w.Header().Set("HX-Redirect", "/foo")
-	//w.Header().Set("HX-Replace-Url", "false")
 
 	println("Serving", gzipName)
 	http.ServeFile(w, r, gzipName)
