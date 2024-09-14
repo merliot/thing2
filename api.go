@@ -382,6 +382,9 @@ func (d *Device) createChild(w http.ResponseWriter, r *http.Request) {
 	// Rebuild routing table
 	routesBuild(root)
 
+	// Mark child and parent(s) dirty
+	deviceDirty(child.Id)
+
 	// send /create msg up
 	pkt.SetDst(d.Id).RouteUp()
 }
@@ -399,6 +402,8 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	parentId := deviceParent(msg.ChildId)
+
 	// Remove the child from devices
 	if err := d.removeChild(msg.ChildId); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -407,6 +412,9 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 
 	// Rebuild routing table
 	routesBuild(root)
+
+	// Mark parent(s) dirty
+	deviceDirty(parentId)
 
 	// send /destroy msg up
 	pkt.SetDst(d.Id).RouteUp()

@@ -128,6 +128,14 @@ textarea {
   visibility: visible;
 }
 
+.hidden {
+  display: none;
+}
+
+.float-right {
+  float: right;
+}
+
 .block {
   display: block;
 }
@@ -154,10 +162,6 @@ textarea {
 
 .grid {
   display: grid;
-}
-
-.hidden {
-  display: none;
 }
 
 .h-4 {

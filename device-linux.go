@@ -303,6 +303,17 @@ func devicesClean() {
 	}
 }
 
+func deviceParent(id string) string {
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+	for _, device := range devices {
+		if slices.Contains(device.Children, id) {
+			return device.Id
+		}
+	}
+	return ""
+}
+
 func devicesLoad() error {
 	var devicesJSON = Getenv("DEVICES", "")
 	var devicesFile = Getenv("DEVICES_FILE", "devices.json")
