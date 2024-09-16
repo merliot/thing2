@@ -13,7 +13,7 @@ type Devicer interface {
 	GetConfig() Config
 	GetHandlers() Handlers
 	Setup() error
-	Poll()
+	Poll(*Packet)
 }
 
 type Device struct {

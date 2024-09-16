@@ -1,8 +1,11 @@
-			<div class="panel flex-col h-52 items-center justify-between">
+			<div id="{{.Device.Model}}-{{.Device.Id}}" class="panel flex-col h-52 items-center justify-between">
 				<div class="flex flex-row w-full items-center justify-evenly">
 					<span class="text-6xl">{{.State.Bottles}}</span>
 					<span>Bottles of Beer on the Wall</span>
 				</div>
+{{- if le .State.Restock 60 }}
+				<span class="text-sm text-emerald-500">[Restocking in {{.State.Restock}}s]</span>
+{{- end }}
 				<button class="btn"
 					hx-post="/device/{{.Device.Id}}/takeone"
 					hx-swap="none">Take One</button>

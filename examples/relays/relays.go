@@ -53,7 +53,7 @@ func (r *Relays) Setup() error {
 	return nil
 }
 
-func (r *Relays) Poll() {
+func (r *Relays) Poll(pkt *thing2.Packet) {
 	fmt.Println("Poll", r)
 }
 

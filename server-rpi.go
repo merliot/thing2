@@ -31,13 +31,14 @@ func (d *Device) run() {
 	ticker := time.NewTicker(d.PollFreq)
 
 	for {
+		var pkt = Packet{Dst: d.Id}
 		select {
 		case <-c:
 			failSafe()
 			return
 		case <-ticker.C:
 			d.Lock()
-			d.Poll()
+			d.Poll(&pkt)
 			d.Unlock()
 		}
 	}

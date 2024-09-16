@@ -8,7 +8,7 @@ import (
 	"github.com/go-playground/form"
 )
 
-type NoMsgType struct{}
+type NoMsg struct{}
 
 var decoder = form.NewDecoder()
 
@@ -22,7 +22,7 @@ func newPacketFromURL(url *url.URL, v any) (*Packet, error) {
 	var pkt = &Packet{
 		Path: url.Path,
 	}
-	if _, ok := v.(*NoMsgType); ok {
+	if _, ok := v.(*NoMsg); ok {
 		return pkt, nil
 	}
 	err := decoder.Decode(v, url.Query())
