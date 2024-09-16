@@ -111,8 +111,14 @@ func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir str
 		return err
 	}
 
-	// Generate {{service}}.service from device-service.tmpl
-	var output = filepath.Join(dir, service+".service")
+	// Generate systemd merliot.target unit from device-merliot-target.tmpl
+	var output = filepath.Join(dir, "merliot.target")
+	if err := d.genFile("device-merliot-target.tmpl", output, pageVars{}); err != nil {
+		return err
+	}
+
+	// Generate systemd {{service}}.service unit from device-service.tmpl
+	output = filepath.Join(dir, service+".service")
 	if err := d.genFile("device-service.tmpl", output, pageVars{
 		"service": service,
 	}); err != nil {

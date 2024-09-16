@@ -2,19 +2,16 @@
 Description={{.Vars.service}}
 ConditionPathExists=/usr/local/bin/{{.Vars.service}}
 After=network.target
+PartOf=merliot.target
  
 [Service]
 Type=simple
 User=root
-
 ExecStart=/usr/local/bin/{{.Vars.service}}
-
 Restart=always
 RestartSec=2
 
-StandardOutput=syslog
-StandardError=syslog
 SyslogIdentifier={{.Vars.service}}
  
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.target merliot.target

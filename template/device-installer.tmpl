@@ -12,7 +12,7 @@ import (
 	"os/user"
 )
 
-//go:embed {{.Vars.service}} {{.Vars.service}}.service {{.Vars.service}}.conf
+//go:embed {{.Vars.service}} {{.Vars.service}}.service {{.Vars.service}}.conf merliot.target
 var fs embed.FS
 
 func removeLogging() {
@@ -81,6 +81,11 @@ func installLogging() {
 	}
 }
 
+func installMerliotTarget() {
+	fmt.Println("Intalling systemd target for Merliot devices")
+	installFile("merliot.target", "/lib/systemd/system/merliot.target", 0644)
+}
+
 func installService() {
 
 	fmt.Println("Intalling systemd service for {{.Vars.service}}...")
@@ -123,6 +128,7 @@ func main() {
 	} else {
 		installmodel()
 		installLogging()
+		installMerliotTarget()
 		installService()
 	}
 	fmt.Println("Success!")
