@@ -3,10 +3,11 @@
 package thing2
 
 import (
+	"context"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
+	"time"
 )
 
 var root *Device
@@ -48,6 +49,7 @@ func Run() {
 	// If no port was given, don't run as a web server
 	if port == "" {
 		root.run()
+		log.Println("Device", root.Name, "done, bye")
 		return
 	}
 
@@ -65,27 +67,31 @@ func Run() {
 	// Install /ws websocket listener
 	http.HandleFunc("/ws", basicAuthHandlerFunc(wsHandle))
 
-	// Install /wsx websocket listener
+	// Install /wsx websocket listener (wsx is for htmx ws)
 	http.HandleFunc("/wsx", basicAuthHandlerFunc(wsxHandle))
 
 	// Install /server/* patterns for debug info
 	http.HandleFunc("/server/sessions", basicAuthHandlerFunc(sessionsShow))
 
-	go root.run()
-
 	addr := ":" + port
-	fmt.Println("ListenAndServe on", addr)
-	log.Fatal(http.ListenAndServe(addr, nil))
-}
+	server := &http.Server{Addr: addr}
 
-func templateShow(w http.ResponseWriter, temp string, data any) {
-	tmpl, err := template.New("main").Parse(temp)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	// Run http server in go routine to be shutdown later
+	go func() {
+		fmt.Println("ListenAndServe on", addr)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("HTTP server ListenAndServe: %v", err)
+		}
+
+	}()
+
+	root.run()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP server Shutdown: %v", err)
 	}
-	err = tmpl.Execute(w, data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+
+	log.Println("Device", root.Name, "done, bye")
 }

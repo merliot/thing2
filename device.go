@@ -39,6 +39,8 @@ func (d *Device) build(maker Maker) error {
 
 	if d.PollFreq == 0 {
 		d.PollFreq = time.Duration(math.MaxInt64)
+	} else if d.PollFreq < time.Second {
+		d.PollFreq = time.Second
 	}
 
 	// Configure the device using DeployParams

@@ -429,3 +429,15 @@ func (d *Device) showNewModal(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
+
+func templateShow(w http.ResponseWriter, temp string, data any) {
+	tmpl, err := template.New("main").Parse(temp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}

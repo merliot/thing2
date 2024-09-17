@@ -29,6 +29,7 @@ func (d *Device) run() {
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 
 	ticker := time.NewTicker(d.PollFreq)
+	defer ticker.Stop()
 
 	for {
 		var pkt = Packet{Dst: d.Id}
