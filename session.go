@@ -18,16 +18,17 @@ import (
 var sessionsTemplate string
 
 type lastView struct {
-	view         string
-	level        int
-	showChildren bool
+	View         string
+	Level        int
+	ShowChildren bool
 }
 
 type session struct {
-	sessionId  string
-	conn       *websocket.Conn
-	LastUpdate time.Time
-	LastViews  map[string]lastView // key: device Id
+	sessionId    string
+	conn         *websocket.Conn
+	LastUpdate   time.Time
+	LastViews    map[string]lastView // key: device Id
+	sync.RWMutex `json:"-"`
 }
 
 var sessions = make(map[string]*session)
@@ -98,11 +99,13 @@ func sessionUpdate(sessionId string) bool {
 func _sessionSave(sessionId, deviceId, view string, level int, showChildren bool) {
 
 	if s, ok := sessions[sessionId]; ok {
+		s.Lock()
+		defer s.Unlock()
 		s.LastUpdate = time.Now()
 		lastView := s.LastViews[deviceId]
-		lastView.view = view
-		lastView.level = level
-		lastView.showChildren = showChildren
+		lastView.View = view
+		lastView.Level = level
+		lastView.ShowChildren = showChildren
 		s.LastViews[deviceId] = lastView
 	}
 }
@@ -113,6 +116,10 @@ func _sessionLastView(sessionId, deviceId string) (lastView lastView, err error)
 		err = fmt.Errorf("Invalid session %s", sessionId)
 		return
 	}
+
+	s.RLock()
+	defer s.RUnlock()
+
 	lastView, ok = s.LastViews[deviceId]
 	if !ok {
 		err = fmt.Errorf("Session %s: invalid device Id %s", sessionId, deviceId)
@@ -120,9 +127,9 @@ func _sessionLastView(sessionId, deviceId string) (lastView lastView, err error)
 	return
 }
 
-func (s session) renderPkt(pkt *Packet) {
+func (s session) _renderPkt(pkt *Packet) {
 	var buf bytes.Buffer
-	if err := deviceRenderPkt(&buf, &s, pkt); err != nil {
+	if err := deviceRenderPkt(&buf, s.sessionId, pkt); err != nil {
 		fmt.Println("\nError rendering pkt:", err, "\n")
 		return
 	}
@@ -137,7 +144,7 @@ func sessionsRoute(pkt *Packet) {
 	for _, s := range sessions {
 		if s.conn != nil {
 			//fmt.Println("=== sessionsRoute", pkt)
-			s.renderPkt(pkt)
+			s._renderPkt(pkt)
 		}
 	}
 }
@@ -150,7 +157,7 @@ func sessionRoute(sessionId string, pkt *Packet) {
 	if s, ok := sessions[sessionId]; ok {
 		if s.conn != nil {
 			//fmt.Println("=== sessionRoute", pkt)
-			s.renderPkt(pkt)
+			s._renderPkt(pkt)
 		}
 	}
 }

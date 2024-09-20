@@ -35,10 +35,11 @@ func wsxServe(ws *websocket.Conn) {
 	pkt := Packet{Dst: root.Id, Path: "/device"}
 	sessionRoute(sessionId, &pkt)
 
-	// Htmx websockets are one-direction only, from the server to the
+	// We use htmx websockets in one-direction only, from the server to the
 	// client, and only used for sending HTML snippets back to the client.
+	//
 	// Keep the websocket connection open, waiting for receives (which will
-	// never come).  Break on EOF or other error.
+	// never come, see above).  Break on EOF or other error.
 
 	for {
 		var message string

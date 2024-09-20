@@ -75,13 +75,13 @@ func serveFile(w http.ResponseWriter, r *http.Request, fileName string) error {
 	return nil
 }
 
-func (d *Device) genFile(template string, name string, pageVars pageVars) error {
+func (d *Device) genFile(template string, name string, renderVars renderVars) error {
 	file, err := os.Create(name)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	return d.renderPage(file, template, pageVars)
+	return d.renderTmpl(file, template, renderVars)
 }
 
 func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir string,
@@ -93,7 +93,7 @@ func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir str
 
 	// Generate runner.go from device-runner-linux.tmpl
 	var runnerGo = filepath.Join(dir, "runner.go")
-	if err := d.genFile("device-runner-linux.tmpl", runnerGo, pageVars{
+	if err := d.genFile("device-runner-linux.tmpl", runnerGo, renderVars{
 		"progenitive": d.Flags.IsSet(FlagProgenitive),
 		"user":        Getenv("USER", ""),
 		"passwd":      Getenv("PASSWD", ""),
@@ -105,7 +105,7 @@ func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir str
 
 	// Generate installer.go from device-installer.tmpl
 	var installerGo = filepath.Join(dir, "installer.go")
-	if err := d.genFile("device-installer.tmpl", installerGo, pageVars{
+	if err := d.genFile("device-installer.tmpl", installerGo, renderVars{
 		"service": service,
 	}); err != nil {
 		return err
@@ -113,13 +113,13 @@ func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir str
 
 	// Generate systemd merliot.target unit from device-merliot-target.tmpl
 	var output = filepath.Join(dir, "merliot.target")
-	if err := d.genFile("device-merliot-target.tmpl", output, pageVars{}); err != nil {
+	if err := d.genFile("device-merliot-target.tmpl", output, renderVars{}); err != nil {
 		return err
 	}
 
 	// Generate systemd {{service}}.service unit from device-service.tmpl
 	output = filepath.Join(dir, service+".service")
-	if err := d.genFile("device-service.tmpl", output, pageVars{
+	if err := d.genFile("device-service.tmpl", output, renderVars{
 		"service": service,
 	}); err != nil {
 		return err
@@ -127,7 +127,7 @@ func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir str
 
 	// Generate {{service}}.conf from device-conf.tmpl
 	output = filepath.Join(dir, service+".conf")
-	if err := d.genFile("device-conf.tmpl", output, pageVars{
+	if err := d.genFile("device-conf.tmpl", output, renderVars{
 		"service": service,
 	}); err != nil {
 		return err

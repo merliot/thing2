@@ -204,12 +204,12 @@ func deviceRouteUp(id string, pkt *Packet) {
 	}
 }
 
-func deviceRenderPkt(w io.Writer, s *session, pkt *Packet) error {
+func deviceRenderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 	//fmt.Println("deviceRenderPkt", pkt)
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
 	if d, ok := devices[pkt.Dst]; ok {
-		return d.renderPkt(w, s, pkt)
+		return d._renderPkt(w, sessionId, pkt)
 	}
 	return deviceNotFound(pkt.Dst)
 }
