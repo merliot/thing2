@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/merliot/thing2/target"
@@ -38,6 +39,19 @@ func (d *Device) api() {
 	d.HandleFunc("GET /create", d.createChild)
 	d.HandleFunc("DELETE /destroy", d.destroyChild)
 	d.HandleFunc("GET /newModal", d.showNewModal)
+}
+
+func dumpStackTrace() {
+	buf := make([]byte, 1024)
+	for {
+		n := runtime.Stack(buf, true)
+		if n < len(buf) {
+			buf = buf[:n]
+			break
+		}
+		buf = make([]byte, 2*len(buf))
+	}
+	log.Printf("Stack trace:\n%s", buf)
 }
 
 // modelInstall installs /model/{model} pattern for device in default ServeMux
@@ -114,28 +128,119 @@ func (d *Device) renderPage(w io.Writer, name string, pageVars pageVars) error {
 	})
 }
 
-func (d *Device) renderPkt(w io.Writer, sessionId, view string, pkt *Packet) error {
-	path := strings.TrimPrefix(pkt.Path, "/")
+func (d *Device) renderChildren(w io.Writer, sessionId, path string, level int) error {
+
+	fmt.Println("renderChildren", d.Id, path, level)
+	// Collect child devices from d.Children
+	var childDevices []*Device
+	for _, childId := range d.Children {
+		if child, exists := devices[childId]; exists {
+			childDevices = append(childDevices, child)
+		}
+	}
+
+	// Sort the collected child devices by ToLower(Device.Name)
+	sort.Slice(childDevices, func(i, j int) bool {
+		return strings.ToLower(childDevices[i].Name) < strings.ToLower(childDevices[j].Name)
+	})
+
+	// Render the child devices in sorted order
+	for _, child := range childDevices {
+		lastView, err := _sessionLastView(sessionId, child.Id)
+		if err != nil {
+			lastView.view = "overview"
+			lastView.showChildren = false
+		}
+		lastView.level = level
+		fmt.Println("renderChildren", child.Id, lastView.view, lastView.level, lastView.showChildren)
+		fmt.Println()
+
+		if err := child.render(w, sessionId, path, lastView.view,
+			lastView.level, lastView.showChildren); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (d *Device) render(w io.Writer, sessionId, path, view string, level int, showChildren bool) error {
+
+	path = strings.TrimPrefix(path, "/")
 	template := path + "-" + view + ".tmpl"
 	var pageVars = pageVars{
 		"sessionId": sessionId,
-		"view":      view,
+		"level":     level * 10,
 	}
-	fmt.Println("renderPath", d.Id, template, &pageVars)
-	return d.renderPage(w, template, pageVars)
+
+	fmt.Println("render", d.Id, path, showChildren, template, &pageVars)
+
+	if err := d.renderPage(w, template, pageVars); err != nil {
+		return err
+	}
+
+	_sessionSave(sessionId, d.Id, view, level, showChildren)
+
+	if !showChildren || len(d.Children) == 0 || path != "device" {
+		return nil
+	}
+
+	return d.renderChildren(w, sessionId, path, level+1)
 }
 
-func dumpStackTrace() {
-	buf := make([]byte, 1024)
-	for {
-		n := runtime.Stack(buf, true)
-		if n < len(buf) {
-			buf = buf[:n]
-			break
-		}
-		buf = make([]byte, 2*len(buf))
+func (d *Device) renderPkt(w io.Writer, s *session, pkt *Packet) error {
+
+	lastView, err := _sessionLastView(s.sessionId, d.Id)
+	if err != nil {
+		return err
 	}
-	log.Printf("Stack trace:\n%s", buf)
+
+	fmt.Println("renderPkt", d.Id, lastView)
+	return d.render(w, s.sessionId, pkt.Path, lastView.view, lastView.level, lastView.showChildren)
+}
+
+func (d *Device) Render(sessionId, path, view string, level int, showChildren bool) (template.HTML, error) {
+	var buf bytes.Buffer
+
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+
+	if err := d.render(&buf, sessionId, path, view, level, showChildren); err != nil {
+		return template.HTML(""), err
+	}
+
+	return template.HTML(buf.String()), nil
+}
+
+/*
+func (d *Device) RenderChildren(sessionId string) (template.HTML, error) {
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+
+	var buf bytes.Buffer
+	var pkt = Packet{Path: "/state"}
+
+	// Collect devices from d.Children
+	var childDevices []*Device
+	for _, childId := range d.Children {
+		if child, exists := devices[childId]; exists {
+			childDevices = append(childDevices, child)
+		}
+	}
+
+	// Sort the collected devices by ToLower(Device.Name)
+	sort.Slice(childDevices, func(i, j int) bool {
+		return strings.ToLower(childDevices[i].Name) < strings.ToLower(childDevices[j].Name)
+	})
+
+	// Render the devices in sorted order
+	for _, child := range childDevices {
+		if err := child.renderPkt(&buf, sessionId, "tile", &pkt); err != nil {
+			return template.HTML(""), err
+		}
+	}
+
+	return template.HTML(buf.String()), nil
 }
 
 func (d *Device) RenderChildHTML(sessionId, childId, view string) (template.HTML, error) {
@@ -143,12 +248,15 @@ func (d *Device) RenderChildHTML(sessionId, childId, view string) (template.HTML
 	//println("RenderChildHTML", sessionId, childId, view)
 	//dumpStackTrace()
 
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+
 	child, ok := devices[childId]
 	if !ok {
 		return template.HTML(""), deviceNotFound(childId)
 	}
 
-	_sessionDeviceSave(sessionId, childId, view)
+	//_sessionDeviceSave(sessionId, childId, view)
 
 	child.RLock()
 	defer child.RUnlock()
@@ -161,6 +269,7 @@ func (d *Device) RenderChildHTML(sessionId, childId, view string) (template.HTML
 
 	return template.HTML(buf.String()), nil
 }
+*/
 
 func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
 	if strings.HasSuffix(r.URL.Path, ".gz") {
@@ -176,11 +285,8 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no more sessions", http.StatusTooManyRequests)
 		return
 	}
-	sessionDeviceSave(sessionId, d.Id, "full")
 	err := d.renderPage(w, "index.tmpl", pageVars{
 		"sessionId": sessionId,
-		"view":      "full",
-		"models":    Models,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -198,7 +304,7 @@ func (d *Device) keepAlive(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) showFull(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	sessionDeviceSave(sessionId, d.Id, "full")
+	//sessionDeviceSave(sessionId, d.Id, "full")
 	err := d.renderPage(w, "device-full.tmpl", pageVars{
 		"sessionId": sessionId,
 		"view":      "full",
@@ -210,7 +316,7 @@ func (d *Device) showFull(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) showList(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	sessionDeviceSave(sessionId, d.Id, "list")
+	//sessionDeviceSave(sessionId, d.Id, "list")
 	err := d.renderPage(w, "device-list.tmpl", pageVars{
 		"sessionId": sessionId,
 		"view":      "list",
@@ -222,7 +328,7 @@ func (d *Device) showList(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) showTile(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	sessionDeviceSave(sessionId, d.Id, "tile")
+	//sessionDeviceSave(sessionId, d.Id, "tile")
 	err := d.renderPage(w, "device-tile.tmpl", pageVars{
 		"sessionId": sessionId,
 		"view":      "tile",
@@ -234,7 +340,7 @@ func (d *Device) showTile(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) showDetail(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	sessionDeviceSave(sessionId, d.Id, "detail")
+	//sessionDeviceSave(sessionId, d.Id, "detail")
 	childId := r.URL.Query().Get("childId")
 	prevView := r.URL.Query().Get("prevView")
 	err := d.renderPage(w, "device-detail.tmpl", pageVars{

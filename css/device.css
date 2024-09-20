@@ -437,6 +437,30 @@ textarea {
   margin-bottom: 0rem;
 }
 
+.ml-0 {
+  margin-left: 0px;
+}
+
+.ml-10 {
+  margin-left: 2.5rem;
+}
+
+.ml-20 {
+  margin-left: 5rem;
+}
+
+.ml-30 {
+  margin-left: 7.5rem;
+}
+
+.ml-40 {
+  margin-left: 10rem;
+}
+
+.ml-50 {
+  margin-left: 12.5rem;
+}
+
 .mb-2 {
   margin-bottom: 0.5rem;
 }

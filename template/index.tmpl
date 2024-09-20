@@ -12,14 +12,14 @@
 		<script src="/js/htmx-ext-ws.js.gz"></script>
 	</head>
 
-	<body class="offline"
+	<body class="offline bg-gray-300"
 		hx-headers='{"session-id": "{{.Vars.sessionId}}"}'
 		hx-put="/keepalive"
 		hx-trigger="every 30s"
 		hx-swap="none"
 		hx-ext="ws"
 		ws-connect="/wsx?session-id={{.Vars.sessionId}}">
-{{ template "device-full.tmpl" .}}
+{{ .Device.Render .Vars.sessionId "/device" "detail" 0 true }}
 	</body>
 	<script>
 		<!-- TODO: I can't get hx-on:htmx:wsOpen to work, so adding using js -->

@@ -32,8 +32,7 @@ func wsxServe(ws *websocket.Conn) {
 	// Force a refresh of root full view on successful ws connection, in
 	// case anything has changed since last connect
 
-	sessionDeviceSave(sessionId, root.Id, "full")
-	pkt := Packet{Dst: root.Id, Path: "/state"}
+	pkt := Packet{Dst: root.Id, Path: "/device"}
 	sessionRoute(sessionId, &pkt)
 
 	// Htmx websockets are one-direction only, from the server to the
