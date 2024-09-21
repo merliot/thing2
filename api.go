@@ -22,6 +22,8 @@ func (d *Device) api() {
 	d.HandleFunc("GET /", d.serveStaticFile)
 	d.HandleFunc("GET /{$}", d.showIndex)
 	d.HandleFunc("PUT /keepalive", d.keepAlive)
+	d.HandleFunc("GET /expand", d.expand)
+	d.HandleFunc("GET /collapse", d.collapse)
 	d.HandleFunc("GET /full", d.showFull)
 	d.HandleFunc("GET /tile", d.showTile)
 	d.HandleFunc("GET /list", d.showList)
@@ -134,7 +136,11 @@ func (d *Device) renderTmpl(w io.Writer, name string, renderVars renderVars) err
 	return d._renderTmpl(w, name, renderVars)
 }
 
-func (d *Device) _renderChildren(w io.Writer, sessionId, path string, level int) error {
+func (d *Device) _renderChildren(w io.Writer, sessionId string, level int) error {
+
+	if len(d.Children) == 0 {
+		return nil
+	}
 
 	// Collect child devices from d.Children
 	var children []*Device
@@ -152,15 +158,14 @@ func (d *Device) _renderChildren(w io.Writer, sessionId, path string, level int)
 	// Render the child devices in sorted order
 	for _, child := range children {
 
-		view, err := _sessionLastView(sessionId, child.Id)
+		view, _, showChildren, err := _sessionLastView(sessionId, child.Id)
 		if err != nil {
 			// If there was no view saved, default to overview, collapsed
-			view.View = "overview"
-			view.ShowChildren = false
+			view = "overview"
+			showChildren = false
 		}
 
-		if err := child._render(w, sessionId, path, view.View,
-			level, view.ShowChildren); err != nil {
+		if err := child._render(w, sessionId, "/device", view, level, showChildren); err != nil {
 			return err
 		}
 	}
@@ -173,11 +178,12 @@ func (d *Device) _render(w io.Writer, sessionId, path, view string, level int, s
 	path = strings.TrimPrefix(path, "/")
 	template := path + "-" + view + ".tmpl"
 	var renderVars = renderVars{
-		"sessionId": sessionId,
-		"level":     level * 10,
+		"sessionId":    sessionId,
+		"level":        level,
+		"showChildren": showChildren,
 	}
 
-	fmt.Println("render", d.Id, path, showChildren, template, &renderVars)
+	fmt.Println("_render", d.Id, path, showChildren, template, &renderVars)
 
 	if err := d._renderTmpl(w, template, renderVars); err != nil {
 		return err
@@ -185,25 +191,24 @@ func (d *Device) _render(w io.Writer, sessionId, path, view string, level int, s
 
 	_sessionSave(sessionId, d.Id, view, level, showChildren)
 
+	return nil
+}
+
+func (d *Device) render(w io.Writer, sessionId, path, view string, level int, showChildren bool) error {
 	d.RLock()
 	defer d.RUnlock()
-
-	if !showChildren || len(d.Children) == 0 || path != "device" {
-		return nil
-	}
-
-	return d._renderChildren(w, sessionId, path, level+1)
+	return d._render(w, sessionId, path, view, level, showChildren)
 }
 
 func (d *Device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 
-	view, err := _sessionLastView(sessionId, d.Id)
+	view, level, showChildren, err := _sessionLastView(sessionId, d.Id)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("renderPkt", d.Id, view)
-	return d._render(w, sessionId, pkt.Path, view.View, view.Level, view.ShowChildren)
+	fmt.Println("_renderPkt", d.Id, view, level, showChildren, pkt)
+	return d._render(w, sessionId, pkt.Path, view, level, showChildren)
 }
 
 func (d *Device) Render(sessionId, path, view string, level int, showChildren bool) (template.HTML, error) {
@@ -219,11 +224,33 @@ func (d *Device) Render(sessionId, path, view string, level int, showChildren bo
 	return template.HTML(buf.String()), nil
 }
 
+func (d *Device) RenderChildren(sessionId string, level int) (template.HTML, error) {
+	var buf bytes.Buffer
+
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+
+	if err := d._renderChildren(&buf, sessionId, level); err != nil {
+		return template.HTML(""), err
+	}
+
+	return template.HTML(buf.String()), nil
+}
+
 func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
 	if strings.HasSuffix(r.URL.Path, ".gz") {
 		w.Header().Set("Content-Encoding", "gzip")
 	}
 	http.FileServer(http.FS(d.layeredFS)).ServeHTTP(w, r)
+}
+
+func (d *Device) keepAlive(w http.ResponseWriter, r *http.Request) {
+	sessionId := r.Header.Get("session-id")
+	if !sessionUpdate(sessionId) {
+		// Session expired, force full page refresh to start new
+		// session
+		w.Header().Set("HX-Refresh", "true")
+	}
 }
 
 func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
@@ -242,13 +269,27 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (d *Device) keepAlive(w http.ResponseWriter, r *http.Request) {
+func (d *Device) toggle(w http.ResponseWriter, r *http.Request, showChildren bool) {
+	println("toggle", r.Host, r.URL.String(), showChildren)
+
 	sessionId := r.Header.Get("session-id")
-	if !sessionUpdate(sessionId) {
-		// Session expired, force full page refresh to start new
-		// session
-		w.Header().Set("HX-Refresh", "true")
+	view, level, _, err := sessionLastView(sessionId, d.Id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+	if err := d.render(w, sessionId, "/device", view,
+		level, showChildren); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func (d *Device) expand(w http.ResponseWriter, r *http.Request) {
+	d.toggle(w, r, true)
+}
+
+func (d *Device) collapse(w http.ResponseWriter, r *http.Request) {
+	d.toggle(w, r, false)
 }
 
 func (d *Device) showFull(w http.ResponseWriter, r *http.Request) {

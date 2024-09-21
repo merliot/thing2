@@ -3,4 +3,7 @@
 			hx-swap="outerHTML">
 {{ template "device-header-overview.tmpl" .}}
 {{ template "device-body-overview.tmpl" .}}
+{{- if .Vars.showChildren }}
+	{{ .Device.RenderChildren .Vars.sessionId (add .Vars.level 1) }}
+{{- end }}
 		</div>

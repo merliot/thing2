@@ -1,0 +1,11 @@
+{{- if .Device.Children }}
+	{{- if .Vars.showChildren }}
+					<img class="icon" src="/model/{{.Device.Model}}/images/collapse.png"
+						hx-get="/device/{{.Device.Id}}/collapse">
+	{{- else }}
+					<img class="icon" src="/model/{{.Device.Model}}/images/expand.png"
+						hx-get="/device/{{.Device.Id}}/expand">
+	{{- end }}
+{{- else }}
+					<div class="icon"></div>
+{{- end }}

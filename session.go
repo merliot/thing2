@@ -110,21 +110,26 @@ func _sessionSave(sessionId, deviceId, view string, level int, showChildren bool
 	}
 }
 
-func _sessionLastView(sessionId, deviceId string) (lastView lastView, err error) {
+func _sessionLastView(sessionId, deviceId string) (string, int, bool, error) {
 	s, ok := sessions[sessionId]
 	if !ok {
-		err = fmt.Errorf("Invalid session %s", sessionId)
-		return
+		return "", 0, false, fmt.Errorf("Invalid session %s", sessionId)
 	}
 
 	s.RLock()
 	defer s.RUnlock()
 
-	lastView, ok = s.LastViews[deviceId]
+	view, ok := s.LastViews[deviceId]
 	if !ok {
-		err = fmt.Errorf("Session %s: invalid device Id %s", sessionId, deviceId)
+		return "", 0, false, fmt.Errorf("Session %s: invalid device Id %s", sessionId, deviceId)
 	}
-	return
+	return view.View, view.Level, view.ShowChildren, nil
+}
+
+func sessionLastView(sessionId, deviceId string) (view string, level int, showChildren bool, err error) {
+	sessionsMu.RLock()
+	defer sessionsMu.RUnlock()
+	return _sessionLastView(sessionId, deviceId)
 }
 
 func (s session) _renderPkt(pkt *Packet) {

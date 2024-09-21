@@ -39,9 +39,9 @@ func (d *Device) buildOS() error {
 
 	// Build the device templates
 	d.templates = d.layeredFS.parseFS("template/*.tmpl", template.FuncMap{
-		"title": func(s string) string {
-			return strings.Title(s)
-		},
+		"title": func(s string) string { return strings.Title(s) },
+		"add":   func(a, b int) int { return a + b },
+		"mult":  func(a, b int) int { return a * b },
 	})
 
 	// All devices have a base device API
