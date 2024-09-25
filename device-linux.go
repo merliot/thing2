@@ -40,6 +40,7 @@ func (d *Device) buildOS() error {
 	// Build the device templates
 	d.templates = d.layeredFS.parseFS("template/*.tmpl", template.FuncMap{
 		"title": func(s string) string { return strings.Title(s) },
+		"cap1":  func(s string) string { return string(strings.Title(s)[0]) },
 		"add":   func(a, b int) int { return a + b },
 		"mult":  func(a, b int) int { return a * b },
 	})

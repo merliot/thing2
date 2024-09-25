@@ -19,7 +19,7 @@ html,
   -moz-tab-size: 4;
   -o-tab-size: 4;
      tab-size: 4;
-  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family: 'Arial Narrow', 'Avenir Next Condensed', sans-serif;
   font-feature-settings: normal;
   font-variation-settings: normal;
   -webkit-tap-highlight-color: transparent;
@@ -212,6 +212,10 @@ textarea {
   width: 1.25rem;
 }
 
+.w-6 {
+  width: 1.5rem;
+}
+
 .w-10 {
   width: 2.5rem;
 }
@@ -272,6 +276,10 @@ textarea {
   border-radius: 0.25rem;
 }
 
+.rounded-full {
+  border-radius: 9999px;
+}
+
 .rounded-lg	{
   border-radius: 0.5rem;
 }
@@ -282,6 +290,11 @@ textarea {
 
 .rounded-2xl {
   border-radius: 1rem;
+}
+
+.rounded-t-lg {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
 }
 
 .border {
@@ -392,6 +405,11 @@ textarea {
   margin: 2rem;
 }
 
+.mx-2\.5 {
+  margin-left: 0.625rem;
+  margin-right: 0.625rem;
+}
+
 .mx-3 {
   margin-left: 0.75rem;
   margin-right: 0.75rem;
@@ -439,6 +457,10 @@ textarea {
 
 .ml-0 {
   margin-left: 0px;
+}
+
+.ml-2\.5 {
+  margin-left: 0.625rem;
 }
 
 .ml-10 {
@@ -521,6 +543,18 @@ textarea {
   color: rgb(74, 85, 104);
 }
 
+.text-yellow-200 {
+  color: #fef08a
+}
+
+.text-yellow-800 {
+  color: #854d0e
+}
+
+.text-sky-800 {
+  color: #075985
+}
+
 .font-bold {
   font-weight: 700;
 }
@@ -535,6 +569,10 @@ textarea {
 
 .no-underline {
   text-decoration-line: none;
+}
+
+.bg-black {
+  background-color: rgb(0 0 0);
 }
 
 .bg-slate-100	{
@@ -555,6 +593,18 @@ textarea {
 
 .bg-red-500 {
   background-color: rgb(239 68 68 / 1);
+}
+
+.bg-yellow-200 {
+  background-color: #fef08a
+}
+
+.bg-yellow-800 {
+  background-color: #854d0e
+}
+
+.bg-sky-800 {
+  background-color: #075985
 }
 
 .bg-amber-500 {

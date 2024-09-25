@@ -1,8 +1,21 @@
 		<div class="model-{{.Device.Model}}" id="device-{{.Device.Id}}"
 			hx-target="this"
 			hx-swap="outerHTML">
-{{ template "device-header-overview.tmpl" .}}
+			<div class="flex flex-row items-center p-4 ml-{{mult .Vars.level 10}}">
+{{ template "button-showchildren.tmpl" . }}
+				 <div class="flex flex-row w-full justify-between items-center bg-yellow-200 text-black rounded-full">
+					<div class="flex flex-row items-center" hx-get="/device/{{.Device.Id}}/detail">
+						<div class="flex justify-center items-center w-10 h-10 mx-2.5 bg-black
+							font-bold text-lg text-yellow-200 text-center rounded-full">
+							{{ cap1 .Device.Model }}	
+						</div>
+						<span class="text-lg font-bold">{{.Device.Name}}</span>
+{{ template "button-offline.tmpl" . }}
 {{ template "device-body-overview.tmpl" .}}
+					</div>
+{{ template "button-locked.tmpl" . }}
+				</div>
+			</div>
 {{- if .Vars.showChildren }}
 	{{ .Device.RenderChildren .Vars.sessionId (add .Vars.level 1) }}
 {{- end }}

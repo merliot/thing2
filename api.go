@@ -22,12 +22,16 @@ func (d *Device) api() {
 	d.HandleFunc("GET /", d.serveStaticFile)
 	d.HandleFunc("GET /{$}", d.showIndex)
 	d.HandleFunc("PUT /keepalive", d.keepAlive)
+	d.HandleFunc("GET /overview", d.overview)
+	d.HandleFunc("GET /detail", d.detail)
 	d.HandleFunc("GET /expand", d.expand)
 	d.HandleFunc("GET /collapse", d.collapse)
-	d.HandleFunc("GET /full", d.showFull)
-	d.HandleFunc("GET /tile", d.showTile)
-	d.HandleFunc("GET /list", d.showList)
-	d.HandleFunc("GET /detail", d.showDetail)
+
+	//d.HandleFunc("GET /full", d.showFull)
+	//d.HandleFunc("GET /tile", d.showTile)
+	//d.HandleFunc("GET /list", d.showList)
+	//d.HandleFunc("GET /detail", d.showDetail)
+
 	d.HandleFunc("GET /info", d.showInfo)
 	d.HandleFunc("GET /code", d.showCode)
 	d.HandleFunc("GET /save", d.saveDevices)
@@ -269,6 +273,34 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (d *Device) overview(w http.ResponseWriter, r *http.Request) {
+	println("overview", r.Host, r.URL.String())
+
+	sessionId := r.Header.Get("session-id")
+	_, level, showChildren, err := sessionLastView(sessionId, d.Id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := d.render(w, sessionId, "/device", "overview", level, showChildren); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func (d *Device) detail(w http.ResponseWriter, r *http.Request) {
+	println("detail", r.Host, r.URL.String())
+
+	sessionId := r.Header.Get("session-id")
+	_, level, showChildren, err := sessionLastView(sessionId, d.Id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := d.render(w, sessionId, "/device", "detail", level, showChildren); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
 func (d *Device) toggle(w http.ResponseWriter, r *http.Request, showChildren bool) {
 	println("toggle", r.Host, r.URL.String(), showChildren)
 
@@ -278,8 +310,7 @@ func (d *Device) toggle(w http.ResponseWriter, r *http.Request, showChildren boo
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := d.render(w, sessionId, "/device", view,
-		level, showChildren); err != nil {
+	if err := d.render(w, sessionId, "/device", view, level, showChildren); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
