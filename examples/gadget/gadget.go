@@ -26,6 +26,7 @@ func (g *Gadget) GetConfig() thing2.Config {
 		FS:       &fs,
 		Targets:  []string{"demo", "x86-64", "nano-rp2040"},
 		PollFreq: time.Second,
+		BgColor:  "bg-sunflower",
 	}
 }
 

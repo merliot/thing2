@@ -185,6 +185,14 @@ func (d *Device) _render(w io.Writer, sessionId, path, view string, level int, s
 		"sessionId":    sessionId,
 		"level":        level,
 		"showChildren": showChildren,
+		"bgColor":      d.bgColor(),
+		"textColor":    d.textColor(),
+	}
+
+	if d.Flags.IsSet(flagOnline) {
+		renderVars["offline"] = ""
+	} else {
+		renderVars["offline"] = "offline"
 	}
 
 	fmt.Println("_render", d.Id, path, showChildren, template, &renderVars)

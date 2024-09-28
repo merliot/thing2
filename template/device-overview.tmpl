@@ -1,22 +1,20 @@
-		<div class="model-{{.Device.Model}}" id="device-{{.Device.Id}}"
+<div class="model-{{.Device.Model}} {{.Vars.offline}}" id="device-{{.Device.Id}}"
 			hx-target="this"
 			hx-swap="outerHTML">
-			<div class="flex flex-row items-center p-4 ml-{{mult .Vars.level 10}}">
-{{ template "button-showchildren.tmpl" . }}
-				 <div class="flex flex-row w-full justify-between items-center bg-yellow-200 text-black rounded-full">
-					<div class="flex flex-row items-center" hx-get="/device/{{.Device.Id}}/detail">
-						<div class="flex justify-center items-center w-10 h-10 mx-2.5 bg-black
-							font-bold text-lg text-yellow-200 text-center rounded-full">
-							{{ cap1 .Device.Model }}	
-						</div>
-						<span class="text-lg font-bold">{{.Device.Name}}</span>
-{{ template "button-offline.tmpl" . }}
+			<div class="flex flex-row ml-{{mult .Vars.level 10}}">
+				<div class="overview flex flex-row m-1 p-2.5 justify-between
+					{{.Vars.bgColor}} {{.Vars.textColor}}
+					border-solid border-2 rounded-3xl cursor-pointer"
+					hx-get="/device/{{.Device.Id}}/detail">
+					<div class="flex flex-row flex-wrap items-center">
+						<span class="text-lg font-bold ml-2.5 w-20">{{.Device.Name}}</span>
+						<div class="rounded-xl overflow-hidden">
 {{ template "device-body-overview.tmpl" .}}
-					</div>
+						</div>
+	     				</div>
+					<div class="flex flex-row">
 {{ template "button-locked.tmpl" . }}
+					</div>
 				</div>
 			</div>
-{{- if .Vars.showChildren }}
-	{{ .Device.RenderChildren .Vars.sessionId (add .Vars.level 1) }}
-{{- end }}
 		</div>
