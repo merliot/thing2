@@ -2,19 +2,19 @@
 			hx-target="this"
 			hx-swap="outerHTML">
 			<div class="flex flex-row ml-{{mult .Vars.level 10}}">
-				<div class="detail flex flex-col m-1 p-2.5
+				<div class="detail flex flex-col m-1 p-2
 					{{.Vars.bgColor}} {{.Vars.textColor}}
 					border-solid border-2 rounded-3xl">
 					<div class="flex flex-row
 						items-center justify-between cursor-pointer"
 						hx-get="/device/{{.Device.Id}}/overview">
-						<span class="text-lg font-bold ml-2.5 w-20">{{.Device.Name}}</span>
-						<div class="flex flex-row">
+						<span class="text-lg font-bold ml-2.5 w-16">{{.Device.Name}}</span>
+						<div class="flex flex-row ml-4">
 {{ template "button-locked.tmpl" . }}
 						</div>
 					</div>
 					<div class="m-2.5 rounded-xl overflow-hidden">
-{{ template "device-body-detail.tmpl" .}}
+{{ template "body-detail.tmpl" .}}
 	     				</div>
 				</div>
 			</div>

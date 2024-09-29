@@ -364,6 +364,10 @@ textarea {
   table-layout: auto;
 }
 
+.p-2 {
+  padding: 0.5rem;
+}
+
 .p-2\.5 {
   padding: 0.625rem;
 }
@@ -492,6 +496,10 @@ textarea {
 
 .ml-2\.5 {
   margin-left: 0.625rem;
+}
+
+.ml-4 {
+  margin-left: 1rem;
 }
 
 .ml-10 {
@@ -937,6 +945,23 @@ textarea {
   --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
   margin-left: 1rem;
+}
+
+button {
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 9999px;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  height: 2.5rem;
+  margin: 10px;
+}
+
+.offline button {
+  color: #f5f6fa !important;
+  background-color: #000000 !important;
+  border-color: #f5f6fa !important;
+  border-style: dashed;
 }
 
 .btn:hover {
