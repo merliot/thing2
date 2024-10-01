@@ -22,7 +22,7 @@ func main() {
 		"DeployParams": "{{.Device.DeployParams}}"
 	}
 }`)
-{{ if .Vars.progenitive }}
+{{ if isProgenitive }}
 	thing2.Models = models.AllModels
 {{- else }}
 	thing2.Models = thing2.ModelMap{

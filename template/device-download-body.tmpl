@@ -1,4 +1,4 @@
-<div class="panel flex-col">
+<div class="flex flex-col">
 
 	<div class="flex flex-row mb-5 items-center cursor-pointer" hx-get="/device/{{.Device.Id}}/full">
 		<img class="icon px-1" src="/model/{{.Device.Model}}/images/back-arrow.png">
@@ -17,8 +17,8 @@
 							Select the target if specified
 							in DeployParams.
 						-->
-{{- range $key, $target := .Vars.targets }}
-	{{- if eq $key $.Vars.target }}
+{{- range $key, $target := targets }}
+	{{- if eq $key target }}
 						<option value="{{ $key }}" selected>{{ $target.FullName }}</option>
 	{{- else }}
 						<option value="{{ $key }}">{{ $target.FullName }}</option>
@@ -55,7 +55,7 @@
 	updated if target drop-down selection changes.
 	-->
 
-<div class="panel flex flex-col text-sm"
+<div class="flex flex-col text-sm"
 	hx-get="/device/{{.Device.Id}}/download-instructions"
 	hx-trigger="load, change from:#download-target"
 	hx-target="this"

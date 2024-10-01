@@ -1,10 +1,10 @@
-{{- if not $.Vars.linuxTarget }}
+{{- if not $.Data.linuxTarget }}
 				<div class="flex flex-row mb-5">
 					<label>
 						Wifi SSID:
 						<select name="ssid">
-	{{- range $i, $ssid := $.Vars.ssids }}
-		{{- if eq $ssid $.Vars.ssid }}
+	{{- range $i, $ssid := ssids }}
+		{{- if eq $ssid ssid }}
 							<option value="{{$ssid}}" selected>{{$ssid}}</option>
 		{{- else }}
 							<option value="{{$ssid}}">{{$ssid}}</option>
@@ -13,7 +13,7 @@
 						</select>
 					</label>
 				</div>
-	{{- if $.Vars.missingWifi  }}
+	{{- if isMissingWifi  }}
 				 <div class="flex flex-row mb-5">
 					<span class="mx-5 my-0">&#9888;</span>
 					<a class="text-red-500" target="_blank"
@@ -22,13 +22,13 @@
 	{{- end }}
 {{- end }}
 
-{{- if $.Vars.linuxTarget }}
+{{- if $.Data.linuxTarget }}
 				<div class="flex flex-col">
 					<span class="text-gray-700">(optional)</span>
 					<div class="flex flex-row mb-5">
 						<label>
 							Run Local Web Server on Port:
-							<input class="w-16" type="text" name="port" value="{{ .Vars.port }}">
+							<input class="w-16" type="text" name="port" value="{{port}}">
 						</label>
 					</div>
 				</div>

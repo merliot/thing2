@@ -8,18 +8,16 @@
 			{{bgColor}} {{textColor}}
 			border-solid border-2 rounded-3xl">
 
-			<div class="flex flex-row items-center justify-between">
-				<span class="text-lg font-bold ml-2.5 w-full cursor-pointer"
-					hx-get="/device/{{.Device.Id}}/overview">{{.Device.Name}}</span>
-				<div class="flex flex-row">
-{{ template "button-trashcan.tmpl" . }}
-{{ template "button-settings.tmpl" . }}
-{{ template "button-locked.tmpl" . }}
-				</div>
+			<div class="flex flex-row items-center justify-between"
+				hx-get="/device/{{.Device.Id}}/detail">
+				<span class="text-lg font-bold ml-2.5 w-full cursor-pointer">
+					{{.Device.Name}}
+				</span>
+				<span class="icon">&#x23CE;</span>
 			</div>
 
 			<div class="m-2.5 rounded-xl overflow-hidden">
-{{ template "body-detail.tmpl" .}}
+{{ template "device-download-body.tmpl" .}}
 			</div>
 		</div>
 	</div>

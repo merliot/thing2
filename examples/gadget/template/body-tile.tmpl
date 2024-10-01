@@ -1,9 +1,0 @@
-								<div id="{{.Device.Model}}-{{.Device.Id}}" class="flex flex-col w-full items-center justify-between">
-									<div class="flex flex-row w-full items-center justify-evenly">
-										<span class="text-6xl">{{.State.Bottles}}</span>
-										<span>Bottles</span>
-									</div>
-{{- if le .State.Restock 60 }}
-									<span class="text-sm text-emerald-500">[Restocking in {{.State.Restock}}s]</span>
-{{- end }}
-								</div>

@@ -18,9 +18,8 @@ import (
 var sessionsTemplate string
 
 type lastView struct {
-	View         string
-	Level        int
-	ShowChildren bool
+	View  string
+	Level int
 }
 
 type session struct {
@@ -96,7 +95,7 @@ func sessionUpdate(sessionId string) bool {
 	return false
 }
 
-func _sessionSave(sessionId, deviceId, view string, level int, showChildren bool) {
+func _sessionSave(sessionId, deviceId, view string, level int) {
 
 	if s, ok := sessions[sessionId]; ok {
 		s.Lock()
@@ -105,15 +104,14 @@ func _sessionSave(sessionId, deviceId, view string, level int, showChildren bool
 		lastView := s.LastViews[deviceId]
 		lastView.View = view
 		lastView.Level = level
-		lastView.ShowChildren = showChildren
 		s.LastViews[deviceId] = lastView
 	}
 }
 
-func _sessionLastView(sessionId, deviceId string) (string, int, bool, error) {
+func _sessionLastView(sessionId, deviceId string) (string, int, error) {
 	s, ok := sessions[sessionId]
 	if !ok {
-		return "", 0, false, fmt.Errorf("Invalid session %s", sessionId)
+		return "", 0, fmt.Errorf("Invalid session %s", sessionId)
 	}
 
 	s.RLock()
@@ -121,12 +119,12 @@ func _sessionLastView(sessionId, deviceId string) (string, int, bool, error) {
 
 	view, ok := s.LastViews[deviceId]
 	if !ok {
-		return "", 0, false, fmt.Errorf("Session %s: invalid device Id %s", sessionId, deviceId)
+		return "", 0, fmt.Errorf("Session %s: invalid device Id %s", sessionId, deviceId)
 	}
-	return view.View, view.Level, view.ShowChildren, nil
+	return view.View, view.Level, nil
 }
 
-func sessionLastView(sessionId, deviceId string) (view string, level int, showChildren bool, err error) {
+func sessionLastView(sessionId, deviceId string) (view string, level int, err error) {
 	sessionsMu.RLock()
 	defer sessionsMu.RUnlock()
 	return _sessionLastView(sessionId, deviceId)

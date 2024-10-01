@@ -10,8 +10,8 @@
 {{- range $i, $relay := .State.Relays }}
 		<select class="h-5" name="Relays[{{$i}}].Gpio">
 			<option value="">Select GPIO</option>
-	{{- range $key, $target := $.Vars.targets }}
-		{{- if eq $key $.Vars.selectedTarget }}
+	{{- range $key, $target := targets }}
+		{{- if eq $key $.Data.selectedTarget }}
 			{{- range $gpio, $pin := $target.GpioPins }}
 				{{- if eq $gpio $relay.Gpio }}
 			<option selected value="{{$gpio}}">{{$gpio}}</option>

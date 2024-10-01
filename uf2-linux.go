@@ -46,7 +46,7 @@ func (d *Device) generateUf2(dir, target string) error {
 	}
 
 	var runnerGo = filepath.Join(temp, "runner.go")
-	if err := d.genFile("device-runner-tinygo.tmpl", runnerGo, renderVars{
+	if err := d.genFile("device-runner-tinygo.tmpl", runnerGo, tmplData{
 		"model": Models[d.Model],
 	}); err != nil {
 		return err

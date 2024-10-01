@@ -912,7 +912,7 @@ textarea {
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   text-decoration-line: none;
 }
 
@@ -948,6 +948,9 @@ textarea {
 }
 
 button {
+  color: #000000;
+  background-color: #f5f6fa;
+  border-color: #000000;
   border-width: 2px;
   border-style: solid;
   border-radius: 9999px;
@@ -955,13 +958,15 @@ button {
   padding-right: 0.75rem;
   height: 2.5rem;
   margin: 10px;
+  cursor: pointer;
 }
 
 .offline button {
   color: #f5f6fa !important;
   background-color: #000000 !important;
   border-color: #f5f6fa !important;
-  border-style: dashed;
+  border-style: dashed !important;
+  cursor: default;
 }
 
 .btn:hover {

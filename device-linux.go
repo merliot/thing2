@@ -12,6 +12,9 @@ import (
 	"slices"
 	"strings"
 	"sync"
+
+	"github.com/merliot/thing2/target"
+	"golang.org/x/exp/maps"
 )
 
 //go:embed css docs images js template
@@ -28,6 +31,18 @@ type deviceOS struct {
 	layeredFS
 }
 
+func linuxTarget(target string) bool {
+	return target == "demo" || target == "x86-64" || target == "rpi"
+}
+
+func (d *Device) classOffline() string {
+	if d.Flags.IsSet(flagOnline) {
+		return ""
+	} else {
+		return "offline" // enables CSS class .offline
+	}
+}
+
 func (d *Device) buildOS() error {
 	d.ServeMux = http.NewServeMux()
 
@@ -39,10 +54,26 @@ func (d *Device) buildOS() error {
 
 	// Build the device templates
 	d.templates = d.layeredFS.parseFS("template/*.tmpl", template.FuncMap{
-		"title": func(s string) string { return strings.Title(s) },
-		"cap1":  func(s string) string { return string(strings.Title(s)[0]) },
-		"add":   func(a, b int) int { return a + b },
-		"mult":  func(a, b int) int { return a * b },
+		"title":         func(s string) string { return strings.Title(s) },
+		"cap1":          func(s string) string { return string(strings.Title(s)[0]) },
+		"add":           func(a, b int) int { return a + b },
+		"mult":          func(a, b int) int { return a * b },
+		"targets":       func() target.Targets { return target.MakeTargets(d.Targets) },
+		"ssids":         func() []string { return maps.Keys(wifiAuths()) },
+		"target":        func() string { return d.deployValues().Get("target") },
+		"port":          func() string { return d.deployValues().Get("port") },
+		"ssid":          func() string { return d.deployValues().Get("ssid") },
+		"isLinuxTarget": func(target string) bool { return linuxTarget(target) },
+		"isMissingWifi": func() bool { return len(wifiAuths()) == 0 },
+		"isRoot":        func() bool { return d == root },
+		"isProgenitive": func() bool { return d.Flags.IsSet(FlagProgenitive) },
+		"isOnline":      func() bool { return d.Flags.IsSet(flagOnline) },
+		"isDemo":        func() bool { return d.Flags.IsSet(flagDemo) },
+		"isDirty":       func() bool { return d.Flags.IsSet(flagDirty) },
+		"isLocked":      func() bool { return d.Flags.IsSet(flagLocked) },
+		"bgColor":       func() string { return d.bgColor() },
+		"textColor":     func() string { return d.textColor() },
+		"classOffline":  func() string { return d.classOffline() },
 	})
 
 	// All devices have a base device API
@@ -115,7 +146,7 @@ func devicesFindRoot() (*Device, error) {
 	return nil, fmt.Errorf("No tree found in devices")
 }
 
-func (d *Device) addChild(id, model, name string) error {
+func addChild(parent *Device, id, model, name string) error {
 	var child = &Device{Id: id, Model: model, Name: name}
 
 	maker, ok := Models[model]
@@ -130,18 +161,18 @@ func (d *Device) addChild(id, model, name string) error {
 		return fmt.Errorf("Child device already exists")
 	}
 
-	d.Lock()
-	defer d.Unlock()
+	parent.Lock()
+	defer parent.Unlock()
 
 	if err := child.build(maker.Maker); err != nil {
 		return err
 	}
 
-	if slices.Contains(d.Children, id) {
+	if slices.Contains(parent.Children, id) {
 		return fmt.Errorf("Device's children already includes child")
 	}
 
-	d.Children = append(d.Children, id)
+	parent.Children = append(parent.Children, id)
 
 	devices[id] = child
 	child.deviceInstall()
@@ -149,7 +180,7 @@ func (d *Device) addChild(id, model, name string) error {
 	return nil
 }
 
-func (d *Device) removeChild(id string) error {
+func removeChild(id string) error {
 
 	devicesMu.Lock()
 	defer devicesMu.Unlock()

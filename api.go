@@ -13,9 +13,6 @@ import (
 	"net/url"
 	"sort"
 	"strings"
-
-	"github.com/merliot/thing2/target"
-	"golang.org/x/exp/maps"
 )
 
 func (d *Device) api() {
@@ -24,19 +21,14 @@ func (d *Device) api() {
 	d.HandleFunc("PUT /keepalive", d.keepAlive)
 	d.HandleFunc("GET /overview", d.overview)
 	d.HandleFunc("GET /detail", d.detail)
-	d.HandleFunc("GET /expand", d.expand)
-	d.HandleFunc("GET /collapse", d.collapse)
+	d.HandleFunc("GET /settings", d.settings)
 
-	//d.HandleFunc("GET /full", d.showFull)
-	//d.HandleFunc("GET /tile", d.showTile)
-	//d.HandleFunc("GET /list", d.showList)
-	//d.HandleFunc("GET /detail", d.showDetail)
+	//d.HandleFunc("GET /info", d.showInfo)
+	//d.HandleFunc("GET /code", d.showCode)
+	//d.HandleFunc("GET /save", d.saveDevices)
+	//d.HandleFunc("GET /devices", d.showDevices)
+	//d.HandleFunc("GET /download", d.showDownload)
 
-	d.HandleFunc("GET /info", d.showInfo)
-	d.HandleFunc("GET /code", d.showCode)
-	d.HandleFunc("GET /save", d.saveDevices)
-	d.HandleFunc("GET /devices", d.showDevices)
-	d.HandleFunc("GET /download", d.showDownload)
 	d.HandleFunc("GET /download-target", d.showDownloadTarget)
 	d.HandleFunc("GET /download-instructions", d.showDownloadInstructions)
 	d.HandleFunc("GET /download-image", d.downloadImage)
@@ -92,10 +84,10 @@ func devicesInstall() {
 	}
 }
 
-func (d *Device) renderTemplate(w io.Writer, name string, data any) error {
-	tmpl := d.templates.Lookup(name)
+func (d *Device) renderTemplate(w io.Writer, template string, data any) error {
+	tmpl := d.templates.Lookup(template)
 	if tmpl == nil {
-		return fmt.Errorf("Template '%s' not found", name)
+		return fmt.Errorf("Template '%s' not found", template)
 	}
 	err := tmpl.Execute(w, data)
 	if err != nil {
@@ -104,40 +96,48 @@ func (d *Device) renderTemplate(w io.Writer, name string, data any) error {
 	return err
 }
 
-type renderVars map[string]any
+type tmplData map[string]any
 
-type renderData struct {
-	Vars   renderVars
+type renderTmplData struct {
 	Device *Device
 	State  any
+	Data   tmplData
 }
 
-func (d *Device) _renderTmpl(w io.Writer, name string, renderVars renderVars) error {
-
-	values := d.deployValues()
-	target := values.Get("target")
-
-	// Add common Vars for all pages
-	renderVars["target"] = target
-	renderVars["root"] = (d == root)
-	renderVars["online"] = d.Flags.IsSet(flagOnline)
-	renderVars["demo"] = d.Flags.IsSet(flagDemo)
-	renderVars["dirty"] = d.Flags.IsSet(flagDirty)
-	renderVars["locked"] = d.Flags.IsSet(flagLocked)
-
-	//fmt.Println("_renderTmpl", name, renderVars)
-
-	return d.renderTemplate(w, name, &renderData{
-		Vars:   renderVars,
+func (d *Device) _renderTmpl(w io.Writer, template string, td tmplData) error {
+	return d.renderTemplate(w, template, &renderTmplData{
 		Device: d,
+		Data:   td,
 		State:  d.State,
 	})
 }
 
-func (d *Device) renderTmpl(w io.Writer, name string, renderVars renderVars) error {
+func (d *Device) renderTmpl(w io.Writer, template string, td tmplData) error {
 	d.RLock()
 	defer d.RUnlock()
-	return d._renderTmpl(w, name, renderVars)
+	return d._renderTmpl(w, template, td)
+}
+
+type renderSessionData struct {
+	SessionId string
+	Level     int
+	Device    *Device
+	State     any
+}
+
+func (d *Device) _renderSession(w io.Writer, template, sessionId string, level int) error {
+	return d.renderTemplate(w, template, &renderSessionData{
+		Level:     level,
+		SessionId: sessionId,
+		Device:    d,
+		State:     d.State,
+	})
+}
+
+func (d *Device) renderSession(w io.Writer, template, sessionId string, level int) error {
+	d.RLock()
+	defer d.RUnlock()
+	return d._renderSession(w, template, sessionId, level)
 }
 
 func (d *Device) _renderChildren(w io.Writer, sessionId string, level int) error {
@@ -154,6 +154,8 @@ func (d *Device) _renderChildren(w io.Writer, sessionId string, level int) error
 		}
 	}
 
+	// TODO allow other sort methods?
+
 	// Sort the collected child devices by ToLower(Device.Name)
 	sort.Slice(children, func(i, j int) bool {
 		return strings.ToLower(children[i].Name) < strings.ToLower(children[j].Name)
@@ -162,14 +164,13 @@ func (d *Device) _renderChildren(w io.Writer, sessionId string, level int) error
 	// Render the child devices in sorted order
 	for _, child := range children {
 
-		view, _, showChildren, err := _sessionLastView(sessionId, child.Id)
+		view, _, err := _sessionLastView(sessionId, child.Id)
 		if err != nil {
-			// If there was no view saved, default to overview, collapsed
+			// If there was no view saved, default to overview
 			view = "overview"
-			showChildren = false
 		}
 
-		if err := child._render(w, sessionId, "/device", view, level, showChildren); err != nil {
+		if err := child._render(w, sessionId, "/device", view, level); err != nil {
 			return err
 		}
 	}
@@ -177,59 +178,46 @@ func (d *Device) _renderChildren(w io.Writer, sessionId string, level int) error
 	return nil
 }
 
-func (d *Device) _render(w io.Writer, sessionId, path, view string, level int, showChildren bool) error {
+func (d *Device) _render(w io.Writer, sessionId, path, view string, level int) error {
 
 	path = strings.TrimPrefix(path, "/")
 	template := path + "-" + view + ".tmpl"
-	var renderVars = renderVars{
-		"sessionId":    sessionId,
-		"level":        level,
-		"showChildren": showChildren,
-		"bgColor":      d.bgColor(),
-		"textColor":    d.textColor(),
-	}
 
-	if d.Flags.IsSet(flagOnline) {
-		renderVars["offline"] = ""
-	} else {
-		renderVars["offline"] = "offline"
-	}
+	fmt.Println("_render", d.Id, sessionId, path, level, template)
 
-	fmt.Println("_render", d.Id, path, showChildren, template, &renderVars)
-
-	if err := d._renderTmpl(w, template, renderVars); err != nil {
+	if err := d._renderSession(w, template, sessionId, level); err != nil {
 		return err
 	}
 
-	_sessionSave(sessionId, d.Id, view, level, showChildren)
+	_sessionSave(sessionId, d.Id, view, level)
 
 	return nil
 }
 
-func (d *Device) render(w io.Writer, sessionId, path, view string, level int, showChildren bool) error {
+func (d *Device) render(w io.Writer, sessionId, path, view string, level int) error {
 	d.RLock()
 	defer d.RUnlock()
-	return d._render(w, sessionId, path, view, level, showChildren)
+	return d._render(w, sessionId, path, view, level)
 }
 
 func (d *Device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 
-	view, level, showChildren, err := _sessionLastView(sessionId, d.Id)
+	view, level, err := _sessionLastView(sessionId, d.Id)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("_renderPkt", d.Id, view, level, showChildren, pkt)
-	return d._render(w, sessionId, pkt.Path, view, level, showChildren)
+	fmt.Println("_renderPkt", d.Id, view, level, pkt)
+	return d._render(w, sessionId, pkt.Path, view, level)
 }
 
-func (d *Device) Render(sessionId, path, view string, level int, showChildren bool) (template.HTML, error) {
+func (d *Device) Render(sessionId, path, view string, level int) (template.HTML, error) {
 	var buf bytes.Buffer
 
 	devicesMu.RLock()
 	defer devicesMu.RUnlock()
 
-	if err := d._render(&buf, sessionId, path, view, level, showChildren); err != nil {
+	if err := d._render(&buf, sessionId, path, view, level); err != nil {
 		return template.HTML(""), err
 	}
 
@@ -273,10 +261,7 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no more sessions", http.StatusTooManyRequests)
 		return
 	}
-	err := d.renderTmpl(w, "index.tmpl", renderVars{
-		"sessionId": sessionId,
-	})
-	if err != nil {
+	if err := d.renderSession(w, "index.tmpl", sessionId, 0); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
@@ -285,12 +270,12 @@ func (d *Device) overview(w http.ResponseWriter, r *http.Request) {
 	println("overview", r.Host, r.URL.String())
 
 	sessionId := r.Header.Get("session-id")
-	_, level, showChildren, err := sessionLastView(sessionId, d.Id)
+	_, level, err := sessionLastView(sessionId, d.Id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := d.render(w, sessionId, "/device", "overview", level, showChildren); err != nil {
+	if err := d.render(w, sessionId, "/device", "overview", level); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
@@ -299,38 +284,32 @@ func (d *Device) detail(w http.ResponseWriter, r *http.Request) {
 	println("detail", r.Host, r.URL.String())
 
 	sessionId := r.Header.Get("session-id")
-	_, level, showChildren, err := sessionLastView(sessionId, d.Id)
+	_, level, err := sessionLastView(sessionId, d.Id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := d.render(w, sessionId, "/device", "detail", level, showChildren); err != nil {
+	if err := d.render(w, sessionId, "/device", "detail", level); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
-func (d *Device) toggle(w http.ResponseWriter, r *http.Request, showChildren bool) {
-	println("toggle", r.Host, r.URL.String(), showChildren)
+func (d *Device) settings(w http.ResponseWriter, r *http.Request) {
+	println("settings", r.Host, r.URL.String())
 
+	// TODO DRY
 	sessionId := r.Header.Get("session-id")
-	view, level, _, err := sessionLastView(sessionId, d.Id)
+	_, level, err := sessionLastView(sessionId, d.Id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := d.render(w, sessionId, "/device", view, level, showChildren); err != nil {
+	if err := d.render(w, sessionId, "/device", "settings", level); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
-func (d *Device) expand(w http.ResponseWriter, r *http.Request) {
-	d.toggle(w, r, true)
-}
-
-func (d *Device) collapse(w http.ResponseWriter, r *http.Request) {
-	d.toggle(w, r, false)
-}
-
+/*
 func (d *Device) showFull(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
 	//sessionDeviceSave(sessionId, d.Id, "full")
@@ -392,6 +371,7 @@ func (d *Device) showInfo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
+*/
 
 func (d *Device) showState(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -438,10 +418,6 @@ func (d *Device) showDevices(w http.ResponseWriter, r *http.Request) {
 	w.Write(state)
 }
 
-func linuxTarget(target string) bool {
-	return target == "demo" || target == "x86-64" || target == "rpi"
-}
-
 func (d *Device) deployValues() url.Values {
 	values, err := url.ParseQuery(string(d.DeployParams))
 	if err != nil {
@@ -458,32 +434,11 @@ func (d *Device) selectedTarget(params url.Values) string {
 	return target
 }
 
-func (d *Device) showDownload(w http.ResponseWriter, r *http.Request) {
-	values := d.deployValues()
-	t := values.Get("target")
-	err := d.renderTmpl(w, "device-download.tmpl", renderVars{
-		"view":        "download",
-		"targets":     target.MakeTargets(d.Targets),
-		"linuxTarget": linuxTarget(t),
-		"port":        values.Get("port"),
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-}
-
 func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
-	values := d.deployValues()
 	selectedTarget := d.selectedTarget(r.URL.Query())
-	wifiAuths := wifiAuths()
-	err := d.renderTmpl(w, "device-download-target.tmpl", renderVars{
-		"targets":        target.MakeTargets(d.Targets),
+	err := d.renderTmpl(w, "device-download-target.tmpl", tmplData{
 		"selectedTarget": selectedTarget,
 		"linuxTarget":    linuxTarget(selectedTarget),
-		"missingWifi":    len(wifiAuths) == 0,
-		"ssids":          maps.Keys(wifiAuths),
-		"ssid":           values.Get("ssid"),
-		"port":           values.Get("port"),
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -493,7 +448,7 @@ func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 func (d *Device) showDownloadInstructions(w http.ResponseWriter, r *http.Request) {
 	target := d.selectedTarget(r.URL.Query())
 	template := "instructions-" + target + ".tmpl"
-	if err := d.renderTmpl(w, template, renderVars{}); err != nil {
+	if err := d.renderTmpl(w, template, tmplData{}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
@@ -509,7 +464,7 @@ func (d *Device) createChild(w http.ResponseWriter, r *http.Request) {
 
 	// TODO validate msg.Id, msg.Model, msg.Name
 
-	if err := d.addChild(child.Id, child.Model, child.Name); err != nil {
+	if err := addChild(d, child.Id, child.Model, child.Name); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -539,8 +494,7 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 
 	parentId := deviceParent(msg.ChildId)
 
-	// Remove the child from devices
-	if err := d.removeChild(msg.ChildId); err != nil {
+	if err := removeChild(msg.ChildId); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -552,11 +506,11 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 	deviceDirty(parentId)
 
 	// send /destroy msg up
-	pkt.SetDst(d.Id).RouteUp()
+	pkt.SetDst(parentId).RouteUp()
 }
 
 func (d *Device) showNewModal(w http.ResponseWriter, r *http.Request) {
-	err := d.renderTmpl(w, "modal-new.tmpl", renderVars{
+	err := d.renderTmpl(w, "modal-new.tmpl", tmplData{
 		"models": Models,
 		"newid":  GenerateRandomId(),
 	})
