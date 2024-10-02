@@ -64,6 +64,7 @@ func (d *Device) funcs() template.FuncMap {
 		"port":          func() string { return d.deployValues().Get("port") },
 		"ssid":          func() string { return d.deployValues().Get("ssid") },
 		"package":       func() string { return Models[d.Model].Package },
+		"source":        func() string { return Models[d.Model].Source },
 		"isLinuxTarget": func(target string) bool { return linuxTarget(target) },
 		"isMissingWifi": func() bool { return len(wifiAuths()) == 0 },
 		"isRoot":        func() bool { return d == root },

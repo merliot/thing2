@@ -13,6 +13,7 @@ import (
 
 type model struct {
 	Package string
+	Source  string
 	Maker   string
 }
 
@@ -38,6 +39,7 @@ var AllModels = thing2.ModelMap{
 {{- range $key, $value := . }}
 var {{title $key}} = thing2.Model{
 	Package: "{{$value.Package}}",
+	Source: "{{$value.Source}}",
 	Maker: {{$value.Maker}},
 }
 

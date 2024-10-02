@@ -16,13 +16,16 @@ var AllModels = thing2.ModelMap{
 }
 var Gadget = thing2.Model{
 	Package: "github.com/merliot/thing2/examples/gadget",
+	Source: "https://github.com/merliot/thing2/tree/main/examples/gadget",
 	Maker: gadget.NewModel,
 }
 var Hub = thing2.Model{
 	Package: "github.com/merliot/thing2/hub",
+	Source: "https://github.com/merliot/thing2/tree/main/hub",
 	Maker: hub.NewModel,
 }
 var Relays = thing2.Model{
 	Package: "github.com/merliot/thing2/examples/relays",
+	Source: "https://github.com/merliot/thing2/tree/main/examples/relays",
 	Maker: relays.NewModel,
 }

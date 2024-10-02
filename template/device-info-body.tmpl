@@ -1,46 +1,80 @@
-<div class="panel flex-col">
+<div class="flex flex-col">
 
-	<div class="flex flex-row mb-5 items-center cursor-pointer" hx-get="/device/{{id}}/full">
-		<img class="icon px-1" src="/model/{{model}}/images/back-arrow.png">
-		<span class="no-underline">Info</span>
+	<div class="flex flex-row justify-center mb-8">
+		<h3>Info</h3>
 	</div>
 
 	<style>
-		table th {
+		.info-grid {
+			display: grid;
+			grid-template-columns: auto auto;
+			column-gap: 20px;
+			row-gap: 10px;
+			align-items: center;
+		}
+
+		.info-grid .row-header {
+			font-weight: bold;
 			text-align: right;
+		}
+
+		.hr-row {
+			grid-column: span 2;
+		}
+
+		hr {
+			width: 100%;
 		}
 	</style>
 
-	<table class="border-separate border-spacing-5-1">
-		<tr>
-			<th>ID</th>
-			<td>{{id}}</td>
-		</tr>
-		<tr>
-			<th>Model</th>
-			<td>{{model}}</td>
-		</tr>
-		<tr>
-			<th>Name</th>
-			<td>{{name}}</td>
-		</tr>
+	<div class="info-grid">
+		<div class="grid-item row-header">
+			<span>ID</span>
+		</div>
+		<div class="grid-item">
+			<span>{{id}}</span>
+		</div>
 
-		<tr class="hr-row">
-			<td colspan="2"><hr></td>
-		</tr>
+		<div class="grid-item row-header">
+			<span>Model</span>
+		</div>
+		<div class="grid-item">
+			<span>{{model}}</span>
+		</div>
 
-{{- if ne package "" }}
-		<tr>
-			<th>Model Package</th>
-			<td><a target="_blank" href="https://{{package}}">{{package}}</a></td>
-		</tr>
-{{- end }}
-	</table>
+		<div class="grid-item row-header">
+			<span>Name</span>
+		</div>
+		<div class="grid-item">
+			<span>{{name}}</span>
+		</div>
+
+		<div class="hr-row">
+			<hr>
+		</div>
+
+		<div class="grid-item row-header">
+			<span>Model Package</span>
+		</div>
+		<div class="grid-item">
+			<span>{{package}}</span>
+		</div>
+
+		<div class="grid-item row-header">
+			<span>Model Repo</span>
+		</div>
+		<div class="grid-item">
+			<a target="_blank" href="{{source}}">{{source}}</a>
+		</div>
+
+	</div>
 
 {{- template "info.tmpl" . }}
 
 	<div class="flex flex-row justify-end mt-8">
-		<a target="_blank" href="/model/{{model}}/code"><button class="btn">Show Code</button></a>
-		<a target="_blank" href="/device/{{id}}/state"><button class="btn">Show State</button></a>
+		<a target="_blank" href="/model/{{model}}/code"><button>Show Code</button></a>
+		<a target="_blank" href="/device/{{id}}/state"><button>Show State</button></a>
 	</div>
+
 </div>
+

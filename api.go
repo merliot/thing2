@@ -22,8 +22,8 @@ func (d *Device) api() {
 	d.HandleFunc("GET /overview", d.overview)
 	d.HandleFunc("GET /detail", d.detail)
 	d.HandleFunc("GET /settings", d.settings)
+	d.HandleFunc("GET /info", d.info)
 
-	//d.HandleFunc("GET /info", d.showInfo)
 	//d.HandleFunc("GET /code", d.showCode)
 	//d.HandleFunc("GET /save", d.saveDevices)
 	//d.HandleFunc("GET /devices", d.showDevices)
@@ -291,17 +291,9 @@ func (d *Device) settings(w http.ResponseWriter, r *http.Request) {
 	d.show(w, r, "settings")
 }
 
-/*
-func (d *Device) showInfo(w http.ResponseWriter, r *http.Request) {
-	err := d.renderTmpl(w, "device-info.tmpl", renderVars{
-		"view":    "info",
-		"package": Models[d.Model].Package,
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
+func (d *Device) info(w http.ResponseWriter, r *http.Request) {
+	d.show(w, r, "info")
 }
-*/
 
 func (d *Device) showState(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
