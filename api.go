@@ -30,7 +30,7 @@ func (d *Device) api() {
 	//d.HandleFunc("GET /download", d.showDownload)
 
 	d.HandleFunc("GET /download-target", d.showDownloadTarget)
-	d.HandleFunc("GET /download-instructions", d.showDownloadInstructions)
+	d.HandleFunc("GET /instructions", d.showInstructions)
 	d.HandleFunc("GET /download-image", d.downloadImage)
 	d.HandleFunc("GET /create", d.createChild)
 	d.HandleFunc("DELETE /destroy", d.destroyChild)
@@ -100,8 +100,8 @@ type tmplData map[string]any
 
 type renderTmplData struct {
 	Device *Device
-	State  any
 	Data   tmplData
+	State  any
 }
 
 func (d *Device) _renderTmpl(w io.Writer, template string, td tmplData) error {
@@ -247,8 +247,7 @@ func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
 func (d *Device) keepAlive(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
 	if !sessionUpdate(sessionId) {
-		// Session expired, force full page refresh to start new
-		// session
+		// Session expired, force full page refresh to start new session
 		w.Header().Set("HX-Refresh", "true")
 	}
 }
@@ -266,8 +265,8 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (d *Device) overview(w http.ResponseWriter, r *http.Request) {
-	println("overview", r.Host, r.URL.String())
+func (d *Device) show(w http.ResponseWriter, r *http.Request, view string) {
+	println("show", view, r.Host, r.URL.String())
 
 	sessionId := r.Header.Get("session-id")
 	_, level, err := sessionLastView(sessionId, d.Id)
@@ -275,93 +274,24 @@ func (d *Device) overview(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := d.render(w, sessionId, "/device", "overview", level); err != nil {
+	if err := d.render(w, sessionId, "/device", view, level); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+}
+
+func (d *Device) overview(w http.ResponseWriter, r *http.Request) {
+	d.show(w, r, "overview")
 }
 
 func (d *Device) detail(w http.ResponseWriter, r *http.Request) {
-	println("detail", r.Host, r.URL.String())
-
-	sessionId := r.Header.Get("session-id")
-	_, level, err := sessionLastView(sessionId, d.Id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	if err := d.render(w, sessionId, "/device", "detail", level); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
+	d.show(w, r, "detail")
 }
 
 func (d *Device) settings(w http.ResponseWriter, r *http.Request) {
-	println("settings", r.Host, r.URL.String())
-
-	// TODO DRY
-	sessionId := r.Header.Get("session-id")
-	_, level, err := sessionLastView(sessionId, d.Id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	if err := d.render(w, sessionId, "/device", "settings", level); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
+	d.show(w, r, "settings")
 }
 
 /*
-func (d *Device) showFull(w http.ResponseWriter, r *http.Request) {
-	sessionId := r.Header.Get("session-id")
-	//sessionDeviceSave(sessionId, d.Id, "full")
-	err := d.renderTmpl(w, "device-full.tmpl", renderVars{
-		"sessionId": sessionId,
-		"view":      "full",
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-}
-
-func (d *Device) showList(w http.ResponseWriter, r *http.Request) {
-	sessionId := r.Header.Get("session-id")
-	//sessionDeviceSave(sessionId, d.Id, "list")
-	err := d.renderTmpl(w, "device-list.tmpl", renderVars{
-		"sessionId": sessionId,
-		"view":      "list",
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-}
-
-func (d *Device) showTile(w http.ResponseWriter, r *http.Request) {
-	sessionId := r.Header.Get("session-id")
-	//sessionDeviceSave(sessionId, d.Id, "tile")
-	err := d.renderTmpl(w, "device-tile.tmpl", renderVars{
-		"sessionId": sessionId,
-		"view":      "tile",
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-}
-
-func (d *Device) showDetail(w http.ResponseWriter, r *http.Request) {
-	sessionId := r.Header.Get("session-id")
-	//sessionDeviceSave(sessionId, d.Id, "detail")
-	childId := r.URL.Query().Get("childId")
-	prevView := r.URL.Query().Get("prevView")
-	err := d.renderTmpl(w, "device-detail.tmpl", renderVars{
-		"sessionId": sessionId,
-		"childId":   childId,
-		"view":      "detail",
-		"prevView":  prevView,
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-}
-
 func (d *Device) showInfo(w http.ResponseWriter, r *http.Request) {
 	err := d.renderTmpl(w, "device-info.tmpl", renderVars{
 		"view":    "info",
@@ -445,7 +375,7 @@ func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (d *Device) showDownloadInstructions(w http.ResponseWriter, r *http.Request) {
+func (d *Device) showInstructions(w http.ResponseWriter, r *http.Request) {
 	target := d.selectedTarget(r.URL.Query())
 	template := "instructions-" + target + ".tmpl"
 	if err := d.renderTmpl(w, template, tmplData{}); err != nil {

@@ -45,6 +45,7 @@ hr {
   height: 0;
   color: inherit;
   border-top-width: 1px;
+  width: 95%;
 }
 
 /*
@@ -209,6 +210,10 @@ textarea {
 
 .min-h-48 {
   min-height: 12rem;
+}
+
+.max-w-lg {
+  max-width: 32rem;
 }
 
 .w-5 {
@@ -528,6 +533,10 @@ textarea {
 
 .mb-5 {
   margin-bottom: 1.25rem;
+}
+
+.mb-8 {
+  margin-bottom: 2rem;
 }
 
 .mt-8 {
@@ -983,6 +992,12 @@ button {
 }
 
 .offline .detail {
+  color: #f5f6fa !important;
+  background-color: #000000 !important;
+  border-style: dashed !important;
+}
+
+.offline .settings {
   color: #f5f6fa !important;
   background-color: #000000 !important;
   border-style: dashed !important;

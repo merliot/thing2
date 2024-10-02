@@ -1,8 +1,8 @@
-		<div class="model-{{.Device.Model}}" id="device-{{.Device.Id}}"
+		<div class="model-{{model}}" id="device-{{id}}"
 			hx-target="this"
 			hx-swap="outerHTML">
 {{ template "device-header.tmpl" .}}
-{{- if ne .Device.DeployParams ""}}
+{{- if ne deployParams ""}}
 	{{- template "body-full.tmpl" .}}
 {{- else}}
 			<div class="panel h-52 items-center justify-center">

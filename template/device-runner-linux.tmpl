@@ -8,25 +8,25 @@ import (
 )
 
 func main() {
-	thing2.Setenv("PORT", "{{.Vars.port}}")
-	thing2.Setenv("USER", "{{.Vars.user}}")
-	thing2.Setenv("PASSWD", "{{.Vars.passwd}}")
-	thing2.Setenv("DIAL_URLS", "{{.Vars.dialurls}}")
+	thing2.Setenv("PORT", "{{.Data.port}}")
+	thing2.Setenv("USER", "{{.Data.user}}")
+	thing2.Setenv("PASSWD", "{{.Data.passwd}}")
+	thing2.Setenv("DIAL_URLS", "{{.Data.dialurls}}")
 
 	thing2.Setenv("DEVICES", `{
-	"{{.Device.Id}}": {
-		"Id": "{{.Device.Id}}",
-		"Model": "{{.Device.Model}}",
-		"Name": "{{.Device.Name}}",
+	"{{id}}": {
+		"Id": "{{id}}",
+		"Model": "{{model}}",
+		"Name": "{{name}}",
 		"Children": [],
-		"DeployParams": "{{.Device.DeployParams}}"
+		"DeployParams": "{{deployParams}}"
 	}
 }`)
 {{ if isProgenitive }}
 	thing2.Models = models.AllModels
 {{- else }}
 	thing2.Models = thing2.ModelMap{
-		"{{.Device.Model}}": models.{{title .Device.Model}},
+		"{{model}}": models.{{title model}},
 	}
 {{- end }}
 

@@ -1,4 +1,4 @@
-					<div class="model-{{.Device.Model}}" id="device-{{.Device.Id}}"
+					<div class="model-{{model}}" id="device-{{id}}"
 						hx-target="this"
 						hx-swap="outerHTML">
 {{- if .Vars.online }}
@@ -7,7 +7,7 @@
 						<div class="border-offline flex flex-col w-36 h-36 m-2.5 rounded-xl border border-solid overflow-hidden">
 {{- end }}
 							<div class="flex flex-col h-full items-center justify-center">
-{{ if ne .Device.DeployParams "" }}
+{{ if ne deployParams "" }}
 	{{- template "body-tile.tmpl" . }}
 {{- else}}
 	{{- template "device-tile-undefined.tmpl" . }}
@@ -18,11 +18,11 @@
 {{- else }}
 							<div class="bg-offline flex flex-row h-10 items-center">
 {{- end }}
-								<img class="w-5 h-5 mx-3" src="/model/{{.Device.Model}}/images/tile-icon.png">
+								<img class="w-5 h-5 mx-3" src="/model/{{model}}/images/tile-icon.png">
 {{- if .Vars.online }}
-								<span class="text-online text-sm font-bold">{{.Device.Name}}</span>
+								<span class="text-online text-sm font-bold">{{name}}</span>
 {{- else }}
-								<span class="text-offline text-sm font-bold">{{.Device.Name}}</span>
+								<span class="text-offline text-sm font-bold">{{name}}</span>
 {{- end }}
 							</div>
 						</div>

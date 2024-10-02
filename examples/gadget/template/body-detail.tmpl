@@ -1,4 +1,4 @@
-<div class="flex flex-col" id="bottles-{{.Device.Id}}">
+<div class="flex flex-col" id="bottles-{{id}}">
 	<div class="flex flex-row w-full items-center justify-evenly">
 		<span class="text-6xl mx-4">{{.State.Bottles}}</span>
 		<div class="flex flex-col items-center">
@@ -9,7 +9,7 @@
 		</div>
 	</div>
 	<div class="flex flex-row justify-end">
-		<button hx-post="/device/{{.Device.Id}}/takeone"
+		<button hx-post="/device/{{id}}/takeone"
 			hx-swap="none">Take One</button>
 	</div>
 </div>

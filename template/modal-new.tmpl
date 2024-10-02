@@ -19,7 +19,7 @@
 
 	<div class="modal-content">
 		<h3>Create a New Device</h3>
-		<form hx-get="/device/{{.Device.Id}}/create" hx-target=".modal" hx-swap="delete">
+		<form hx-get="/device/{{id}}/create" hx-target=".modal" hx-swap="delete">
 			<div class="flex flex-col mb-5">
 				<label class="font-bold mb-2">Name the Device</label>
 				<input type="text" name="Name" placeholder="Name">
@@ -27,15 +27,15 @@
 			<div class="flex flex-col mb-5">
 				<label class="font-bold mb-2">Device ID</label>
 				<div class="flex flex-row">
-					<input disabled type="text" name="Id" placeholder="ID" value="{{.Vars.newid}}">
-					<input type="hidden" name="Id" value="{{.Vars.newid}}">
+					<input disabled type="text" name="Id" placeholder="ID" value="{{.Data.newid}}">
+					<input type="hidden" name="Id" value="{{.Data.newid}}">
 					<span class="icon">&#x1F512;</span>
 				</div>
 			</div>
 			<div class="flex flex-col mb-5">
 				<span class="font-bold mb-2">Select a Model</span>
 				<div class="flex flex-col overflow-y-auto">
-{{- range $model, $ignore := .Vars.models }}
+{{- range $model, $ignore := .Data.models }}
 					<label class="flex flex-row cursor-pointer radio-container">
 						<input type="radio" name="Model" value="{{$model}}">
 						<div class="flex flex-row w-full items-center rounded radio-content">

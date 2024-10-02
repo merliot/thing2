@@ -1,17 +1,17 @@
 [Unit]
-Description={{.Vars.service}}
-ConditionPathExists=/usr/local/bin/{{.Vars.service}}
+Description={{.Data.service}}
+ConditionPathExists=/usr/local/bin/{{.Data.service}}
 After=network.target
 PartOf=merliot.target
  
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/{{.Vars.service}}
+ExecStart=/usr/local/bin/{{.Data.service}}
 Restart=always
 RestartSec=2
 
-SyslogIdentifier={{.Vars.service}}
+SyslogIdentifier={{.Data.service}}
  
 [Install]
 WantedBy=multi-user.target merliot.target

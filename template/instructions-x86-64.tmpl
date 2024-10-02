@@ -2,7 +2,7 @@
 
 <hr>
 
-<p>x86-64 Mode runs a {{.Device.Model}} device on a linux x86-64 PC, laptop, etc.</p>
+<p>x86-64 Mode runs a {{model}} device on a linux x86-64 PC, laptop, etc.</p>
 
 <p>x86-64 Mode runs as a Linux (amd64) application.</p>
 
@@ -18,7 +18,7 @@
 
 <pre>
 <code>
-	{{.Device.Id}}-installer
+	{{id}}-installer
 </code>
 </pre>
 
@@ -28,7 +28,7 @@
 
 <pre>
 <code>
-	$ md5sum {{.Device.Id}}-installer
+	$ md5sum {{id}}-installer
 </code>
 </pre>
 
@@ -38,21 +38,21 @@
 
 <pre>
 <code>
-	$ chmod +x {{.Device.Id}}-installer
-	$ sudo ./{{.Device.Id}}-installer
+	$ chmod +x {{id}}-installer
+	$ sudo ./{{id}}-installer
 
-	Intalling {{.Device.Model}}...
-	Intalling logging for {{.Device.Model}}...
-	Intalling systemd service for {{.Device.Model}}...
+	Intalling {{model}}...
+	Intalling logging for {{model}}...
+	Intalling systemd service for {{model}}...
 	Success!
 </code>
 </pre>
 
-<p>The installer will install the device as a service named "{{.Device.Model}}".  To uninstall:</p>
+<p>The installer will install the device as a service named "{{model}}".  To uninstall:</p>
 
 <pre>
 <code>
-	$ sudo ./{{.Device.Id}}-installer -u
+	$ sudo ./{{id}}-installer -u
 </code>
 </pre>
 
@@ -60,6 +60,6 @@
 
 <pre>
 <code>
-	$ sudo tail -f /var/log/{{.Device.Model}}.log
+	$ sudo tail -f /var/log/{{model}}.log
 </code>
 </p>

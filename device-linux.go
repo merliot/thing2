@@ -43,17 +43,17 @@ func (d *Device) classOffline() string {
 	}
 }
 
-func (d *Device) buildOS() error {
-	d.ServeMux = http.NewServeMux()
-
-	// Build device's layered FS.  fs is stacked on top of
-	// deviceFs, so fs:foo.tmpl will override deviceFs:foo.tmpl,
-	// when searching for file foo.tmpl.
-	d.layeredFS.stack(deviceFs)
-	d.layeredFS.stack(d.FS)
-
-	// Build the device templates
-	d.templates = d.layeredFS.parseFS("template/*.tmpl", template.FuncMap{
+// funcs are functions passed to templates.
+//
+// IMPORTANT!
+//
+// Don't add any functions that expose sensitive data such as passwd
+func (d *Device) funcs() template.FuncMap {
+	return template.FuncMap{
+		"id":            func() string { return d.Id },
+		"model":         func() string { return d.Model },
+		"name":          func() string { return d.Name },
+		"deployParams":  func() template.HTML { return d.DeployParams },
 		"title":         func(s string) string { return strings.Title(s) },
 		"cap1":          func(s string) string { return string(strings.Title(s)[0]) },
 		"add":           func(a, b int) int { return a + b },
@@ -63,6 +63,7 @@ func (d *Device) buildOS() error {
 		"target":        func() string { return d.deployValues().Get("target") },
 		"port":          func() string { return d.deployValues().Get("port") },
 		"ssid":          func() string { return d.deployValues().Get("ssid") },
+		"package":       func() string { return Models[d.Model].Package },
 		"isLinuxTarget": func(target string) bool { return linuxTarget(target) },
 		"isMissingWifi": func() bool { return len(wifiAuths()) == 0 },
 		"isRoot":        func() bool { return d == root },
@@ -74,7 +75,20 @@ func (d *Device) buildOS() error {
 		"bgColor":       func() string { return d.bgColor() },
 		"textColor":     func() string { return d.textColor() },
 		"classOffline":  func() string { return d.classOffline() },
-	})
+	}
+}
+
+func (d *Device) buildOS() error {
+	d.ServeMux = http.NewServeMux()
+
+	// Build device's layered FS.  fs is stacked on top of
+	// deviceFs, so fs:foo.tmpl will override deviceFs:foo.tmpl,
+	// when searching for file foo.tmpl.
+	d.layeredFS.stack(deviceFs)
+	d.layeredFS.stack(d.FS)
+
+	// Build the device templates using device funcs
+	d.templates = d.layeredFS.parseFS("template/*.tmpl", d.funcs())
 
 	// All devices have a base device API
 	d.api()

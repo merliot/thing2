@@ -1,4 +1,4 @@
-<div class="model-{{.Device.Model}} {{classOffline}}" id="device-{{.Device.Id}}"
+<div class="model-{{model}} {{classOffline}}" id="device-{{id}}"
 	hx-target="this"
 	hx-swap="outerHTML">
 
@@ -10,7 +10,7 @@
 
 			<div class="flex flex-row items-center justify-between">
 				<span class="text-lg font-bold ml-2.5 w-full cursor-pointer"
-					hx-get="/device/{{.Device.Id}}/overview">{{.Device.Name}}</span>
+					hx-get="/device/{{id}}/overview">{{name}}</span>
 				<div class="flex flex-row">
 {{ template "button-trashcan.tmpl" . }}
 {{ template "button-settings.tmpl" . }}

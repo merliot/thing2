@@ -1,3 +1,3 @@
-					<img class="icon" src="/model/{{.Device.Model}}/images/trash-can.png"
-						hx-delete="/device/{{.Device.Id}}/destroy?ChildId={{.Vars.childId}}"
+					<img class="icon" src="/model/{{model}}/images/trash-can.png"
+						hx-delete="/device/{{id}}/destroy?ChildId={{.Vars.childId}}"
 						hx-confirm="Are you sure you wish to delete device {{.Vars.childId}}?">

@@ -2,7 +2,7 @@
 
 <hr>
 
-<p>Demo Mode simulates a {{.Device.Model}} device in software.  Demo Mode is for trying out the {{.Device.Model}} device without the hardware.</p>
+<p>Demo Mode simulates a {{model}} device in software.  Demo Mode is for trying out the {{model}} device without the hardware.</p>
 
 <p>Demo Mode runs as a Linux (amd64) application.</p>
 
@@ -18,7 +18,7 @@
 
 <pre>
 <code>
-	{{.Device.Model}}-{{.Device.Id}}-installer
+	{{model}}-{{id}}-installer
 </code>
 </pre>
 
@@ -28,7 +28,7 @@
 
 <pre>
 <code>
-	$ md5sum {{.Device.Model}}-{{.Device.Id}}-installer
+	$ md5sum {{model}}-{{id}}-installer
 </code>
 </pre>
 
@@ -38,21 +38,21 @@
 
 <pre>
 <code>
-	$ chmod +x {{.Device.Model}}-{{.Device.Id}}-installer
-	$ sudo ./{{.Device.Model}}-{{.Device.Id}}-installer
+	$ chmod +x {{model}}-{{id}}-installer
+	$ sudo ./{{model}}-{{id}}-installer
 
-	Intalling {{.Device.Model}}-{{.Device.Id}}...
-	Intalling logging for {{.Device.Model}}-{{.Device.Id}}...
-	Intalling systemd service for {{.Device.Model}}-{{.Device.Id}}...
+	Intalling {{model}}-{{id}}...
+	Intalling logging for {{model}}-{{id}}...
+	Intalling systemd service for {{model}}-{{id}}...
 	Success!
 </code>
 </pre>
 
-<p>The installer will install the device as a service named "{{.Device.Model}}-{{.Device.Model}}".  To uninstall:</p>
+<p>The installer will install the device as a service named "{{model}}-{{id}}".  To uninstall:</p>
 
 <pre>
 <code>
-	$ sudo ./{{.Device.Model}}-{{.Device.Id}}-installer -u
+	$ sudo ./{{model}}-{{id}}-installer -u
 </code>
 </pre>
 
@@ -60,6 +60,6 @@
 
 <pre>
 <code>
-	$ sudo tail -f /var/log/{{.Device.Model}}-{{.Device.Id}}.log
+	$ sudo tail -f /var/log/{{model}}-{{id}}.log
 </code>
 </p>

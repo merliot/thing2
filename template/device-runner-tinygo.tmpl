@@ -4,9 +4,9 @@ package main
 
 import (
 	"github.com/merliot/thing2"
-	"{{.Vars.model.Package}}"
+	"{{.Data.model.Package}}"
 )
 
 func main() {
-	thing2.Run({{.Device.Model}}.NewModel)
+	thing2.Run({{model}}.NewModel)
 }

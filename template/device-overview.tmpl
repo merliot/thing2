@@ -1,4 +1,4 @@
-<div class="model-{{.Device.Model}} {{classOffline}}" id="device-{{.Device.Id}}"
+<div class="model-{{model}} {{classOffline}}" id="device-{{id}}"
 	hx-target="this"
 	hx-swap="outerHTML">
 
@@ -7,10 +7,10 @@
 		<div class="overview flex flex-row m-1 p-2 justify-between
 			{{bgColor}} {{textColor}}
 			border-solid border-2 rounded-3xl cursor-pointer"
-			hx-get="/device/{{.Device.Id}}/detail">
+			hx-get="/device/{{id}}/detail">
 
 			<div class="flex flex-row flex-wrap items-center">
-				<span class="text-lg font-bold ml-2.5 w-16">{{.Device.Name}}</span>
+				<span class="text-lg font-bold ml-2.5 w-16">{{name}}</span>
 				<div class="rounded-xl overflow-hidden">
 {{ template "body-overview.tmpl" .}}
 				</div>

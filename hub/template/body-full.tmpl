@@ -8,7 +8,7 @@
 				<div class="flex flex-wrap px-4">
 {{ range .Device.Children }}
 					<div class="cursor-pointer"
-						hx-get="/device/{{$.Device.Id}}/detail?childId={{.}}&prevView=full">
+						hx-get="/device/{{id}}/detail?childId={{.}}&prevView=full">
 	{{ $.Device.RenderChildHTML $.Vars.sessionId . "tile" }}
 					</div>
 {{- else }}

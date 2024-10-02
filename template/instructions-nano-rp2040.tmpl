@@ -2,11 +2,11 @@
 
 <hr>
 
-<p>Use an <a target="_blank" href="https://docs.arduino.cc/hardware/nano-rp2040-connect/">Arduino Nano rp2040 Connect</a> microcontroller to build a {{.Device.Model}} device.</p>
+<p>Use an <a target="_blank" href="https://docs.arduino.cc/hardware/nano-rp2040-connect/">Arduino Nano rp2040 Connect</a> microcontroller to build a {{model}} device.</p>
 
 <center>
-	<a target="_blank" href="/device/{{.Device.Id}}/images/nano-rp2040-{{.Device.Model}}.png">
-		<img src="/device/{{.Device.Id}}/images/nano-rp2040-{{.Device.Model}}.png" width="100%" onerror="this.style.display='none';">
+	<a target="_blank" href="/device/{{id}}/images/nano-rp2040-{{model}}.png">
+		<img src="/device/{{id}}/images/nano-rp2040-{{model}}.png" width="100%" onerror="this.style.display='none';">
 	</a>
 </center>
 
@@ -24,7 +24,7 @@
 
 <pre>
 <code>
-	{{.Device.Model}}-{{.Device.Id}}-installer.uf2
+	{{model}}-{{id}}-installer.uf2
 </code>
 </pre>
 
@@ -34,7 +34,7 @@
 
 <pre>
 <code>
-	$ md5sum {{.Device.Model}}-{{.Device.Id}}-installer.uf2
+	$ md5sum {{model}}-{{id}}-installer.uf2
 </code>
 </pre>
 
@@ -58,7 +58,7 @@
 <p>Copy the UF2 firmware image to the "RPI-RP2" drive.  The firmware is installed on the device and the device restarts.</p>
 
 <center>
-	<img src="/device/{{.Device.Id}}/images/rpi-rp2-install.png" width="100%">
+	<img src="/device/{{id}}/images/rpi-rp2-install.png" width="100%">
 </center>
 
 <div class="note">
