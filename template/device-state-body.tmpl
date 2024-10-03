@@ -4,11 +4,7 @@
 		<h3>State</h3>
 	</div>
 
-	<pre class="text-sm"
-		hx-get="/device/{{id}}/show-view?view=state"
-		hx-trigger="load delay:1s">
-		{{- state -}}
-	</pre>
+{{ template "device-state-state.tmpl" . }}
 
 </div>
 

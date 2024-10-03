@@ -20,6 +20,7 @@ func (d *Device) api() {
 	d.HandleFunc("GET /{$}", d.showIndex)
 	d.HandleFunc("PUT /keep-alive", d.keepAlive)
 	d.HandleFunc("GET /show-view", d.showView)
+	d.HandleFunc("GET /state", d.showState)
 
 	//d.HandleFunc("GET /code", d.showCode)
 	//d.HandleFunc("GET /save", d.saveDevices)
@@ -204,6 +205,13 @@ func (d *Device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 		return err
 	}
 
+	switch view {
+	case "detail", "overview":
+		// Only render to these views
+	default:
+		return nil
+	}
+
 	fmt.Println("_renderPkt", d.Id, view, level, pkt)
 	return d._render(w, sessionId, pkt.Path, view, level)
 }
@@ -280,9 +288,7 @@ func (d *Device) showView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Device) showState(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	state, _ := json.MarshalIndent(d.State, "", "\t")
-	w.Write(state)
+	d.renderTmpl(w, "device-state-state.tmpl", tmplData{})
 }
 
 func (d *Device) showCode(w http.ResponseWriter, r *http.Request) {
