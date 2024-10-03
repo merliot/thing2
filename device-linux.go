@@ -43,7 +43,7 @@ func (d *Device) classOffline() string {
 	}
 }
 
-func (d *Device) state() (string, error) {
+func (d *Device) stateJSON() (string, error) {
 	bytes, err := json.MarshalIndent(d.State, "", "\t")
 	return string(bytes), err
 }
@@ -59,7 +59,8 @@ func (d *Device) funcs() template.FuncMap {
 		"model":          func() string { return d.Model },
 		"name":           func() string { return d.Name },
 		"deployParams":   func() template.HTML { return d.DeployParams },
-		"state":          d.state,
+		"state":          func() any { return d.State },
+		"stateJSON":      d.stateJSON,
 		"title":          strings.Title,
 		"add":            func(a, b int) int { return a + b },
 		"mult":           func(a, b int) int { return a * b },
@@ -70,7 +71,7 @@ func (d *Device) funcs() template.FuncMap {
 		"ssid":           func() string { return d.deployValues().Get("ssid") },
 		"package":        func() string { return Models[d.Model].Package },
 		"source":         func() string { return Models[d.Model].Source },
-		"isLinuxTarget":  func(target string) bool { return linuxTarget(target) },
+		"isLinuxTarget":  linuxTarget,
 		"isMissingWifi":  func() bool { return len(wifiAuths()) == 0 },
 		"isRoot":         func() bool { return d == root },
 		"isProgenitive":  func() bool { return d.Flags.IsSet(FlagProgenitive) },

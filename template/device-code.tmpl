@@ -2,7 +2,7 @@
 	hx-target="this"
 	hx-swap="outerHTML">
 
-	<div class="flex flex-row ml-{{mult .Level 10}}">
+	<div class="flex flex-row ml-{{mult .level 10}}">
 
 		<div class="view flex flex-col m-1 p-2
 			{{bgColor}} {{textColor}}
@@ -21,5 +21,5 @@
 			</div>
 		</div>
 	</div>
-{{ renderChildren .SessionId (add .Level 1) }}
+{{ renderChildren .sessionId (add .level 1) }}
 </div>

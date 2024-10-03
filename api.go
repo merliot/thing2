@@ -82,7 +82,7 @@ func devicesInstall() {
 	}
 }
 
-func (d *Device) renderTemplate(w io.Writer, template string, data any) error {
+func (d *Device) _renderTmpl(w io.Writer, template string, data any) error {
 	tmpl := d.templates.Lookup(template)
 	if tmpl == nil {
 		return fmt.Errorf("Template '%s' not found", template)
@@ -94,37 +94,16 @@ func (d *Device) renderTemplate(w io.Writer, template string, data any) error {
 	return err
 }
 
-type tmplData map[string]any
-
-type renderTmplData struct {
-	Data  tmplData
-	State any
-}
-
-func (d *Device) _renderTmpl(w io.Writer, template string, td tmplData) error {
-	return d.renderTemplate(w, template, &renderTmplData{
-		Data:  td,
-		State: d.State,
-	})
-}
-
-func (d *Device) renderTmpl(w io.Writer, template string, td tmplData) error {
+func (d *Device) renderTmpl(w io.Writer, template string, data any) error {
 	d.RLock()
 	defer d.RUnlock()
-	return d._renderTmpl(w, template, td)
-}
-
-type renderSessionData struct {
-	SessionId string
-	Level     int
-	State     any
+	return d._renderTmpl(w, template, data)
 }
 
 func (d *Device) _renderSession(w io.Writer, template, sessionId string, level int) error {
-	return d.renderTemplate(w, template, &renderSessionData{
-		Level:     level,
-		SessionId: sessionId,
-		State:     d.State,
+	return d._renderTmpl(w, template, map[string]any{
+		"level":     level,
+		"sessionId": sessionId,
 	})
 }
 
@@ -201,15 +180,14 @@ func (d *Device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 		return err
 	}
 
-	switch view {
-	// Only render pkt to these views
-	case "detail", "overview":
-	default:
-		return nil
+	path := pkt.Path
+	switch path {
+	case "/state", "/offline":
+		path = "/device"
 	}
 
 	fmt.Println("_renderPkt", d.Id, view, level, pkt)
-	return d._render(w, sessionId, pkt.Path, view, level)
+	return d._render(w, sessionId, path, view, level)
 }
 
 func (d *Device) renderView(sessionId, path, view string, level int) (template.HTML, error) {
@@ -284,7 +262,7 @@ func (d *Device) showView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Device) showState(w http.ResponseWriter, r *http.Request) {
-	d.renderTmpl(w, "device-state-state.tmpl", tmplData{})
+	d.renderTmpl(w, "device-state-state.tmpl", nil)
 }
 
 func (d *Device) showCode(w http.ResponseWriter, r *http.Request) {
@@ -295,7 +273,7 @@ func (d *Device) showCode(w http.ResponseWriter, r *http.Request) {
 	for _, entry := range entries {
 		names = append(names, entry.Name())
 	}
-	d.renderTemplate(w, "code.tmpl", names)
+	d.renderTmpl(w, "code.tmpl", names)
 }
 
 func (d *Device) saveDevices(w http.ResponseWriter, r *http.Request) {
@@ -344,7 +322,7 @@ func (d *Device) selectedTarget(params url.Values) string {
 
 func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 	selectedTarget := d.selectedTarget(r.URL.Query())
-	err := d.renderTmpl(w, "device-download-target.tmpl", tmplData{
+	err := d.renderTmpl(w, "device-download-target.tmpl", map[string]any{
 		"selectedTarget": selectedTarget,
 		"linuxTarget":    linuxTarget(selectedTarget),
 	})
@@ -356,7 +334,7 @@ func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 func (d *Device) showInstructions(w http.ResponseWriter, r *http.Request) {
 	target := d.selectedTarget(r.URL.Query())
 	template := "instructions-" + target + ".tmpl"
-	if err := d.renderTmpl(w, template, tmplData{}); err != nil {
+	if err := d.renderTmpl(w, template, nil); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
@@ -418,7 +396,7 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Device) showNewModal(w http.ResponseWriter, r *http.Request) {
-	err := d.renderTmpl(w, "modal-new.tmpl", tmplData{
+	err := d.renderTmpl(w, "modal-new.tmpl", map[string]any{
 		"models": Models,
 		"newid":  GenerateRandomId(),
 	})

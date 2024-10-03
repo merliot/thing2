@@ -8,10 +8,10 @@ import (
 )
 
 func main() {
-	thing2.Setenv("PORT", "{{.Data.port}}")
-	thing2.Setenv("USER", "{{.Data.user}}")
-	thing2.Setenv("PASSWD", "{{.Data.passwd}}")
-	thing2.Setenv("DIAL_URLS", "{{.Data.dialurls}}")
+	thing2.Setenv("PORT", "{{.port}}")
+	thing2.Setenv("USER", "{{.user}}")
+	thing2.Setenv("PASSWD", "{{.passwd}}")
+	thing2.Setenv("DIAL_URLS", "{{.dialurls}}")
 
 	thing2.Setenv("DEVICES", `{
 	"{{id}}": {

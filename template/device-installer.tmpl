@@ -12,30 +12,30 @@ import (
 	"os/user"
 )
 
-//go:embed {{.Data.service}} {{.Data.service}}.service {{.Data.service}}.conf merliot.target
+//go:embed {{.service}} {{.service}}.service {{.service}}.conf merliot.target
 var fs embed.FS
 
 func removeLogging() {
-	fmt.Println("Removing logging for {{.Data.service}}...")
-	os.Remove("/etc/rsyslog.d/{{.Data.service}}.conf")
+	fmt.Println("Removing logging for {{.service}}...")
+	os.Remove("/etc/rsyslog.d/{{.service}}.conf")
 	exec.Command("systemctl", "restart", "rsyslog.service").Run()
 }
 
 func removeService() {
-	fmt.Println("Removing systemd service for {{.Data.service}}...")
-	exec.Command("systemctl", "stop", "{{.Data.service}}").Run()
-	exec.Command("systemctl", "disable", "{{.Data.service}}").Run()
-	os.Remove("/lib/systemd/system/{{.Data.service}}.service")
+	fmt.Println("Removing systemd service for {{.service}}...")
+	exec.Command("systemctl", "stop", "{{.service}}").Run()
+	exec.Command("systemctl", "disable", "{{.service}}").Run()
+	os.Remove("/lib/systemd/system/{{.service}}.service")
 	exec.Command("systemctl", "daemon-reload").Run()
 }
 
 func removemodel() {
-	fmt.Println("Removing {{.Data.service}}...")
-	os.Remove("/usr/local/bin/{{.Data.service}}")
+	fmt.Println("Removing {{.service}}...")
+	os.Remove("/usr/local/bin/{{.service}}")
 }
 
 func installFile(srcName, dstName string, mode os.FileMode) {
-	exec.Command("systemctl", "stop", "{{.Data.service}}").Run()
+	exec.Command("systemctl", "stop", "{{.service}}").Run()
 
 	src, err := fs.Open(srcName)
 	if err != nil {
@@ -60,19 +60,19 @@ func installFile(srcName, dstName string, mode os.FileMode) {
 }
 
 func installmodel() {
-	fmt.Println("Intalling {{.Data.service}}...")
-	installFile("{{.Data.service}}", "/usr/local/bin/{{.Data.service}}", 0755)
+	fmt.Println("Intalling {{.service}}...")
+	installFile("{{.service}}", "/usr/local/bin/{{.service}}", 0755)
 }
 
 func installLogging() {
 
-	fmt.Println("Intalling logging for {{.Data.service}}...")
+	fmt.Println("Intalling logging for {{.service}}...")
 
 	if _, err := os.Stat("/etc/rsyslog.d"); os.IsNotExist(err) {
 		panic(fmt.Errorf("Failed: rsyslog is not installed; install with 'sudo apt install rsyslog'."))
 	}
 
-	installFile("{{.Data.service}}.conf", "/etc/rsyslog.d/{{.Data.service}}.conf", 0644)
+	installFile("{{.service}}.conf", "/etc/rsyslog.d/{{.service}}.conf", 0644)
 
 	cmd := exec.Command("systemctl", "restart", "rsyslog.service")
 	stdoutStderr, err := cmd.CombinedOutput()
@@ -88,8 +88,8 @@ func installMerliotTarget() {
 
 func installService() {
 
-	fmt.Println("Intalling systemd service for {{.Data.service}}...")
-	installFile("{{.Data.service}}.service", "/lib/systemd/system/{{.Data.service}}.service", 0644)
+	fmt.Println("Intalling systemd service for {{.service}}...")
+	installFile("{{.service}}.service", "/lib/systemd/system/{{.service}}.service", 0644)
 
 	cmd := exec.Command("systemctl", "daemon-reload")
 	stdoutStderr, err := cmd.CombinedOutput()
@@ -97,13 +97,13 @@ func installService() {
 		panic(fmt.Errorf("%w: %s", err, stdoutStderr))
 	}
 
-	cmd = exec.Command("systemctl", "enable", "{{.Data.service}}")
+	cmd = exec.Command("systemctl", "enable", "{{.service}}")
 	stdoutStderr, err = cmd.CombinedOutput()
 	if err != nil {
 		panic(fmt.Errorf("%w: %s", err, stdoutStderr))
 	}
 
-	cmd = exec.Command("systemctl", "restart", "{{.Data.service}}")
+	cmd = exec.Command("systemctl", "restart", "{{.service}}")
 	stdoutStderr, err = cmd.CombinedOutput()
 	if err != nil {
 		panic(fmt.Errorf("%w: %s", err, stdoutStderr))
@@ -112,7 +112,7 @@ func installService() {
 
 func main() {
 
-	remove := flag.Bool("u", false, "Uninstall {{.Data.service}}")
+	remove := flag.Bool("u", false, "Uninstall {{.service}}")
 	flag.Parse()
 
 	user, _ := user.Current()

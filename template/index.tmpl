@@ -13,13 +13,13 @@
 	</head>
 
 	<body class="offline bg-black text m-4"
-		hx-headers='{"session-id": "{{.SessionId}}"}'
+		hx-headers='{"session-id": "{{.sessionId}}"}'
 		hx-put="/keep-alive"
 		hx-trigger="every 30s"
 		hx-swap="none"
 		hx-ext="ws"
-		ws-connect="/wsx?session-id={{.SessionId}}">
-{{ render .SessionId "/device" "detail" 0 }}
+		ws-connect="/wsx?session-id={{.sessionId}}">
+{{ render .sessionId "/device" "detail" 0 }}
 	</body>
 	<script>
 		<!-- TODO: I can't get hx-on:htmx:wsOpen to work, so using js :( -->

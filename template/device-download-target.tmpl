@@ -1,4 +1,4 @@
-{{- if not $.Data.linuxTarget }}
+{{- if not .linuxTarget }}
 				<div class="flex flex-row mb-5">
 					<label>
 						Wifi SSID:
@@ -22,7 +22,7 @@
 	{{- end }}
 {{- end }}
 
-{{- if $.Data.linuxTarget }}
+{{- if .linuxTarget }}
 				<div class="flex flex-col">
 					<span class="text-gray-700">(optional)</span>
 					<div class="flex flex-row mb-5">

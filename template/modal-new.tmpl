@@ -27,15 +27,15 @@
 			<div class="flex flex-col mb-5">
 				<label class="font-bold mb-2">Device ID</label>
 				<div class="flex flex-row">
-					<input disabled type="text" name="Id" placeholder="ID" value="{{.Data.newid}}">
-					<input type="hidden" name="Id" value="{{.Data.newid}}">
+					<input disabled type="text" name="Id" placeholder="ID" value="{{.newid}}">
+					<input type="hidden" name="Id" value="{{.newid}}">
 					<span class="icon">&#x1F512;</span>
 				</div>
 			</div>
 			<div class="flex flex-col mb-5">
 				<span class="font-bold mb-2">Select a Model</span>
 				<div class="flex flex-col overflow-y-auto">
-{{- range $model, $ignore := .Data.models }}
+{{- range $model, $ignore := .models }}
 					<label class="flex flex-row cursor-pointer radio-container">
 						<input type="radio" name="Model" value="{{$model}}">
 						<div class="flex flex-row w-full items-center rounded radio-content">
