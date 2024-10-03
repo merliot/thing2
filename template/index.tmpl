@@ -14,7 +14,7 @@
 
 	<body class="offline bg-black text m-4"
 		hx-headers='{"session-id": "{{.SessionId}}"}'
-		hx-put="/keepalive"
+		hx-put="/keep-alive"
 		hx-trigger="every 30s"
 		hx-swap="none"
 		hx-ext="ws"

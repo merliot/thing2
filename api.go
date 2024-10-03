@@ -18,11 +18,8 @@ import (
 func (d *Device) api() {
 	d.HandleFunc("GET /", d.serveStaticFile)
 	d.HandleFunc("GET /{$}", d.showIndex)
-	d.HandleFunc("PUT /keepalive", d.keepAlive)
-	d.HandleFunc("GET /overview", d.overview)
-	d.HandleFunc("GET /detail", d.detail)
-	d.HandleFunc("GET /settings", d.settings)
-	d.HandleFunc("GET /info", d.info)
+	d.HandleFunc("PUT /keep-alive", d.keepAlive)
+	d.HandleFunc("GET /show-view", d.showView)
 
 	//d.HandleFunc("GET /code", d.showCode)
 	//d.HandleFunc("GET /save", d.saveDevices)
@@ -34,7 +31,7 @@ func (d *Device) api() {
 	d.HandleFunc("GET /download-image", d.downloadImage)
 	d.HandleFunc("GET /create", d.createChild)
 	d.HandleFunc("DELETE /destroy", d.destroyChild)
-	d.HandleFunc("GET /newModal", d.showNewModal)
+	d.HandleFunc("GET /new-modal", d.showNewModal)
 }
 
 /*
@@ -265,34 +262,21 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (d *Device) show(w http.ResponseWriter, r *http.Request, view string) {
-	println("show", view, r.Host, r.URL.String())
+func (d *Device) showView(w http.ResponseWriter, r *http.Request) {
+	println("show", r.Host, r.URL.String())
 
+	view := r.URL.Query().Get("view")
 	sessionId := r.Header.Get("session-id")
+
 	_, level, err := sessionLastView(sessionId, d.Id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	if err := d.render(w, sessionId, "/device", view, level); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-}
-
-func (d *Device) overview(w http.ResponseWriter, r *http.Request) {
-	d.show(w, r, "overview")
-}
-
-func (d *Device) detail(w http.ResponseWriter, r *http.Request) {
-	d.show(w, r, "detail")
-}
-
-func (d *Device) settings(w http.ResponseWriter, r *http.Request) {
-	d.show(w, r, "settings")
-}
-
-func (d *Device) info(w http.ResponseWriter, r *http.Request) {
-	d.show(w, r, "info")
 }
 
 func (d *Device) showState(w http.ResponseWriter, r *http.Request) {

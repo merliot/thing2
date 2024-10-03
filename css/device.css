@@ -202,6 +202,10 @@ textarea {
   min-width: 20rem;
 }
 
+.min-w-lg {
+  min-width: 32rem;
+}
+
 .min-h-28 {
   min-height: 7rem;
 }

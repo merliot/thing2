@@ -6,11 +6,13 @@ import "net/http"
 
 func (d *Device) handlersInstall() {
 	for path, handler := range d.Handlers {
-		if path == "/state" {
-			// Special case /state to return a state page
-			d.HandleFunc("GET "+path, d.showState)
-			continue
-		}
+		/*
+			if path == "/state" {
+				// Special case /state to return a state page
+				d.HandleFunc("GET "+path, d.showState)
+				continue
+			}
+		*/
 		d.Handle("POST "+path, d.newPacketRoute(handler))
 	}
 }

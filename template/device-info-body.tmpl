@@ -1,6 +1,6 @@
 <div class="flex flex-col">
 
-	<div class="flex flex-row justify-center mb-8">
+	<div class="flex flex-row justify-center">
 		<h3>Info</h3>
 	</div>
 
@@ -73,7 +73,7 @@
 
 	<div class="flex flex-row justify-end mt-8">
 		<a target="_blank" href="/model/{{model}}/code"><button>Show Code</button></a>
-		<a target="_blank" href="/device/{{id}}/state"><button>Show State</button></a>
+		<button hx-get="/device/{{id}}/show-view?view=state">Show State</button>
 	</div>
 
 </div>

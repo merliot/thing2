@@ -4,13 +4,13 @@
 
 	<div class="flex flex-row ml-{{mult .Level 10}}">
 
-		<div class="detail flex flex-col m-1 p-2
+		<div class="detail flex flex-col m-1 p-2 min-w-80
 			{{bgColor}} {{textColor}}
 			border-solid border-2 rounded-3xl">
 
 			<div class="flex flex-row items-center justify-between">
 				<span class="text-lg font-bold ml-2.5 w-full cursor-pointer"
-					hx-get="/device/{{id}}/overview">{{name}}</span>
+					hx-get="/device/{{id}}/show-view?view=overview">{{name}}</span>
 				<div class="flex flex-row">
 {{ template "button-trashcan.tmpl" . }}
 {{ template "button-settings.tmpl" . }}

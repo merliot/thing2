@@ -43,6 +43,11 @@ func (d *Device) classOffline() string {
 	}
 }
 
+func (d *Device) state() (string, error) {
+	bytes, err := json.MarshalIndent(d.State, "", "\t")
+	return string(bytes), err
+}
+
 // funcs are functions passed to templates.
 //
 // IMPORTANT!
@@ -54,6 +59,7 @@ func (d *Device) funcs() template.FuncMap {
 		"model":         func() string { return d.Model },
 		"name":          func() string { return d.Name },
 		"deployParams":  func() template.HTML { return d.DeployParams },
+		"state":         func() (string, error) { return d.state() },
 		"title":         func(s string) string { return strings.Title(s) },
 		"cap1":          func(s string) string { return string(strings.Title(s)[0]) },
 		"add":           func(a, b int) int { return a + b },

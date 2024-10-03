@@ -4,20 +4,20 @@
 
 	<div class="flex flex-row ml-{{mult .Level 10}}">
 
-		<div class="settings flex flex-col m-1 p-2 min-w-80
+		<div class="settings flex flex-col m-1 p-2
 			{{bgColor}} {{textColor}}
 			border-solid border-2 rounded-3xl">
 
 			<div class="flex flex-row items-center justify-between"
-				hx-get="/device/{{id}}/show-view?view=detail">
+				hx-get="/device/{{id}}/show-view?view=info">
 				<span class="text-lg font-bold ml-2.5 w-full cursor-pointer">
 					{{name}}
 				</span>
 				<span class="icon">&#x23CE;</span> <!-- return arrow -->
 			</div>
 
-			<div class="m-2.5 max-w-lg">
-{{ template "device-info-body.tmpl" .}}
+			<div class="m-2.5 min-w-lg">
+{{ template "device-state-body.tmpl" .}}
 			</div>
 		</div>
 	</div>
