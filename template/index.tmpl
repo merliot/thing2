@@ -19,10 +19,10 @@
 		hx-swap="none"
 		hx-ext="ws"
 		ws-connect="/wsx?session-id={{.SessionId}}">
-{{ .Device.Render .SessionId "/device" "detail" 0 }}
+{{ render .SessionId "/device" "detail" 0 }}
 	</body>
 	<script>
-		<!-- TODO: I can't get hx-on:htmx:wsOpen to work, so adding using js -->
+		<!-- TODO: I can't get hx-on:htmx:wsOpen to work, so using js :( -->
 		document.addEventListener("htmx:wsOpen", function(event) {
 			document.body.classList.remove("offline");
 		});

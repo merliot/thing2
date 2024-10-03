@@ -21,8 +21,8 @@ func (d *Device) api() {
 	d.HandleFunc("PUT /keep-alive", d.keepAlive)
 	d.HandleFunc("GET /show-view", d.showView)
 	d.HandleFunc("GET /state", d.showState)
+	d.HandleFunc("GET /code", d.showCode)
 
-	//d.HandleFunc("GET /code", d.showCode)
 	//d.HandleFunc("GET /save", d.saveDevices)
 	//d.HandleFunc("GET /devices", d.showDevices)
 	//d.HandleFunc("GET /download", d.showDownload)
@@ -97,16 +97,14 @@ func (d *Device) renderTemplate(w io.Writer, template string, data any) error {
 type tmplData map[string]any
 
 type renderTmplData struct {
-	Device *Device
-	Data   tmplData
-	State  any
+	Data  tmplData
+	State any
 }
 
 func (d *Device) _renderTmpl(w io.Writer, template string, td tmplData) error {
 	return d.renderTemplate(w, template, &renderTmplData{
-		Device: d,
-		Data:   td,
-		State:  d.State,
+		Data:  td,
+		State: d.State,
 	})
 }
 
@@ -119,7 +117,6 @@ func (d *Device) renderTmpl(w io.Writer, template string, td tmplData) error {
 type renderSessionData struct {
 	SessionId string
 	Level     int
-	Device    *Device
 	State     any
 }
 
@@ -127,7 +124,6 @@ func (d *Device) _renderSession(w io.Writer, template, sessionId string, level i
 	return d.renderTemplate(w, template, &renderSessionData{
 		Level:     level,
 		SessionId: sessionId,
-		Device:    d,
 		State:     d.State,
 	})
 }
@@ -206,8 +202,8 @@ func (d *Device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 	}
 
 	switch view {
+	// Only render pkt to these views
 	case "detail", "overview":
-		// Only render to these views
 	default:
 		return nil
 	}
@@ -216,7 +212,7 @@ func (d *Device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 	return d._render(w, sessionId, pkt.Path, view, level)
 }
 
-func (d *Device) Render(sessionId, path, view string, level int) (template.HTML, error) {
+func (d *Device) renderView(sessionId, path, view string, level int) (template.HTML, error) {
 	var buf bytes.Buffer
 
 	devicesMu.RLock()
@@ -229,7 +225,7 @@ func (d *Device) Render(sessionId, path, view string, level int) (template.HTML,
 	return template.HTML(buf.String()), nil
 }
 
-func (d *Device) RenderChildren(sessionId string, level int) (template.HTML, error) {
+func (d *Device) renderChildren(sessionId string, level int) (template.HTML, error) {
 	var buf bytes.Buffer
 
 	devicesMu.RLock()
