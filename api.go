@@ -11,6 +11,7 @@ import (
 	"io/fs"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -217,7 +218,11 @@ func (d *Device) renderChildren(sessionId string, level int) (template.HTML, err
 }
 
 func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
-	if strings.HasSuffix(r.URL.Path, ".gz") {
+	fileExtension := filepath.Ext(r.URL.Path)
+	switch fileExtension {
+	case ".go", ".tmpl", ".css":
+		w.Header().Set("Content-Type", "text/plain")
+	case ".gz":
 		w.Header().Set("Content-Encoding", "gzip")
 	}
 	http.FileServer(http.FS(d.layeredFS)).ServeHTTP(w, r)
