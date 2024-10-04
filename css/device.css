@@ -73,7 +73,6 @@ strong {
 4. Correct the odd `em` font sizing in all browsers.
 */
 
-code,
 kbd,
 samp,
 pre {
@@ -206,6 +205,10 @@ textarea {
   min-width: 32rem;
 }
 
+.min-w-3xl {
+  min-width: 48rem;
+}
+
 .min-h-28 {
   min-height: 7rem;
 }
@@ -216,6 +219,10 @@ textarea {
 
 .max-w-lg {
   max-width: 32rem;
+}
+
+.max-w-3xl {
+  max-width: 48rem;
 }
 
 .w-5 {
