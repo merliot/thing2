@@ -29,8 +29,11 @@ func (d *Device) api() {
 	//d.HandleFunc("GET /download", d.showDownload)
 
 	d.HandleFunc("GET /download-target", d.showDownloadTarget)
-	d.HandleFunc("GET /instructions", d.showInstructions)
 	d.HandleFunc("GET /download-image", d.downloadImage)
+
+	d.HandleFunc("GET /instructions", d.showInstructions)
+	d.HandleFunc("GET /instructions-target", d.showInstructionsTarget)
+
 	d.HandleFunc("GET /create", d.createChild)
 	d.HandleFunc("DELETE /destroy", d.destroyChild)
 	d.HandleFunc("GET /new-modal", d.showNewModal)
@@ -337,7 +340,15 @@ func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Device) showInstructions(w http.ResponseWriter, r *http.Request) {
-	target := d.selectedTarget(r.URL.Query())
+	view := r.URL.Query().Get("view")
+	template := "instructions-" + view + ".tmpl"
+	if err := d.renderTmpl(w, template, nil); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func (d *Device) showInstructionsTarget(w http.ResponseWriter, r *http.Request) {
+	target := r.URL.Query().Get("target")
 	template := "instructions-" + target + ".tmpl"
 	if err := d.renderTmpl(w, template, nil); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

@@ -1,0 +1,17 @@
+<div class="flex flex-col"
+	hx-target="this"
+	hx-swap="outerHTML"
+	hx-vals='js:{target: document.getElementById(`download-target`).value}'>
+	<div class="flex flex-row justify-center mb-8">
+		<h3  class="cursor-pointer"
+			hx-get="/device/{{id}}/instructions?view=collasped">
+			Instructions &#x2BC6;
+		</h3>
+	</div>
+	<div class="text_sm"
+		hx-get="/device/{{id}}/instructions-target"
+		hx-target="this"
+		hx-trigger="load, change from:#download-target"
+		hx-swap="innerHTML">
+	</div>
+</div>
