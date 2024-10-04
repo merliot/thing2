@@ -74,8 +74,7 @@ strong {
 */
 
 kbd,
-samp,
-pre {
+samp {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-feature-settings: normal;
   font-variation-settings: normal;
@@ -245,6 +244,10 @@ textarea {
   width: 5rem;
 }
 
+.w-24 {
+  width: 6rem;
+}
+
 .w-36 {
   width: 9rem;
 }
@@ -362,6 +365,102 @@ textarea {
   border-spacing: 1.25rem 0.25rem;
 }
 
+.border-black {
+  color: #000000
+}
+
+.border-space-white {
+  border-color: #f5f6fa
+}
+
+.border-violet-creme {
+  border-color: #ddbbff
+}
+
+.border-green {
+  border-color: #33cc99
+}
+
+.border-magenta {
+  border-color: #cc4499
+}
+
+.border-blue {
+  border-color: #4455ff
+}
+
+.border-yellow {
+  border-color: #ffcc33
+}
+
+.border-violet {
+  border-color: #9944ff
+}
+
+.border-orange {
+  border-color: #ff7700
+}
+
+.border-african-violet {
+  border-color: #cc88ff
+}
+
+.border-red {
+  border-color: #dd4444
+}
+
+.border-almond {
+  border-color: #ffaa90
+}
+
+.border-almond-creme {
+  border-color: #ffbbaa
+}
+
+.border-sunflower {
+  border-color: #ffcc66
+}
+
+.border-bluey {
+  border-color: #7788ff
+}
+
+.border-gray {
+  border-color: #666688
+}
+
+.border-sky {
+  border-color: #aaaaff
+}
+
+.border-ice {
+  border-color: #88ccff
+}
+
+.border-gold {
+  border-color: #ffaa00
+}
+
+.border-mars {
+  border-color: #ff2200
+}
+
+.border-peach {
+  border-color: #ff8866
+}
+
+.border-butterscotch {
+  border-color: #ff9966
+}
+
+.border-tomato {
+  border-color: #ff5555
+}
+
+.border-lilac {
+  border-color: #cc33ff
+}
+
 .border-red-500 {
   border-color: rgb(239 68 68 / 1);
 }
@@ -452,6 +551,11 @@ textarea {
 
 .m-8 {
   margin: 2rem;
+}
+
+.mx-1 {
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
 }
 
 .mx-2\.5 {
@@ -585,7 +689,7 @@ textarea {
 }
 
 .text-black {
-  color: rgb(0, 0, 0)
+  color: #000000
 }
 
 .text-space-white {
@@ -825,7 +929,7 @@ textarea {
 }
 
 .bg-black {
-  background-color: rgb(0 0 0);
+  background-color: #000000
 }
 
 .bg-slate-100	{
@@ -939,7 +1043,7 @@ button {
   border-color: #f5f6fa !important;
   border-style: dashed !important;
   cursor: default;
-  transition: all 300ms ease-in;
+  /*transition: all 2s ease-in;*/
 }
 
 .offline .view {
@@ -947,7 +1051,7 @@ button {
   background-color: #000000 !important;
   border-color: #f5f6fa !important;
   border-style: dashed !important;
-  transition: all 300ms ease-in;
+  /*transition: all 2s ease-in;*/
 }
 
 .display-online {

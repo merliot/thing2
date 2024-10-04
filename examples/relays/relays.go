@@ -28,7 +28,7 @@ func (r *Relays) GetConfig() thing2.Config {
 		State:   r,
 		FS:      &fs,
 		Targets: []string{"demo", "rpi", "nano-rp2040", "wioterminal"},
-		BgColor: "bg-orange",
+		BgColor: "orange",
 	}
 }
 

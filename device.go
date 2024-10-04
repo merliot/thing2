@@ -90,23 +90,3 @@ func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
 	d.DeployParams = template.HTML(proposedParams)
 	return true, nil
 }
-
-func (d *Device) bgColor() string {
-	if !d.Flags.IsSet(flagOnline) {
-		return "bg-mars"
-	}
-	if d.Config.BgColor == "" {
-		return "bg-space-white"
-	}
-	return d.Config.BgColor
-}
-
-func (d *Device) textColor() string {
-	if !d.Flags.IsSet(flagOnline) {
-		return "text-space-white"
-	}
-	if d.Config.TextColor == "" {
-		return "text-black"
-	}
-	return d.Config.TextColor
-}

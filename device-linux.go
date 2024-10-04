@@ -31,6 +31,27 @@ type deviceOS struct {
 	layeredFS
 }
 
+func (d *Device) bgColor() string {
+	if d.Config.BgColor == "" {
+		return "bg-space-white"
+	}
+	return "bg-" + d.Config.BgColor
+}
+
+func (d *Device) textColor() string {
+	if d.Config.FgColor == "" {
+		return "text-black"
+	}
+	return "text-" + d.Config.FgColor
+}
+
+func (d *Device) borderColor() string {
+	if d.Config.BgColor == "" {
+		return "border-space-white"
+	}
+	return "border-" + d.Config.BgColor
+}
+
 func linuxTarget(target string) bool {
 	return target == "demo" || target == "x86-64" || target == "rpi"
 }
@@ -81,6 +102,7 @@ func (d *Device) funcs() template.FuncMap {
 		"isLocked":       func() bool { return d.Flags.IsSet(flagLocked) },
 		"bgColor":        d.bgColor,
 		"textColor":      d.textColor,
+		"borderColor":    d.borderColor,
 		"classOffline":   d.classOffline,
 		"render":         d.renderView,
 		"renderChildren": d.renderChildren,

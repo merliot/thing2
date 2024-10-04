@@ -5,15 +5,13 @@
 	<div class="flex flex-row ml-{{mult .level 10}}">
 
 		<div class="view flex flex-row m-1 p-2 min-w-80 justify-between
-			{{bgColor}} {{textColor}}
+			{{bgColor}} {{textColor}} {{borderColor}}
 			border-solid border-2 rounded-3xl cursor-pointer"
 			hx-get="/device/{{id}}/show-view?view=detail">
 
-			<div class="flex flex-row flex-wrap items-center">
-				<span class="text-lg font-bold ml-2.5 w-16">{{name}}</span>
-				<div class="rounded-xl overflow-hidden">
+			<div class="flex flex-row w-full items-center">
+				<span class="text-lg font-bold ml-2.5 w-24">{{name}}</span>
 {{ template "body-overview.tmpl" .}}
-				</div>
 			</div>
 		</div>
 	</div>

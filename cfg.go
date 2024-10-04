@@ -8,10 +8,10 @@ import (
 type Config struct {
 	Model string
 	Flags
-	State     any
-	FS        *embed.FS
-	Targets   []string
-	PollFreq  time.Duration
-	BgColor   string
-	TextColor string
+	State    any
+	FS       *embed.FS
+	Targets  []string
+	PollFreq time.Duration
+	BgColor  string
+	FgColor  string
 }
