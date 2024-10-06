@@ -28,7 +28,7 @@ func (d *Device) run() {
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 
-	ticker := time.NewTicker(d.PollFreq)
+	ticker := time.NewTicker(d.PollPeriod)
 	defer ticker.Stop()
 
 	for {

@@ -19,10 +19,10 @@ func NewModel() thing2.Devicer {
 func (h *Hub) GetConfig() thing2.Config {
 	return thing2.Config{
 		Model:   "hub",
-		Flags:   thing2.FlagProgenitive,
+		Flags:   thing2.FlagProgenitive | thing2.FlagWantsHttpPort,
 		State:   h,
 		FS:      &fs,
-		Targets: []string{"demo", "x86-64", "rpi"},
+		Targets: []string{"x86-64", "rpi"},
 		BgColor: "bluey",
 	}
 }

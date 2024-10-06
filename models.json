@@ -13,5 +13,10 @@
 		"Package": "github.com/merliot/thing2/examples/relays",
 		"Source": "https://github.com/merliot/thing2/tree/main/examples/relays",
 		"Maker": "relays.NewModel"
+	},
+	"gps": {
+		"Package": "github.com/merliot/thing2/examples/gps",
+		"Source": "https://github.com/merliot/thing2/tree/main/examples/gps",
+		"Maker": "gps.NewModel"
 	}
 }

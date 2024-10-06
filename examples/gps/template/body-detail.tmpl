@@ -1,0 +1,38 @@
+<div class="flex flex-col items-center">
+	<div class="w-full h-52 rounded-2xl overflow-hidden" id="map-{{id}}"></div>
+	<script>
+		var map = new maplibregl.Map({
+			container: 'map-{{id}}',
+		    style: {
+			"version": 8,
+			"sources": {
+			    "osm": {
+				"type": "raster",
+				"tiles": [
+				    "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+				    "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+				    "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+				],
+				"tileSize": 256,
+				"attribution": "© OpenStreetMap contributors"
+			    }
+			},
+			"layers": [
+			    {
+				"id": "osm-tiles",
+				"type": "raster",
+				"source": "osm",
+				"minzoom": 0,
+				"maxzoom": 19
+			    }
+			]
+		    },
+			center: [{{state.Long}}, {{state.Lat}}],
+			zoom: 6
+		});
+		var marker = new maplibregl.Marker()
+			.setLngLat([{{state.Long}}, {{state.Lat}}])
+			.addTo(map);
+	</script>
+{{ template "update-detail.tmpl" . }}
+</div>

@@ -37,10 +37,10 @@ func (d *Device) build(maker Maker) error {
 	d.Handlers = d.GetHandlers()
 	d.Flags = d.Config.Flags
 
-	if d.PollFreq == 0 {
-		d.PollFreq = time.Duration(math.MaxInt64)
-	} else if d.PollFreq < time.Second {
-		d.PollFreq = time.Second
+	if d.PollPeriod == 0 {
+		d.PollPeriod = time.Duration(math.MaxInt64)
+	} else if d.PollPeriod < time.Second {
+		d.PollPeriod = time.Second
 	}
 
 	// Configure the device using DeployParams

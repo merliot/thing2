@@ -24,7 +24,9 @@
 
 {{- if .linuxTarget }}
 				<div class="flex flex-col">
+{{- if not wantsHttpPort }}
 					<span class="text-gray-700">(optional)</span>
+{{- end }}
 					<div class="flex flex-row mb-5">
 						<label>
 							Run Local Web Server on Port:

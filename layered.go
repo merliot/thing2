@@ -52,7 +52,7 @@ func (lfs layeredFS) readFile(name string) ([]byte, error) {
 
 // parseFS returns a template by parsing the layered file system for the
 // template name matching the pattern name
-func (lfs layeredFS) parseFS(pattern string, funcMap template.FuncMap) *template.Template {
+func (lfs layeredFS) parseFS(pattern string, funcMap template.FuncMap) (*template.Template, error) {
 
 	// Iterate from oldest (first added) FS to newest FS, building a "main"
 	// template with pattern matching templates from each FS.  The winner
@@ -64,9 +64,9 @@ func (lfs layeredFS) parseFS(pattern string, funcMap template.FuncMap) *template
 	for _, fsys := range lfs.layers {
 		_, err := mainTmpl.ParseFS(fsys, pattern)
 		if err != nil {
-			panic(err.Error())
+			return nil, err
 		}
 	}
 
-	return mainTmpl
+	return mainTmpl, nil
 }

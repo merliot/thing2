@@ -184,14 +184,8 @@ func (d *Device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 		return err
 	}
 
-	path := pkt.Path
-	switch path {
-	case "/state", "/offline":
-		path = "/device"
-	}
-
 	fmt.Println("_renderPkt", d.Id, view, level, pkt)
-	return d._render(w, sessionId, path, view, level)
+	return d._render(w, sessionId, pkt.Path, view, level)
 }
 
 func (d *Device) renderView(sessionId, path, view string, level int) (template.HTML, error) {

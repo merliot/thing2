@@ -96,6 +96,7 @@ func (d *Device) funcs() template.FuncMap {
 		"isMissingWifi":  func() bool { return len(wifiAuths()) == 0 },
 		"isRoot":         func() bool { return d == root },
 		"isProgenitive":  func() bool { return d.Flags.IsSet(FlagProgenitive) },
+		"wantsHttpPort":  func() bool { return d.Flags.IsSet(FlagWantsHttpPort) },
 		"isOnline":       func() bool { return d.Flags.IsSet(flagOnline) },
 		"isDemo":         func() bool { return d.Flags.IsSet(flagDemo) },
 		"isDirty":        func() bool { return d.Flags.IsSet(flagDirty) },
@@ -110,6 +111,8 @@ func (d *Device) funcs() template.FuncMap {
 }
 
 func (d *Device) buildOS() error {
+	var err error
+
 	d.ServeMux = http.NewServeMux()
 
 	// Build device's layered FS.  fs is stacked on top of
@@ -119,7 +122,10 @@ func (d *Device) buildOS() error {
 	d.layeredFS.stack(d.FS)
 
 	// Build the device templates using device funcs
-	d.templates = d.layeredFS.parseFS("template/*.tmpl", d.funcs())
+	d.templates, err = d.layeredFS.parseFS("template/*.tmpl", d.funcs())
+	if err != nil {
+		return err
+	}
 
 	// All devices have a base device API
 	d.api()

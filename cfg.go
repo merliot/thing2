@@ -11,7 +11,7 @@ type Config struct {
 	State    any
 	FS       *embed.FS
 	Targets  []string
-	PollFreq time.Duration
+	PollPeriod time.Duration
 	BgColor  string
 	FgColor  string
 }

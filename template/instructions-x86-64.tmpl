@@ -8,9 +8,15 @@
 
 <h4>Step 1</h4>
 
-{{template "instructions-x86-64-step1.tmpl" .}}
+<p>Select "Linux x86-64" target.</p>
 
-<p>(Optional) The device can run as a local web server.  To enable, specify a port to listen on.  The device's address is http://addr:port, where addr is the local IP (or hostname).  This is useful, for example, when the hub is not accessible, and you want to check in on the device.</p>
+{{- if wantsHttpPort }}
+<p>The {{model}} device runs as a local web server.  Specify a port to listen on.  The device's address is http://addr:port, where addr is the local IP (or hostname).</p>
+{{- else }}
+<p>(Optional) The {{model}} device can run as a local web server.  To enable, specify a port to listen on.  The device's address is http://addr:port, where addr is the local IP (or hostname).  This is useful, for example, when the hub is not accessible, and you want to check in on the device.</p>
+{{- end }}
+
+{{template "instructions-x86-64-step1.tmpl" .}}
 
 <h4>Step 2</h4>
 

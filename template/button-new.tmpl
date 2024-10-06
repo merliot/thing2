@@ -1,8 +1,6 @@
-						<div class="flex flex-row px-1 h-10 bg-bluey text-black rounded-lg items-center cursor-pointer"
-							hx-get="/device/{{id}}/new-modal"
-							hx-target="body"
-							hx-swap="beforeend">
-							<span class="icon">&plus;</span>
-							<span class="text-sm pr-2.5">New</span>
-						</div>
-
+<button
+	hx-get="/device/{{id}}/new-modal"
+	hx-target="body"
+	hx-swap="beforeend">
+	&plus; New
+</button>
