@@ -21,12 +21,12 @@ func NewModel() thing2.Devicer {
 
 func (g *Gadget) GetConfig() thing2.Config {
 	return thing2.Config{
-		Model:    "gadget",
-		State:    g,
-		FS:       &fs,
-		Targets:  []string{"demo", "x86-64", "nano-rp2040"},
+		Model:      "gadget",
+		State:      g,
+		FS:         &fs,
+		Targets:    []string{"demo", "x86-64", "nano-rp2040"},
 		PollPeriod: time.Second,
-		BgColor:  "sunflower",
+		BgColor:    "african-violet",
 	}
 }
 

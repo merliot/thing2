@@ -1,6 +1,7 @@
 <div class="hidden" id="location-{{id}}">
 	<script>
-		map.flyTo({center: [{{state.Long}}, {{state.Lat}}]});
-		marker.setLngLat([{{state.Long}}, {{state.Lat}}]);
+		var div = document.getElementById("map-{{id}}");
+		div.sharedData.map.flyTo({center: [{{state.Long}}, {{state.Lat}}]});
+		div.sharedData.marker.setLngLat([{{state.Long}}, {{state.Lat}}]);
 	</script>
 </div>

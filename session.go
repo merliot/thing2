@@ -64,7 +64,7 @@ func newSession() (string, bool) {
 }
 
 func (s session) Age() string {
-	return time.Since(s.LastUpdate).String()
+	return time.Since(s.LastUpdate).Truncate(time.Second).String()
 }
 
 func sessionConn(sessionId string, conn *websocket.Conn) {

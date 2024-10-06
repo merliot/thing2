@@ -25,7 +25,7 @@ func (g *Gps) GetConfig() thing2.Config {
 		State:      g,
 		FS:         &fs,
 		Targets:    []string{"demo", "rpi", "nano-rp2040", "wioterminal"},
-		BgColor:    "ice",
+		BgColor:    "green",
 		PollPeriod: time.Second * time.Duration(g.PollPeriod),
 	}
 }

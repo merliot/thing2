@@ -23,7 +23,7 @@ func (h *Hub) GetConfig() thing2.Config {
 		State:   h,
 		FS:      &fs,
 		Targets: []string{"x86-64", "rpi"},
-		BgColor: "bluey",
+		BgColor: "sunflower",
 	}
 }
 
