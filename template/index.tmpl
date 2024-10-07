@@ -21,8 +21,11 @@
 		hx-swap="none"
 		hx-ext="ws"
 		ws-connect="/wsx?session-id={{.sessionId}}">
+{{ template "device-header.tmpl" . }}
 {{ render .sessionId "/device" "detail" 0 }}
+{{ template "device-footer.tmpl" . }}
 	</body>
+
 	<script>
 		<!-- TODO: I can't get hx-on:htmx:wsOpen to work, so using js :( -->
 		document.addEventListener("htmx:wsOpen", function(event) {

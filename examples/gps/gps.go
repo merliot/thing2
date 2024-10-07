@@ -15,6 +15,11 @@ type Gps struct {
 	gps.Gps
 }
 
+type updateMsg struct {
+	Lat  float64
+	Long float64
+}
+
 func NewModel() thing2.Devicer {
 	return &Gps{Radius: 50, PollPeriod: 30}
 }
@@ -33,7 +38,7 @@ func (g *Gps) GetConfig() thing2.Config {
 func (g *Gps) GetHandlers() thing2.Handlers {
 	return thing2.Handlers{
 		"/state":  &thing2.Handler[Gps]{g.state},
-		"/update": &thing2.Handler[Gps]{g.update},
+		"/update": &thing2.Handler[updateMsg]{g.update},
 	}
 }
 
@@ -41,8 +46,9 @@ func (g *Gps) Poll(pkt *thing2.Packet) {
 	lat, long := g.Location()
 	dist := gps.Distance(lat, long, g.Lat, g.Long)
 	if dist >= g.Radius {
+		var up = updateMsg{lat, long}
 		g.Lat, g.Long = lat, long
-		pkt.SetPath("/update").Marshal(g).RouteUp()
+		pkt.SetPath("/update").Marshal(&up).RouteUp()
 	}
 }
 

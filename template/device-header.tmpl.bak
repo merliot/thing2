@@ -1,20 +1,19 @@
+<div class="flex flex-row">
+	<div class="flex flex-col">
+		<div class="bg-sunflower w-5 h-24">
+		</div>
+		<div class="bg-red w-5 h-24">
+		</div>
+		<div class="bg-bluey w-5 h-24">
+		</div>
+	</div>
+	<div>
+	</div>
+</div>
+
 <div class="mx-8 my-16">
 	<hr class="border-dashed border-gray-400">
 	<h3>Merliot Hub Demo</h3>
-	<div class="m-8">
-		<p class="italic">working demo especially good trick: force big brain make something to actually work to talk about and code to look at that do thing, will help big brain see reality on ground more quickly</p>
-		<a class="no-underline" target="_blank" href="https://grugbrain.dev/"><p class="text-right">-- The Grug Brained Developer</p></a>
-	</div>
-	<div class="flex flex-row items-center justify-evenly">
-		<a target="_blank" href="https://go.dev"><img src="/images/go-logo.png"></a>
-		<span class="text-3xl">+</span>
-		<a target="_blank" class="flex flex-col items-center no-underline" href="https://tinygo.org">
-			<img src="/images/tinygo-logo.png">
-			<span class="font-bold text-xl">TinyGo</span>
-		</a>
-		<span class="text-3xl">+</span>
-		<a target="_blank" href="https://htmx.org"><img src="/images/htmx-logo.png"></a>
-	</div>
 	<h4>Introduction</h4>
 	<p>This is a demo of Merliot Hub, a private device hub.  The devices are running in demo mode, so they're not accessing real hardware, just simulating hardware.  The hub runs locally or on the cloud.</p>
 	<p>Install your <b>own</b> hub with <b>real</b> devices using the guides below.</p>
