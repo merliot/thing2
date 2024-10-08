@@ -1061,7 +1061,6 @@ textarea {
 
 .offline .icon {
   filter: invert(1);
-  cursor: default;
 }
 
 button {
