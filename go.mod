@@ -3,15 +3,16 @@ module github.com/merliot/thing2
 go 1.22.0
 
 require (
+	github.com/adrianmo/go-nmea v1.10.0
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/google/uuid v1.6.0
+	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07
 	gobot.io/x/gobot/v2 v2.3.0
 	golang.org/x/exp v0.0.0-20240822175202-778ce7bba035
 	golang.org/x/net v0.27.0
 )
 
 require (
-	github.com/adrianmo/go-nmea v1.10.0 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
