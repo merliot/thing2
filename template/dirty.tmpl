@@ -1,7 +1,0 @@
-{{- if eq .Vars.view "full"}}
-	{{ template "dirty-full.tmpl" . }}
-{{- else if eq .Vars.view "list"}}
-	{{ template "dirty-list.tmpl" . }}
-{{- else if eq .Vars.view "detail"}}
-	{{ template "dirty-detail.tmpl" . }}
-{{- end }}

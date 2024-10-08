@@ -40,7 +40,7 @@ func (d *Device) api() {
 }
 
 /*
-func dumpStackTrace() {
+func dumpStack() {
 	buf := make([]byte, 1024)
 	for {
 		n := runtime.Stack(buf, true)
@@ -50,7 +50,7 @@ func dumpStackTrace() {
 		}
 		buf = make([]byte, 2*len(buf))
 	}
-	log.Printf("Stack trace:\n%s", buf)
+	log.Printf("Stack:\n%s", buf)
 }
 */
 
@@ -251,6 +251,11 @@ func (d *Device) showView(w http.ResponseWriter, r *http.Request) {
 
 	view := r.URL.Query().Get("view")
 	sessionId := r.Header.Get("session-id")
+	if !sessionUpdate(sessionId) {
+		// Session expired, force full page refresh to start new session
+		w.Header().Set("HX-Refresh", "true")
+		return
+	}
 
 	_, level, err := sessionLastView(sessionId, d.Id)
 	if err != nil {
