@@ -280,7 +280,7 @@ func (d *Device) downloadImage(w http.ResponseWriter, r *http.Request) {
 	// will connect.
 
 	if changed {
-		deviceDirty(d.Id)
+		deviceDirty(root.Id)
 		downlinkClose(d.Id)
 	}
 }

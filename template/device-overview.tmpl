@@ -11,7 +11,11 @@
 
 			<div class="flex flex-row w-full items-center">
 				<span class="text-lg font-bold ml-2.5 w-24">{{name}}</span>
-{{ template "body-overview.tmpl" .}}
+{{ if eq deployParams "" }}
+	{{ template "undefined-overview.tmpl" .}}
+{{ else }}
+	{{ template "body-overview.tmpl" .}}
+{{ end }}
 			</div>
 		</div>
 	</div>

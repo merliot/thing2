@@ -14,7 +14,7 @@
 {{- end }}
 
 {{- if not $added }}
-	<span>Undefined</span>
+	{{ template "undefined-overview.tmpl" . }}
 {{- end }}
 
 </div>

@@ -24,7 +24,7 @@ func (d *Device) api() {
 	d.HandleFunc("GET /state", d.showState)
 	d.HandleFunc("GET /code", d.showCode)
 
-	//d.HandleFunc("GET /save", d.saveDevices)
+	d.HandleFunc("GET /save", d.saveDevices)
 	//d.HandleFunc("GET /devices", d.showDevices)
 	//d.HandleFunc("GET /download", d.showDownload)
 
@@ -286,7 +286,7 @@ func (d *Device) saveDevices(w http.ResponseWriter, r *http.Request) {
 	if err := devicesSave(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	devicesClean()
+	deviceClean(d.Id)
 }
 
 func (d *Device) showDevices(w http.ResponseWriter, r *http.Request) {
@@ -368,8 +368,8 @@ func (d *Device) createChild(w http.ResponseWriter, r *http.Request) {
 	// Rebuild routing table
 	routesBuild(root)
 
-	// Mark child and parent(s) dirty
-	deviceDirty(child.Id)
+	// Mark root dirty
+	deviceDirty(root.Id)
 
 	// send /create msg up
 	pkt.SetDst(d.Id).RouteUp()
@@ -398,8 +398,8 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 	// Rebuild routing table
 	routesBuild(root)
 
-	// Mark parent(s) dirty
-	deviceDirty(parentId)
+	// Mark root dirty
+	deviceDirty(root.Id)
 
 	// send /destroy msg up
 	pkt.SetDst(parentId).RouteUp()

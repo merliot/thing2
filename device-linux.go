@@ -349,8 +349,14 @@ func deviceOffline(id string) {
 	pkt.RouteUp()
 }
 
-func (d *Device) updateDirty(dirty bool) {
-	println("d.update")
+func updateDirty(id string, dirty bool) {
+	devicesMu.RLock()
+	defer devicesMu.RUnlock()
+
+	d, ok := devices[id]
+	if !ok {
+		return
+	}
 
 	d.Lock()
 	if dirty {
@@ -365,26 +371,11 @@ func (d *Device) updateDirty(dirty bool) {
 }
 
 func deviceDirty(id string) {
-	println("deviceDirty")
-	devicesMu.RLock()
-	defer devicesMu.RUnlock()
-	for deviceId, device := range devices {
-		if deviceId == id {
-			device.updateDirty(true)
-		}
-		// Set parent dirty also
-		if slices.Contains(device.Children, id) {
-			devices[deviceId].updateDirty(true)
-		}
-	}
+	updateDirty(id, true)
 }
 
-func devicesClean() {
-	devicesMu.RLock()
-	defer devicesMu.RUnlock()
-	for _, device := range devices {
-		device.updateDirty(false)
-	}
+func deviceClean(id string) {
+	updateDirty(id, false)
 }
 
 func deviceParent(id string) string {
@@ -424,6 +415,8 @@ func devicesSave() error {
 	if devicesJSON == "" {
 		return fileWriteJSON(devicesFile, &devices)
 	}
+
+	// TODO save to clipboard?
 
 	return nil
 }
