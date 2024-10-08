@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/adrianmo/go-nmea v1.10.0 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

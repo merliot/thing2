@@ -29,7 +29,7 @@ func (g *Gps) GetConfig() thing2.Config {
 		Model:      "gps",
 		State:      g,
 		FS:         &fs,
-		Targets:    []string{"demo", "rpi", "nano-rp2040", "wioterminal"},
+		Targets:    []string{"demo", "x86-64", "rpi", "nano-rp2040", "wioterminal"},
 		BgColor:    "green",
 		PollPeriod: time.Second * time.Duration(g.PollPeriod),
 	}
@@ -43,7 +43,7 @@ func (g *Gps) GetHandlers() thing2.Handlers {
 }
 
 func (g *Gps) Poll(pkt *thing2.Packet) {
-	lat, long := g.Location()
+	lat, long, _ := g.Location()
 	dist := gps.Distance(lat, long, g.Lat, g.Long)
 	if dist >= g.Radius {
 		var up = updateMsg{lat, long}

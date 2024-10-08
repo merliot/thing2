@@ -1,4 +1,4 @@
-//go:build !rpi && !tinygo
+//go:build !rpi && !tinygo && !x86_64
 
 package gps
 
@@ -15,9 +15,9 @@ func (g *Gps) Setup() error {
 	return nil
 }
 
-func (g Gps) Location() (float64, float64) {
+func (g Gps) Location() (float64, float64, error) {
 	x := rand.Intn(len(places))
-	return places[x].lat, places[x].long
+	return places[x].lat, places[x].long, nil
 }
 
 type place struct {
