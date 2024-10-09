@@ -20,13 +20,20 @@
 		hx-swap="none"
 		hx-ext="ws"
 		ws-connect="/wsx?session-id={{.sessionId}}">
+		<div>
 {{ template "device-header.tmpl" . }}
 {{ render .sessionId "/device" "detail" 0 }}
 {{ template "device-footer.tmpl" . }}
+		</div>
 	</body>
 
+	<!--
+		TODO: figure out how to this with 100% htmx:
+		 - need to set/clear class "offline" on ws connect/disconnect
+		 - add/remove hx-trigger on #keepalive on ws connect/diconnect
+	-->
+
 	<script>
-		<!-- TODO: I can't get hx-on:htmx:wsOpen to work, so using js :( -->
 		document.addEventListener("htmx:wsOpen", function(event) {
 			document.body.classList.remove("offline");
 		});

@@ -227,7 +227,7 @@ func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) keepAlive(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	if !sessionUpdate(sessionId) {
+	if !sessionAlive(sessionId) {
 		// Session expired, force full page refresh to start new session
 		w.Header().Set("HX-Refresh", "true")
 	}
@@ -249,13 +249,13 @@ func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
 func (d *Device) showView(w http.ResponseWriter, r *http.Request) {
 	println("show", r.Host, r.URL.String())
 
-	view := r.URL.Query().Get("view")
 	sessionId := r.Header.Get("session-id")
 	if !sessionUpdate(sessionId) {
 		// Session expired, force full page refresh to start new session
 		w.Header().Set("HX-Refresh", "true")
 		return
 	}
+	view := r.URL.Query().Get("view")
 
 	_, level, err := sessionLastView(sessionId, d.Id)
 	if err != nil {

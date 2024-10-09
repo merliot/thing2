@@ -5,6 +5,7 @@ package thing2
 import (
 	"bytes"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -88,6 +89,22 @@ func sessionUpdate(sessionId string) bool {
 
 	if s, ok := sessions[sessionId]; ok {
 		s.LastUpdate = time.Now()
+		return true
+	}
+
+	// Session expired
+	return false
+}
+
+func sessionAlive(sessionId string) bool {
+
+	sessionsMu.Lock()
+	defer sessionsMu.Unlock()
+
+	if s, ok := sessions[sessionId]; ok {
+		s.LastUpdate = time.Now()
+		data, _ := json.Marshal(&Packet{Path: "/ping"})
+		websocket.Message.Send(s.conn, string(data))
 		return true
 	}
 

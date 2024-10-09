@@ -22,8 +22,8 @@ func wsxServe(ws *websocket.Conn) {
 
 	req := ws.Request()
 	sessionId := req.URL.Query().Get("session-id")
-	if sessionId == "" {
-		println("missing session-id param")
+	if !sessionUpdate(sessionId) {
+		fmt.Println("Invalid session", sessionId)
 		return
 	}
 
