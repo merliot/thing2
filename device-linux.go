@@ -17,7 +17,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-//go:embed css docs images js template
+//go:embed css images js template
 var deviceFs embed.FS
 
 type devicesMap map[string]*Device // key: device id
@@ -86,6 +86,7 @@ func (d *Device) funcs() template.FuncMap {
 		"title":          strings.Title,
 		"add":            func(a, b int) int { return a + b },
 		"mult":           func(a, b int) int { return a * b },
+		"joinStrings":    func(parts ...string) string { return strings.Join(parts, "") },
 		"targets":        func() target.Targets { return target.MakeTargets(d.Targets) },
 		"ssids":          func() []string { return maps.Keys(wifiAuths()) },
 		"target":         func() string { return d.deployValues().Get("target") },
@@ -106,7 +107,8 @@ func (d *Device) funcs() template.FuncMap {
 		"textColor":      d.textColor,
 		"borderColor":    d.borderColor,
 		"classOffline":   d.classOffline,
-		"render":         d.renderView,
+		"renderTemplate": d.renderTemplate,
+		"renderView":     d.renderView,
 		"renderChildren": d.renderChildren,
 	}
 }

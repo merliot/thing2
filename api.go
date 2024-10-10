@@ -17,10 +17,25 @@ import (
 )
 
 func (d *Device) api() {
+	var site = (Getenv("SITE", "") == "true")
+
+	if site {
+		d.HandleFunc("GET /{$}", d.showSiteHome)
+		d.HandleFunc("GET /home", d.showSiteHome)
+		d.HandleFunc("GET /demo", d.showSiteDemo)
+		d.HandleFunc("GET /status", d.showSiteStatus)
+		d.HandleFunc("GET /docs", d.showSiteDocs)
+	} else {
+		d.HandleFunc("GET /{$}", d.showHome)
+		d.HandleFunc("GET /home", d.showHome)
+		//d.HandleFunc("GET /status", d.showStatus)
+		//d.HandleFunc("GET /docs", d.showDocs)
+	}
+
 	d.HandleFunc("GET /", d.serveStaticFile)
-	d.HandleFunc("GET /{$}", d.showIndex)
 	d.HandleFunc("PUT /keep-alive", d.keepAlive)
 	d.HandleFunc("GET /show-view", d.showView)
+
 	d.HandleFunc("GET /state", d.showState)
 	d.HandleFunc("GET /code", d.showCode)
 
@@ -106,8 +121,8 @@ func (d *Device) renderTmpl(w io.Writer, template string, data any) error {
 
 func (d *Device) _renderSession(w io.Writer, template, sessionId string, level int) error {
 	return d._renderTmpl(w, template, map[string]any{
-		"level":     level,
 		"sessionId": sessionId,
+		"level":     level,
 	})
 }
 
@@ -188,6 +203,16 @@ func (d *Device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 	return d._render(w, sessionId, pkt.Path, view, level)
 }
 
+func (d *Device) renderTemplate(name string, data any) (template.HTML, error) {
+	var buf bytes.Buffer
+
+	if err := d.renderTmpl(&buf, name, data); err != nil {
+		return template.HTML(""), err
+	}
+
+	return template.HTML(buf.String()), nil
+}
+
 func (d *Device) renderView(sessionId, path, view string, level int) (template.HTML, error) {
 	var buf bytes.Buffer
 
@@ -227,27 +252,32 @@ func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
 
 func (d *Device) keepAlive(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
-	if !sessionAlive(sessionId) {
+	if !sessionKeepAlive(sessionId) {
 		// Session expired, force full page refresh to start new session
 		w.Header().Set("HX-Refresh", "true")
 	}
 }
 
-func (d *Device) showIndex(w http.ResponseWriter, r *http.Request) {
-	println("showIndex", r.Host, r.URL.String())
+func (d *Device) showHome(w http.ResponseWriter, r *http.Request) {
+	println("showHome", r.Host, r.URL.String())
 
 	sessionId, ok := newSession()
 	if !ok {
 		http.Error(w, "no more sessions", http.StatusTooManyRequests)
 		return
 	}
-	if err := d.renderSession(w, "index.tmpl", sessionId, 0); err != nil {
+	if err := d.renderSession(w, "home.tmpl", sessionId, 0); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
+func (d *Device) showDemo(w http.ResponseWriter, r *http.Request) {
+}
+
 func (d *Device) showView(w http.ResponseWriter, r *http.Request) {
 	println("show", r.Host, r.URL.String())
+
+	view := r.URL.Query().Get("view")
 
 	sessionId := r.Header.Get("session-id")
 	if !sessionUpdate(sessionId) {
@@ -255,7 +285,6 @@ func (d *Device) showView(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("HX-Refresh", "true")
 		return
 	}
-	view := r.URL.Query().Get("view")
 
 	_, level, err := sessionLastView(sessionId, d.Id)
 	if err != nil {

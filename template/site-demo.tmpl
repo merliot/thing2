@@ -1,0 +1,13 @@
+<script src="/js/htmx.min.js.gz"></script>
+<script src="/js/htmx-ext-ws.js.gz"></script>
+<script src="/js/util.js"></script>
+
+<div class="offline bg-black text m-4" id="device-body"
+	hx-headers='{"session-id": "{{.sessionId}}"}'
+	hx-put="/keep-alive"
+	hx-trigger="every 30s"
+	hx-swap="none"
+	hx-ext="ws"
+	ws-connect="/wsx?session-id={{.sessionId}}">
+{{ renderView .sessionId "/device" "detail" 0 }}
+</div>

@@ -96,7 +96,7 @@ func sessionUpdate(sessionId string) bool {
 	return false
 }
 
-func sessionAlive(sessionId string) bool {
+func sessionKeepAlive(sessionId string) bool {
 
 	sessionsMu.Lock()
 	defer sessionsMu.Unlock()

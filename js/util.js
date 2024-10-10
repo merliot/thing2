@@ -21,3 +21,18 @@ function loadScript(src, callback) {
 	}
 }
 
+/*
+	TODO: figure out how to this with 100% htmx:
+	 - need to set/clear class "offline" on body on ws
+	   connect/disconnect
+*/
+
+document.addEventListener("htmx:wsOpen", function(event) {
+	document.getElementById("device-body").classList.remove("offline")
+});
+document.addEventListener("htmx:wsClose", function(event) {
+	document.getElementById("device-body").classList.add("offline")
+});
+document.addEventListener("htmx:wsError", function(event) {
+	document.getElementById("device-body").classList.add("offline")
+});
