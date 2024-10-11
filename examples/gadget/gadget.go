@@ -63,5 +63,5 @@ func (g *Gadget) takeone(pkt *thing2.Packet) {
 	}
 }
 
-func (g *Gadget) DemoSetup() error            { return nil }
-func (g *Gadget) DemoPoll(pkt *thing2.Packet) {}
+func (g *Gadget) DemoSetup() error            { return g.Setup() }
+func (g *Gadget) DemoPoll(pkt *thing2.Packet) { g.Poll(pkt) }

@@ -10,6 +10,8 @@ import (
 )
 
 func (d *Device) runPolling(pollFunc func(pkt *Packet)) {
+
+	// Catch OS kill signals so we can exit gracefully
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 

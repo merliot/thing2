@@ -74,5 +74,5 @@ func (r *Relays) clicked(pkt *thing2.Packet) {
 	pkt.RouteUp()
 }
 
-func (r *Relays) DemoSetup() error            { return nil }
-func (r *Relays) DemoPoll(pkt *thing2.Packet) {}
+func (r *Relays) DemoSetup() error            { return r.Setup() }
+func (r *Relays) DemoPoll(pkt *thing2.Packet) { r.Poll(pkt) }

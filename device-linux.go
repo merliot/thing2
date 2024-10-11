@@ -244,7 +244,8 @@ func (d *Device) routeDown(pkt *Packet) {
 	// If device is the root device, deliver packet to device.  The root
 	// device is running on 'metal', so this is the packet's final
 	// destination.
-	if d == root {
+	//if d == root {
+	if d.IsSet(flagMetal) {
 		d.handle(pkt)
 		return
 	}

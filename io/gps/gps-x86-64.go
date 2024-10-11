@@ -1,4 +1,4 @@
-//go:build x86_64
+//go:build !rpi && !tinygo
 
 package gps
 

@@ -3,6 +3,7 @@ package thing2
 import "time"
 
 func (d *Device) runDemo() {
+
 	// Poll right away and then on ticker
 	d.Lock()
 	d.DemoPoll(&Packet{Dst: d.Id})
@@ -23,7 +24,7 @@ func (d *Device) runDemo() {
 	}
 }
 
-// In demo mode, start a go func for each child device that calls DemoPoll()
+// In demo mode, start a go func for each child device
 func (d *Device) startDemoChildren() {
 	for _, childId := range d.Children {
 		child := devices[childId]

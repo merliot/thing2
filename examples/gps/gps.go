@@ -59,6 +59,3 @@ func (g *Gps) state(pkt *thing2.Packet) {
 func (g *Gps) update(pkt *thing2.Packet) {
 	pkt.Unmarshal(g).RouteUp()
 }
-
-func (g *Gps) DemoSetup() error            { return nil }
-func (g *Gps) DemoPoll(pkt *thing2.Packet) {}

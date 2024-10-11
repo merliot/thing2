@@ -1,23 +1,26 @@
-//go:build !rpi && !tinygo && !x86_64
-
 package gps
 
 import (
 	"math/rand"
 	"time"
+
+	"github.com/merliot/thing2"
+	"github.com/merliot/thing2/io/gps"
 )
 
-type Gps struct {
-}
-
-func (g *Gps) Setup() error {
+func (g *Gps) DemoSetup() error {
 	rand.Seed(time.Now().UnixNano())
 	return nil
 }
-
-func (g Gps) Location() (float64, float64, error) {
+func (g *Gps) DemoPoll(pkt *thing2.Packet) {
 	x := rand.Intn(len(places))
-	return places[x].lat, places[x].long, nil
+	lat, long := places[x].lat, places[x].long
+	dist := gps.Distance(lat, long, g.Lat, g.Long)
+	if dist >= g.Radius {
+		var up = updateMsg{lat, long}
+		g.Lat, g.Long = lat, long
+		pkt.SetPath("/update").Marshal(&up).RouteUp()
+	}
 }
 
 type place struct {

@@ -18,6 +18,11 @@ func (d *Device) newPacketRoute(h Generator) http.Handler {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		pkt.SetDst(d.Id).RouteDown()
+		pkt.SetDst(d.Id)
+		if d.IsSet(flagMetal) {
+			d.handle(pkt)
+		} else {
+			pkt.RouteDown()
+		}
 	})
 }
