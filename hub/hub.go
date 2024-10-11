@@ -31,5 +31,7 @@ func (h *Hub) GetHandlers() thing2.Handlers {
 	return thing2.Handlers{}
 }
 
-func (h *Hub) Setup() error            { return nil }
-func (h *Hub) Poll(pkt *thing2.Packet) {}
+func (h *Hub) Setup() error                { return nil }
+func (h *Hub) Poll(pkt *thing2.Packet)     {}
+func (h *Hub) DemoSetup() error            { return nil }
+func (h *Hub) DemoPoll(pkt *thing2.Packet) {}

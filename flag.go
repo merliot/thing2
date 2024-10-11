@@ -8,7 +8,7 @@ const (
 	flagOnline                          // Device is online
 	flagDirty                           // Has unsaved changes
 	flagLocked                          // Administratively locked
-	flagDemo                            // Running in demo mode
+	flagDemo                            // Running in DEMO mode
 	flagMetal                           // Device is running on real hardware
 )
 

@@ -13,7 +13,9 @@ type Devicer interface {
 	GetConfig() Config
 	GetHandlers() Handlers
 	Setup() error
+	DemoSetup() error
 	Poll(*Packet)
+	DemoPoll(*Packet)
 }
 
 type Device struct {
@@ -28,6 +30,7 @@ type Device struct {
 	Handlers     `json:"-"`
 	sync.RWMutex `json:"-"`
 	deviceOS
+	stopChan chan struct{}
 }
 
 func (d *Device) build(maker Maker) error {
@@ -37,6 +40,11 @@ func (d *Device) build(maker Maker) error {
 	d.Handlers = d.GetHandlers()
 	d.Flags = d.Config.Flags
 
+	if runningDemo {
+		d.Set(flagDemo | flagOnline | flagMetal)
+	}
+
+	// Bracket poll period: [1..forever) seconds
 	if d.PollPeriod == 0 {
 		d.PollPeriod = time.Duration(math.MaxInt64)
 	} else if d.PollPeriod < time.Second {
@@ -48,6 +56,8 @@ func (d *Device) build(maker Maker) error {
 	if err != nil {
 		fmt.Println("Error configuring device using DeployParams:", err, d)
 	}
+
+	d.stopChan = make(chan struct{})
 
 	return d.buildOS()
 }
@@ -72,13 +82,6 @@ func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
 	// Form-decode these values into the device to configure the device
 	if err := decoder.Decode(d.State, values); err != nil {
 		return false, err
-	}
-
-	target := values.Get("target")
-	if target == "demo" {
-		d.Flags.Set(flagDemo)
-	} else {
-		d.Flags.Unset(flagDemo)
 	}
 
 	if proposedParams == string(d.DeployParams) {

@@ -232,7 +232,7 @@ func (d *Device) buildImage(w http.ResponseWriter, r *http.Request) error {
 	target := r.URL.Query().Get("target")
 
 	switch target {
-	case "demo", "x86-64":
+	case "x86-64":
 		envs := []string{"CGO_ENABLED=0", "GOOS=linux", "GOARCH=amd64"}
 		return d.buildLinuxImage(w, r, dir, envs, target)
 	case "rpi":
@@ -250,7 +250,7 @@ func (d *Device) buildImage(w http.ResponseWriter, r *http.Request) error {
 
 func (d *Device) downloadImage(w http.ResponseWriter, r *http.Request) {
 
-	if d.Flags.IsSet(flagLocked) {
+	if d.IsSet(flagLocked) {
 		http.Error(w, "Refusing to download, device is locked", http.StatusLocked)
 		return
 	}

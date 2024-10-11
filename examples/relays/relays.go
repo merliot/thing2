@@ -27,7 +27,7 @@ func (r *Relays) GetConfig() thing2.Config {
 		Model:   "relays",
 		State:   r,
 		FS:      &fs,
-		Targets: []string{"demo", "rpi", "nano-rp2040", "wioterminal"},
+		Targets: []string{"rpi", "nano-rp2040", "wioterminal"},
 		BgColor: "orange",
 	}
 }
@@ -73,3 +73,6 @@ func (r *Relays) clicked(pkt *thing2.Packet) {
 	relay.Set(clicked.State)
 	pkt.RouteUp()
 }
+
+func (r *Relays) DemoSetup() error            { return nil }
+func (r *Relays) DemoPoll(pkt *thing2.Packet) {}

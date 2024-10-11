@@ -17,9 +17,7 @@ import (
 )
 
 func (d *Device) api() {
-	var site = (Getenv("SITE", "") == "true")
-
-	if site {
+	if runningSite {
 		d.HandleFunc("GET /{$}", d.showSiteHome)
 		d.HandleFunc("GET /home", d.showSiteHome)
 		d.HandleFunc("GET /demo", d.showSiteDemo)
@@ -269,9 +267,6 @@ func (d *Device) showHome(w http.ResponseWriter, r *http.Request) {
 	if err := d.renderSession(w, "home.tmpl", sessionId, 0); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-}
-
-func (d *Device) showDemo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Device) showView(w http.ResponseWriter, r *http.Request) {

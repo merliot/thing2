@@ -31,33 +31,12 @@ type deviceOS struct {
 	layeredFS
 }
 
-func (d *Device) bgColor() string {
-	if d.Config.BgColor == "" {
-		return "bg-space-white"
-	}
-	return "bg-" + d.Config.BgColor
-}
-
-func (d *Device) textColor() string {
-	if d.Config.FgColor == "" {
-		return "text-black"
-	}
-	return "text-" + d.Config.FgColor
-}
-
-func (d *Device) borderColor() string {
-	if d.Config.BgColor == "" {
-		return "border-space-white"
-	}
-	return "border-" + d.Config.BgColor
-}
-
 func linuxTarget(target string) bool {
-	return target == "demo" || target == "x86-64" || target == "rpi"
+	return target == "x86-64" || target == "rpi"
 }
 
 func (d *Device) classOffline() string {
-	if d.Flags.IsSet(flagOnline) {
+	if d.IsSet(flagOnline) {
 		return ""
 	} else {
 		return "offline" // enables CSS class .offline
@@ -97,12 +76,12 @@ func (d *Device) funcs() template.FuncMap {
 		"isLinuxTarget":  linuxTarget,
 		"isMissingWifi":  func() bool { return len(wifiAuths()) == 0 },
 		"isRoot":         func() bool { return d == root },
-		"isProgenitive":  func() bool { return d.Flags.IsSet(FlagProgenitive) },
-		"wantsHttpPort":  func() bool { return d.Flags.IsSet(FlagWantsHttpPort) },
-		"isOnline":       func() bool { return d.Flags.IsSet(flagOnline) },
-		"isDemo":         func() bool { return d.Flags.IsSet(flagDemo) },
-		"isDirty":        func() bool { return d.Flags.IsSet(flagDirty) },
-		"isLocked":       func() bool { return d.Flags.IsSet(flagLocked) },
+		"isProgenitive":  func() bool { return d.IsSet(FlagProgenitive) },
+		"wantsHttpPort":  func() bool { return d.IsSet(FlagWantsHttpPort) },
+		"isOnline":       func() bool { return d.IsSet(flagOnline) },
+		"isDemo":         func() bool { return d.IsSet(flagDemo) },
+		"isDirty":        func() bool { return d.IsSet(flagDirty) },
+		"isLocked":       func() bool { return d.IsSet(flagLocked) },
 		"bgColor":        d.bgColor,
 		"textColor":      d.textColor,
 		"borderColor":    d.borderColor,
@@ -190,8 +169,8 @@ func devicesFindRoot() (*Device, error) {
 	switch {
 	case len(roots) == 1:
 		root := roots[0]
-		root.Flags.Set(flagOnline)
-		root.Flags.Set(flagMetal)
+		root.Set(flagOnline)
+		root.Set(flagMetal)
 		return root, nil
 	case len(roots) > 1:
 		return nil, fmt.Errorf("More than one tree found in devices, aborting")
@@ -325,7 +304,7 @@ func deviceOnline(ann announcement) error {
 	}
 
 	d.Lock()
-	d.Flags.Set(flagOnline)
+	d.Set(flagOnline)
 	d.Unlock()
 
 	// We don't need to send a /online pkt up because /state is going to be
@@ -344,7 +323,7 @@ func deviceOffline(id string) {
 	}
 
 	d.Lock()
-	d.Flags.Unset(flagOnline)
+	d.Unset(flagOnline)
 	d.Unlock()
 
 	pkt := &Packet{Dst: id, Path: "/offline"}
@@ -362,9 +341,9 @@ func updateDirty(id string, dirty bool) {
 
 	d.Lock()
 	if dirty {
-		d.Flags.Set(flagDirty)
+		d.Set(flagDirty)
 	} else {
-		d.Flags.Unset(flagDirty)
+		d.Unset(flagDirty)
 	}
 	d.Unlock()
 

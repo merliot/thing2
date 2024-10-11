@@ -10,13 +10,19 @@ import (
 	"time"
 )
 
-var root *Device
+var (
+	runningSite bool // running as full web-site
+	runningDemo bool // running in DEMO mode
+	root        *Device
+)
 
 func Run() {
 
 	var port = Getenv("PORT", "8000")
-	var demo = (Getenv("DEMO", "") == "true")
 	var err error
+
+	runningSite = (Getenv("SITE", "") == "true")
+	runningDemo = (Getenv("DEMO", "") == "true") || runningSite
 
 	if err := devicesLoad(); err != nil {
 		fmt.Println("Error loading devices:", err)
@@ -31,11 +37,7 @@ func Run() {
 		return
 	}
 
-	if demo {
-		root.Set(flagDemo)
-	}
-
-	if err := root.Setup(); err != nil {
+	if err := root.setup(); err != nil {
 		fmt.Println("Error setting up root device:", err)
 		return
 	}
@@ -64,8 +66,11 @@ func Run() {
 	// Install / to point to root device
 	http.Handle("/", basicAuthHandler(root))
 
-	// Install /ws websocket listener
-	http.HandleFunc("/ws", basicAuthHandlerFunc(wsHandle))
+	// Install /ws websocket listener, but only if not in demo mode.  In
+	// demo mode, we want to ignore any devices dialing in.
+	if !runningDemo {
+		http.HandleFunc("/ws", basicAuthHandlerFunc(wsHandle))
+	}
 
 	// Install /wsx websocket listener (wsx is for htmx ws)
 	http.HandleFunc("/wsx", basicAuthHandlerFunc(wsxHandle))

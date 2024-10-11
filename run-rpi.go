@@ -24,13 +24,13 @@ func failSafe() {
 
 }
 
-func (d *Device) run() {
+func (d *Device) runPolling(pollFunc func(pkt *Packet)) {
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 
 	// Poll right away and then on ticker
 	d.Lock()
-	d.Poll(&Packet{Dst: d.Id})
+	pollFunc(&Packet{Dst: d.Id})
 	d.Unlock()
 
 	ticker := time.NewTicker(d.PollPeriod)
@@ -43,7 +43,7 @@ func (d *Device) run() {
 			return
 		case <-ticker.C:
 			d.Lock()
-			d.Poll(&Packet{Dst: d.Id})
+			pollFunc(&Packet{Dst: d.Id})
 			d.Unlock()
 		}
 	}

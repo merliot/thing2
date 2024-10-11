@@ -28,7 +28,7 @@ type Handlers map[string]Generator // key: path
 func (d *Device) handle(pkt *Packet) {
 	d.Lock()
 	defer d.Unlock()
-	if d.Flags.IsSet(flagOnline) {
+	if d.IsSet(flagOnline) {
 		if handler, ok := d.Handlers[pkt.Path]; ok {
 			fmt.Println("Handling", pkt.String())
 			handler.Cb(pkt)

@@ -24,7 +24,7 @@ func (g *Gadget) GetConfig() thing2.Config {
 		Model:      "gadget",
 		State:      g,
 		FS:         &fs,
-		Targets:    []string{"demo", "x86-64", "nano-rp2040"},
+		Targets:    []string{"x86-64", "nano-rp2040"},
 		PollPeriod: time.Second,
 		BgColor:    "african-violet",
 	}
@@ -62,3 +62,6 @@ func (g *Gadget) takeone(pkt *thing2.Packet) {
 		pkt.SetPath("/update").Marshal(g).RouteUp()
 	}
 }
+
+func (g *Gadget) DemoSetup() error            { return nil }
+func (g *Gadget) DemoPoll(pkt *thing2.Packet) {}

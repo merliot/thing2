@@ -29,7 +29,7 @@ func (g *Gps) GetConfig() thing2.Config {
 		Model:      "gps",
 		State:      g,
 		FS:         &fs,
-		Targets:    []string{"demo", "x86-64", "rpi", "nano-rp2040", "wioterminal"},
+		Targets:    []string{"x86-64", "rpi", "nano-rp2040", "wioterminal"},
 		BgColor:    "green",
 		PollPeriod: time.Second * time.Duration(g.PollPeriod),
 	}
@@ -59,3 +59,6 @@ func (g *Gps) state(pkt *thing2.Packet) {
 func (g *Gps) update(pkt *thing2.Packet) {
 	pkt.Unmarshal(g).RouteUp()
 }
+
+func (g *Gps) DemoSetup() error            { return nil }
+func (g *Gps) DemoPoll(pkt *thing2.Packet) {}
