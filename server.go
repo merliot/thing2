@@ -24,6 +24,12 @@ func Run() {
 	runningSite = (Getenv("SITE", "") == "true")
 	runningDemo = (Getenv("DEMO", "") == "true") || runningSite
 
+	if runningSite {
+		fmt.Println("RUNNING full web site")
+	} else if runningDemo {
+		fmt.Println("RUNNING in DEMO mode")
+	}
+
 	if err := devicesLoad(); err != nil {
 		fmt.Println("Error loading devices:", err)
 		return

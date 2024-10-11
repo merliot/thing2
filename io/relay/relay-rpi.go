@@ -18,6 +18,9 @@ type Relay struct {
 }
 
 func (r *Relay) Setup() error {
+	if r.Gpio == "" {
+		return nil
+	}
 	if pin, ok := target.Pin(r.Gpio); ok {
 		spin := strconv.Itoa(int(pin))
 		r.driver = gpio.NewRelayDriver(target.GetAdaptor(), spin)
