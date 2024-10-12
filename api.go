@@ -437,7 +437,7 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 func (d *Device) showNewModal(w http.ResponseWriter, r *http.Request) {
 	err := d.renderTmpl(w, "modal-new.tmpl", map[string]any{
 		"models": Models,
-		"newid":  GenerateRandomId(),
+		"newid":  generateRandomId(),
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

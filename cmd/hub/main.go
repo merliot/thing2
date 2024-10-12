@@ -1,15 +1,13 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/merliot/thing2"
 	"github.com/merliot/thing2/models"
 )
 
 var device = `{
-	"%s": {
-		"Id": "%s",
+	"hub": {
+		"Id": "hub,
 		"Model": "hub",
 		"Name": "Hub",
 		"Children": [],
@@ -18,9 +16,7 @@ var device = `{
 }`
 
 func main() {
-	id := thing2.GenerateRandomId()
-	devices := fmt.Sprintf(device, id, id)
-	thing2.Setenv("DEVICES", thing2.Getenv("DEVICES", devices))
+	thing2.Setenv("DEVICES", thing2.Getenv("DEVICES", device))
 	thing2.Models = models.AllModels
 	thing2.Run()
 }

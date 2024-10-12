@@ -24,7 +24,7 @@ type Device struct {
 	Name         string
 	Children     []string
 	DeployParams template.HTML
-	Flags        `json:"-"`
+	flags        `json:"-"`
 	Config       `json:"-"`
 	Devicer      `json:"-"`
 	Handlers     `json:"-"`
@@ -38,7 +38,7 @@ func (d *Device) build(maker Maker) error {
 	d.Devicer = maker()
 	d.Config = d.GetConfig()
 	d.Handlers = d.GetHandlers()
-	d.Flags = d.Config.Flags
+	d.flags = d.Config.Flags
 
 	if runningDemo {
 		d.Set(flagDemo | flagOnline | flagMetal)

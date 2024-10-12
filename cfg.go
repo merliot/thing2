@@ -6,12 +6,12 @@ import (
 )
 
 type Config struct {
-	Model string
-	Flags
-	State    any
-	FS       *embed.FS
-	Targets  []string
+	Model      string
+	Flags      flags
+	State      any
+	FS         *embed.FS
+	Targets    []string
 	PollPeriod time.Duration
-	BgColor  string
-	FgColor  string
+	BgColor    string
+	FgColor    string
 }

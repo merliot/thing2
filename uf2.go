@@ -7,7 +7,7 @@ import (
 // Random string to embed in UF2 we can search for later to locate params
 const uf2Magic = "Call the Doctor!  Miss you Dan."
 
-type Uf2Params struct {
+type uf2Params struct {
 	MagicStart   string
 	Ssid         string
 	Passphrase   string

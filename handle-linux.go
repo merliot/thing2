@@ -10,9 +10,9 @@ func (d *Device) handlersInstall() {
 	}
 }
 
-func (d *Device) newPacketRoute(h Generator) http.Handler {
+func (d *Device) newPacketRoute(h generator) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		msg := h.Gen()
+		msg := h.gen()
 		pkt, err := newPacketFromURL(r.URL, msg)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)

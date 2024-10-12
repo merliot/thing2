@@ -171,7 +171,7 @@ func (d *Device) buildTinyGoImage(w http.ResponseWriter, r *http.Request, dir, t
 	var wifiAuths = wifiAuths()
 	var passphrase = wifiAuths[ssid]
 
-	var p = Uf2Params{
+	var p = uf2Params{
 		MagicStart:   uf2Magic,
 		Ssid:         ssid,
 		Passphrase:   passphrase,

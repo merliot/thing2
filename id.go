@@ -7,9 +7,9 @@ import (
 	"encoding/hex"
 )
 
-// GenerateRandomId generates a hex-encoded 8-byte random ID in format
+// generateRandomId generates a hex-encoded 8-byte random ID in format
 // 'xxxxxxxx-xxxxxxxx'
-func GenerateRandomId() string {
+func generateRandomId() string {
 	bytes := make([]byte, 8)
 	rand.Read(bytes)
 	hexString := hex.EncodeToString(bytes)

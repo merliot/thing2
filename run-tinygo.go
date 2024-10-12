@@ -12,7 +12,7 @@ var paramsMem = []byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 var root *Device
 
 func Run(maker Maker) {
-	var params Uf2Params
+	var params uf2Params
 
 	end := bytes.IndexByte(paramsMem, 0)
 	if err := json.Unmarshal(paramsMem[:end], &params); err != nil {
