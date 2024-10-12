@@ -1,3 +1,5 @@
+//go:build !tinygo
+
 package thing2
 
 // In demo mode, call DemoSetup() on all devices
