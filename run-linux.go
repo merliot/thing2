@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (d *Device) runPolling(pollFunc func(pkt *Packet)) {
+func (d *device) runPolling(pollFunc func(pkt *Packet)) {
 
 	// Catch OS kill signals so we can exit gracefully
 	c := make(chan os.Signal)

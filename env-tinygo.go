@@ -2,6 +2,7 @@
 
 package thing2
 
+// Tinygo doesn't have an environment, so simulate one
 var envs = make(map[string]string)
 
 func Getenv(name, defaultValue string) string {

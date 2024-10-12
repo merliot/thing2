@@ -9,16 +9,30 @@ import (
 	"time"
 )
 
+var (
+	runningSite bool // running as full web-site
+	runningDemo bool // running in DEMO mode
+)
+
+// Devicer is the device model interface.  A device is a concrete Devicer.
 type Devicer interface {
+	// GetConfig returns the device configuration
 	GetConfig() Config
+	// GetHandlers returns the device message Handlers
 	GetHandlers() Handlers
+	// Setup prepares the device for operation.  Device hardware and other
+	// initializations are done here.  Returning an error fails the device load.
 	Setup() error
-	DemoSetup() error
+	// Poll services the device.  Poll is called every Config.PollPeriod
+	// seconds.  The Packet can be used to send a message.
 	Poll(*Packet)
+	// DemoSetup is DEMO mode Setup
+	DemoSetup() error
+	// DemoPoll is DEMO mode Poll
 	DemoPoll(*Packet)
 }
 
-type Device struct {
+type device struct {
 	Id           string
 	Model        string
 	Name         string
@@ -33,7 +47,7 @@ type Device struct {
 	stopChan chan struct{}
 }
 
-func (d *Device) build(maker Maker) error {
+func (d *device) build(maker Maker) error {
 
 	d.Devicer = maker()
 	d.Config = d.GetConfig()
@@ -62,7 +76,7 @@ func (d *Device) build(maker Maker) error {
 	return d.buildOS()
 }
 
-func (d *Device) formConfig(rawQuery string) (changed bool, err error) {
+func (d *device) formConfig(rawQuery string) (changed bool, err error) {
 
 	// rawQuery is the proposed new DeployParams
 	proposedParams, err := url.QueryUnescape(rawQuery)

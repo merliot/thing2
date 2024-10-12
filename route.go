@@ -10,7 +10,7 @@ import (
 var routes map[string]string // key: dst id, value: nexthop id
 var routesMu sync.RWMutex
 
-func _routesBuild(parent, base *Device) {
+func _routesBuild(parent, base *device) {
 	for _, childId := range parent.Children {
 		// children point to base
 		routes[childId] = base.Id
@@ -19,7 +19,7 @@ func _routesBuild(parent, base *Device) {
 	}
 }
 
-func routesBuild(root *Device) {
+func routesBuild(root *device) {
 
 	routesMu.RLock()
 	defer routesMu.RUnlock()

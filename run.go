@@ -2,7 +2,7 @@ package thing2
 
 import "time"
 
-func (d *Device) runDemo() {
+func (d *device) runDemo() {
 
 	// Poll right away and then on ticker
 	d.Lock()
@@ -25,7 +25,7 @@ func (d *Device) runDemo() {
 }
 
 // In demo mode, start a go func for each child device
-func (d *Device) startDemoChildren() {
+func (d *device) startDemoChildren() {
 	for _, childId := range d.Children {
 		child := devices[childId]
 		go child.runDemo()
@@ -33,7 +33,7 @@ func (d *Device) startDemoChildren() {
 	}
 }
 
-func (d *Device) stopDemoChildren() {
+func (d *device) stopDemoChildren() {
 	for _, childId := range d.Children {
 		child := devices[childId]
 		close(child.stopChan)
@@ -41,7 +41,7 @@ func (d *Device) stopDemoChildren() {
 	}
 }
 
-func (d *Device) run() {
+func (d *device) run() {
 	if runningDemo {
 		d.startDemoChildren()
 		d.runPolling(d.DemoPoll)

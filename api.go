@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-func (d *Device) api() {
+func (d *device) api() {
 	if runningSite {
 		d.HandleFunc("GET /{$}", d.showSiteHome)
 		d.HandleFunc("GET /home", d.showSiteHome)
@@ -68,7 +68,7 @@ func dumpStack() {
 */
 
 // modelInstall installs /model/{model} pattern for device in default ServeMux
-func (d *Device) modelInstall() {
+func (d *device) modelInstall() {
 	prefix := "/model/" + d.Model
 	handler := basicAuthHandler(http.StripPrefix(prefix, d))
 	http.Handle(prefix+"/", handler)
@@ -77,14 +77,14 @@ func (d *Device) modelInstall() {
 
 func modelsInstall() {
 	for name, model := range Models {
-		var proto = &Device{Model: name}
+		var proto = &device{Model: name}
 		proto.build(model.Maker)
 		proto.modelInstall()
 	}
 }
 
 // install installs /device/{id} pattern for device in default ServeMux
-func (d *Device) deviceInstall() {
+func (d *device) deviceInstall() {
 	prefix := "/device/" + d.Id
 	handler := basicAuthHandler(http.StripPrefix(prefix, d))
 	http.Handle(prefix+"/", handler)
@@ -99,7 +99,7 @@ func devicesInstall() {
 	}
 }
 
-func (d *Device) _renderTmpl(w io.Writer, template string, data any) error {
+func (d *device) _renderTmpl(w io.Writer, template string, data any) error {
 	tmpl := d.templates.Lookup(template)
 	if tmpl == nil {
 		return fmt.Errorf("Template '%s' not found", template)
@@ -111,33 +111,33 @@ func (d *Device) _renderTmpl(w io.Writer, template string, data any) error {
 	return err
 }
 
-func (d *Device) renderTmpl(w io.Writer, template string, data any) error {
+func (d *device) renderTmpl(w io.Writer, template string, data any) error {
 	d.RLock()
 	defer d.RUnlock()
 	return d._renderTmpl(w, template, data)
 }
 
-func (d *Device) _renderSession(w io.Writer, template, sessionId string, level int) error {
+func (d *device) _renderSession(w io.Writer, template, sessionId string, level int) error {
 	return d._renderTmpl(w, template, map[string]any{
 		"sessionId": sessionId,
 		"level":     level,
 	})
 }
 
-func (d *Device) renderSession(w io.Writer, template, sessionId string, level int) error {
+func (d *device) renderSession(w io.Writer, template, sessionId string, level int) error {
 	d.RLock()
 	defer d.RUnlock()
 	return d._renderSession(w, template, sessionId, level)
 }
 
-func (d *Device) _renderChildren(w io.Writer, sessionId string, level int) error {
+func (d *device) _renderChildren(w io.Writer, sessionId string, level int) error {
 
 	if len(d.Children) == 0 {
 		return nil
 	}
 
 	// Collect child devices from d.Children
-	var children []*Device
+	var children []*device
 	for _, childId := range d.Children {
 		if child, exists := devices[childId]; exists {
 			children = append(children, child)
@@ -146,7 +146,7 @@ func (d *Device) _renderChildren(w io.Writer, sessionId string, level int) error
 
 	// TODO allow other sort methods?
 
-	// Sort the collected child devices by ToLower(Device.Name)
+	// Sort the collected child devices by ToLower(device.Name)
 	sort.Slice(children, func(i, j int) bool {
 		return strings.ToLower(children[i].Name) < strings.ToLower(children[j].Name)
 	})
@@ -168,7 +168,7 @@ func (d *Device) _renderChildren(w io.Writer, sessionId string, level int) error
 	return nil
 }
 
-func (d *Device) _render(w io.Writer, sessionId, path, view string, level int) error {
+func (d *device) _render(w io.Writer, sessionId, path, view string, level int) error {
 
 	path = strings.TrimPrefix(path, "/")
 	template := path + "-" + view + ".tmpl"
@@ -184,13 +184,13 @@ func (d *Device) _render(w io.Writer, sessionId, path, view string, level int) e
 	return nil
 }
 
-func (d *Device) render(w io.Writer, sessionId, path, view string, level int) error {
+func (d *device) render(w io.Writer, sessionId, path, view string, level int) error {
 	d.RLock()
 	defer d.RUnlock()
 	return d._render(w, sessionId, path, view, level)
 }
 
-func (d *Device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
+func (d *device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 
 	view, level, err := _sessionLastView(sessionId, d.Id)
 	if err != nil {
@@ -201,7 +201,7 @@ func (d *Device) _renderPkt(w io.Writer, sessionId string, pkt *Packet) error {
 	return d._render(w, sessionId, pkt.Path, view, level)
 }
 
-func (d *Device) renderTemplate(name string, data any) (template.HTML, error) {
+func (d *device) renderTemplate(name string, data any) (template.HTML, error) {
 	var buf bytes.Buffer
 
 	if err := d.renderTmpl(&buf, name, data); err != nil {
@@ -211,7 +211,7 @@ func (d *Device) renderTemplate(name string, data any) (template.HTML, error) {
 	return template.HTML(buf.String()), nil
 }
 
-func (d *Device) renderView(sessionId, path, view string, level int) (template.HTML, error) {
+func (d *device) renderView(sessionId, path, view string, level int) (template.HTML, error) {
 	var buf bytes.Buffer
 
 	devicesMu.RLock()
@@ -224,7 +224,7 @@ func (d *Device) renderView(sessionId, path, view string, level int) (template.H
 	return template.HTML(buf.String()), nil
 }
 
-func (d *Device) renderChildren(sessionId string, level int) (template.HTML, error) {
+func (d *device) renderChildren(sessionId string, level int) (template.HTML, error) {
 	var buf bytes.Buffer
 
 	devicesMu.RLock()
@@ -237,7 +237,7 @@ func (d *Device) renderChildren(sessionId string, level int) (template.HTML, err
 	return template.HTML(buf.String()), nil
 }
 
-func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
+func (d *device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
 	fileExtension := filepath.Ext(r.URL.Path)
 	switch fileExtension {
 	case ".go", ".tmpl", ".css":
@@ -248,7 +248,7 @@ func (d *Device) serveStaticFile(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(http.FS(d.layeredFS)).ServeHTTP(w, r)
 }
 
-func (d *Device) keepAlive(w http.ResponseWriter, r *http.Request) {
+func (d *device) keepAlive(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.Header.Get("session-id")
 	if !sessionKeepAlive(sessionId) {
 		// Session expired, force full page refresh to start new session
@@ -256,7 +256,7 @@ func (d *Device) keepAlive(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (d *Device) showHome(w http.ResponseWriter, r *http.Request) {
+func (d *device) showHome(w http.ResponseWriter, r *http.Request) {
 	println("showHome", r.Host, r.URL.String())
 
 	sessionId, ok := newSession()
@@ -269,7 +269,7 @@ func (d *Device) showHome(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (d *Device) showView(w http.ResponseWriter, r *http.Request) {
+func (d *device) showView(w http.ResponseWriter, r *http.Request) {
 	println("show", r.Host, r.URL.String())
 
 	view := r.URL.Query().Get("view")
@@ -292,11 +292,11 @@ func (d *Device) showView(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (d *Device) showState(w http.ResponseWriter, r *http.Request) {
+func (d *device) showState(w http.ResponseWriter, r *http.Request) {
 	d.renderTmpl(w, "device-state-state.tmpl", nil)
 }
 
-func (d *Device) showCode(w http.ResponseWriter, r *http.Request) {
+func (d *device) showCode(w http.ResponseWriter, r *http.Request) {
 	// Retrieve top-level entries
 	entries, _ := fs.ReadDir(d.layeredFS, ".")
 	// Collect entry names
@@ -307,7 +307,7 @@ func (d *Device) showCode(w http.ResponseWriter, r *http.Request) {
 	d.renderTmpl(w, "code.tmpl", names)
 }
 
-func (d *Device) saveDevices(w http.ResponseWriter, r *http.Request) {
+func (d *device) saveDevices(w http.ResponseWriter, r *http.Request) {
 	if d != root {
 		http.Error(w, fmt.Sprintf("Only root device can save"), http.StatusBadRequest)
 		return
@@ -318,7 +318,7 @@ func (d *Device) saveDevices(w http.ResponseWriter, r *http.Request) {
 	deviceClean(d.Id)
 }
 
-func (d *Device) showDevices(w http.ResponseWriter, r *http.Request) {
+func (d *device) showDevices(w http.ResponseWriter, r *http.Request) {
 	var childDevices = make(devicesMap)
 
 	devicesMu.RLock()
@@ -335,7 +335,7 @@ func (d *Device) showDevices(w http.ResponseWriter, r *http.Request) {
 	w.Write(state)
 }
 
-func (d *Device) deployValues() url.Values {
+func (d *device) deployValues() url.Values {
 	values, err := url.ParseQuery(string(d.DeployParams))
 	if err != nil {
 		panic(err.Error())
@@ -343,7 +343,7 @@ func (d *Device) deployValues() url.Values {
 	return values
 }
 
-func (d *Device) selectedTarget(params url.Values) string {
+func (d *device) selectedTarget(params url.Values) string {
 	target := params.Get("target")
 	if target == "" {
 		target = d.deployValues().Get("target")
@@ -351,7 +351,7 @@ func (d *Device) selectedTarget(params url.Values) string {
 	return target
 }
 
-func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
+func (d *device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 	selectedTarget := d.selectedTarget(r.URL.Query())
 	err := d.renderTmpl(w, "device-download-target.tmpl", map[string]any{
 		"selectedTarget": selectedTarget,
@@ -362,7 +362,7 @@ func (d *Device) showDownloadTarget(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (d *Device) showInstructions(w http.ResponseWriter, r *http.Request) {
+func (d *device) showInstructions(w http.ResponseWriter, r *http.Request) {
 	view := r.URL.Query().Get("view")
 	template := "instructions-" + view + ".tmpl"
 	if err := d.renderTmpl(w, template, nil); err != nil {
@@ -370,7 +370,7 @@ func (d *Device) showInstructions(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (d *Device) showInstructionsTarget(w http.ResponseWriter, r *http.Request) {
+func (d *device) showInstructionsTarget(w http.ResponseWriter, r *http.Request) {
 	target := r.URL.Query().Get("target")
 	template := "instructions-" + target + ".tmpl"
 	if err := d.renderTmpl(w, template, nil); err != nil {
@@ -378,8 +378,8 @@ func (d *Device) showInstructionsTarget(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (d *Device) createChild(w http.ResponseWriter, r *http.Request) {
-	var child Device
+func (d *device) createChild(w http.ResponseWriter, r *http.Request) {
+	var child device
 
 	pkt, err := newPacketFromURL(r.URL, &child)
 	if err != nil {
@@ -408,7 +408,7 @@ type msgDestroy struct {
 	ChildId string
 }
 
-func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
+func (d *device) destroyChild(w http.ResponseWriter, r *http.Request) {
 	var msg msgDestroy
 
 	pkt, err := newPacketFromURL(r.URL, &msg)
@@ -434,7 +434,7 @@ func (d *Device) destroyChild(w http.ResponseWriter, r *http.Request) {
 	pkt.SetDst(parentId).RouteUp()
 }
 
-func (d *Device) showNewModal(w http.ResponseWriter, r *http.Request) {
+func (d *device) showNewModal(w http.ResponseWriter, r *http.Request) {
 	err := d.renderTmpl(w, "modal-new.tmpl", map[string]any{
 		"models": Models,
 		"newid":  generateRandomId(),

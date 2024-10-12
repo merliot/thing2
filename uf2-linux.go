@@ -13,7 +13,7 @@ import (
 
 func GenerateUf2s(dir string) error {
 	for name, model := range Models {
-		var proto = &Device{Model: name}
+		var proto = &device{Model: name}
 		proto.build(model.Maker)
 		if err := proto.generateUf2s(dir); err != nil {
 			return err
@@ -22,7 +22,7 @@ func GenerateUf2s(dir string) error {
 	return nil
 }
 
-func (d *Device) generateUf2s(dir string) error {
+func (d *device) generateUf2s(dir string) error {
 	for _, target := range target.TinyGoTargets(d.Targets) {
 		if err := d.generateUf2(dir, target); err != nil {
 			return err
@@ -31,7 +31,7 @@ func (d *Device) generateUf2s(dir string) error {
 	return nil
 }
 
-func (d *Device) generateUf2(dir, target string) error {
+func (d *device) generateUf2(dir, target string) error {
 
 	// Create temp build directory
 	temp, err := os.MkdirTemp("./", d.Model+"-")

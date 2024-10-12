@@ -23,7 +23,7 @@ var (
 	tabsDocs   = siteTabs{tabDocs, tabHome, tabDemo, tabStatus, tabSource}
 )
 
-func (d *Device) showSitePage(w http.ResponseWriter, r *http.Request,
+func (d *device) showSitePage(w http.ResponseWriter, r *http.Request,
 	page string, tabs siteTabs, createSession bool) {
 	var sessionId string
 	var ok bool
@@ -45,18 +45,18 @@ func (d *Device) showSitePage(w http.ResponseWriter, r *http.Request,
 	}
 }
 
-func (d *Device) showSiteHome(w http.ResponseWriter, r *http.Request) {
+func (d *device) showSiteHome(w http.ResponseWriter, r *http.Request) {
 	d.showSitePage(w, r, "home", tabsHome, false)
 }
 
-func (d *Device) showSiteDemo(w http.ResponseWriter, r *http.Request) {
+func (d *device) showSiteDemo(w http.ResponseWriter, r *http.Request) {
 	d.showSitePage(w, r, "demo", tabsDemo, true)
 }
 
-func (d *Device) showSiteStatus(w http.ResponseWriter, r *http.Request) {
+func (d *device) showSiteStatus(w http.ResponseWriter, r *http.Request) {
 	d.showSitePage(w, r, "status", tabsStatus, true)
 }
 
-func (d *Device) showSiteDocs(w http.ResponseWriter, r *http.Request) {
+func (d *device) showSiteDocs(w http.ResponseWriter, r *http.Request) {
 	d.showSitePage(w, r, "docs", tabsDocs, false)
 }

@@ -4,13 +4,13 @@ package thing2
 
 import "net/http"
 
-func (d *Device) handlersInstall() {
+func (d *device) handlersInstall() {
 	for path, handler := range d.Handlers {
 		d.Handle("POST "+path, d.newPacketRoute(handler))
 	}
 }
 
-func (d *Device) newPacketRoute(h generator) http.Handler {
+func (d *device) newPacketRoute(h handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		msg := h.gen()
 		pkt, err := newPacketFromURL(r.URL, msg)

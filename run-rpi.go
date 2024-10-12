@@ -24,7 +24,7 @@ func failSafe() {
 
 }
 
-func (d *Device) runPolling(pollFunc func(pkt *Packet)) {
+func (d *device) runPolling(pollFunc func(pkt *Packet)) {
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 

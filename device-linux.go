@@ -20,7 +20,7 @@ import (
 //go:embed css images js template
 var deviceFs embed.FS
 
-type devicesMap map[string]*Device // key: device id
+type devicesMap map[string]*device // key: device id
 
 var devices = make(devicesMap)
 var devicesMu sync.RWMutex
@@ -35,7 +35,7 @@ func linuxTarget(target string) bool {
 	return target == "x86-64" || target == "rpi"
 }
 
-func (d *Device) classOffline() string {
+func (d *device) classOffline() string {
 	if d.IsSet(flagOnline) {
 		return ""
 	} else {
@@ -43,7 +43,7 @@ func (d *Device) classOffline() string {
 	}
 }
 
-func (d *Device) stateJSON() (string, error) {
+func (d *device) stateJSON() (string, error) {
 	bytes, err := json.MarshalIndent(d.State, "", "\t")
 	return string(bytes), err
 }
@@ -53,7 +53,7 @@ func (d *Device) stateJSON() (string, error) {
 // IMPORTANT!
 //
 // Don't add any functions that expose sensitive data such as passwd
-func (d *Device) funcs() template.FuncMap {
+func (d *device) funcs() template.FuncMap {
 	return template.FuncMap{
 		"id":             func() string { return d.Id },
 		"model":          func() string { return d.Model },
@@ -92,7 +92,7 @@ func (d *Device) funcs() template.FuncMap {
 	}
 }
 
-func (d *Device) buildOS() error {
+func (d *device) buildOS() error {
 	var err error
 
 	d.ServeMux = http.NewServeMux()
@@ -142,7 +142,7 @@ func devicesMake() {
 
 // devicesFindRoot returns the root *Device if there is exactly one tree
 // defined by the devices map, otherwise nil.
-func devicesFindRoot() (*Device, error) {
+func devicesFindRoot() (*device, error) {
 
 	// Create a map to track all devices that are children
 	childSet := make(map[string]bool)
@@ -158,7 +158,7 @@ func devicesFindRoot() (*Device, error) {
 	}
 
 	// Find all root devices
-	var roots []*Device
+	var roots []*device
 	for id, device := range devices {
 		if _, isChild := childSet[id]; !isChild {
 			roots = append(roots, device)
@@ -179,8 +179,8 @@ func devicesFindRoot() (*Device, error) {
 	return nil, fmt.Errorf("No tree found in devices")
 }
 
-func addChild(parent *Device, id, model, name string) error {
-	var child = &Device{Id: id, Model: model, Name: name}
+func addChild(parent *device, id, model, name string) error {
+	var child = &device{Id: id, Model: model, Name: name}
 
 	maker, ok := Models[model]
 	if !ok {
@@ -239,7 +239,7 @@ func deviceNotFound(id string) error {
 	return fmt.Errorf("Device '%s' not found", id)
 }
 
-func (d *Device) routeDown(pkt *Packet) {
+func (d *device) routeDown(pkt *Packet) {
 
 	// If device is the root device, deliver packet to device.  The root
 	// device is running on 'metal', so this is the packet's final

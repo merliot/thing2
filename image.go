@@ -75,7 +75,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, fileName string) error {
 	return nil
 }
 
-func (d *Device) genFile(template string, name string, data any) error {
+func (d *device) genFile(template string, name string, data any) error {
 	file, err := os.Create(name)
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (d *Device) genFile(template string, name string, data any) error {
 	return d.renderTmpl(file, template, data)
 }
 
-func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir string,
+func (d *device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir string,
 	envs []string, target string) error {
 
 	var url = r.Header["Referer"][0]
@@ -163,7 +163,7 @@ func (d *Device) buildLinuxImage(w http.ResponseWriter, r *http.Request, dir str
 	return serveFile(w, r, installer)
 }
 
-func (d *Device) buildTinyGoImage(w http.ResponseWriter, r *http.Request, dir, target string) error {
+func (d *device) buildTinyGoImage(w http.ResponseWriter, r *http.Request, dir, target string) error {
 
 	var url = r.Header["Referer"][0]
 	var dialurls = strings.Replace(url, "http", "ws", 1) + "ws"
@@ -215,7 +215,7 @@ func (d *Device) buildTinyGoImage(w http.ResponseWriter, r *http.Request, dir, t
 	return serveFile(w, r, installer)
 }
 
-func (d *Device) buildImage(w http.ResponseWriter, r *http.Request) error {
+func (d *device) buildImage(w http.ResponseWriter, r *http.Request) error {
 
 	// Create temp build directory
 	dir, err := os.MkdirTemp("./", d.Model+"-"+d.Id+"-")
@@ -248,7 +248,7 @@ func (d *Device) buildImage(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (d *Device) downloadImage(w http.ResponseWriter, r *http.Request) {
+func (d *device) downloadImage(w http.ResponseWriter, r *http.Request) {
 
 	if d.IsSet(flagLocked) {
 		http.Error(w, "Refusing to download, device is locked", http.StatusLocked)

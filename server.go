@@ -10,12 +10,22 @@ import (
 	"time"
 )
 
-var (
-	runningSite bool // running as full web-site
-	runningDemo bool // running in DEMO mode
-	root        *Device
-)
+var root *device
 
+// Run the device
+//
+// Environment variables:
+//
+// PORT
+// SITE
+// DEMO
+// WIFI_SSIDS
+// WIFI_PASSPHRASES
+// DEVICES
+// DEVICES_FILE
+// DEBUG_KEEP_BUILDS
+// USER
+// PASSWD
 func Run() {
 
 	var port = Getenv("PORT", "8000")

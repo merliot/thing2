@@ -1,7 +1,7 @@
 package thing2
 
 // In demo mode, call DemoSetup() on all devices
-func (d *Device) demoSetup() error {
+func (d *device) demoSetup() error {
 	if err := d.DemoSetup(); err != nil {
 		return err
 	}
@@ -14,7 +14,7 @@ func (d *Device) demoSetup() error {
 	return nil
 }
 
-func (d *Device) setup() error {
+func (d *device) setup() error {
 	if runningDemo {
 		return d.demoSetup()
 	}

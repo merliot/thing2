@@ -6,7 +6,7 @@ import "fmt"
 
 type deviceOS struct{}
 
-func (d *Device) buildOS() error { return nil }
+func (d *device) buildOS() error { return nil }
 
 func devicesSendState(l linker) {
 	var pkt = &Packet{

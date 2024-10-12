@@ -5,13 +5,23 @@ import (
 	"time"
 )
 
+// Config is the device model configuration
 type Config struct {
-	Model      string
-	Flags      flags
-	State      any
-	FS         *embed.FS
-	Targets    []string
+	// Model is the device model name
+	Model string
+	// Flags see FlagXxxx
+	Flags flags
+	// The device state
+	State any
+	// The device's embedded static file system
+	FS *embed.FS
+	// Targets support by device
+	Targets []string
+	// PollPeriod is the device polling period.  The default is 1 second.
+	// The range is [1..forever) seconds.
 	PollPeriod time.Duration
-	BgColor    string
-	FgColor    string
+	// BgColor is the device background color
+	BgColor string
+	// FgColor is the device forground (text, border) color
+	FgColor string
 }
