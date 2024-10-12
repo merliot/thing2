@@ -1,4 +1,4 @@
-//go:build !rpi && !tinygo
+//go:build !tinygo
 
 package gps
 
