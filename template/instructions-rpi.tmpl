@@ -1,9 +1,5 @@
 <p>Use a <a target="_blank" href="https://www.raspberrypi.com/">Raspberry Pi</a> SBC (Single Board Computer) to build a {{model}} device.</p>
 
-<p>Supported Raspberry Pi models: 3B, 3B+, 3A+, 4B, 400, 5, CM3, CM3+, CM4, CM4S, Zero 2 W</p>
-
-<p>Unsupported models: Pico, Pico W</p>
-
 <center>
 	<a target="_blank" href="/device/{{id}}/images/rpi-{{model}}.png">
 		<img src="/device/{{id}}/images/rpi-{{model}}.png" width="100%">
@@ -16,8 +12,6 @@
 
 <h4>Step 1</h4>
 
-{{template "instructions-rpi-step1.tmpl" .}}
-
 <p>Select "Raspberry Pi" target.</p>
 
 {{- if wantsHttpPort }}
@@ -25,6 +19,8 @@
 {{- else }}
 <p>(Optional) The {{model}} device can run as a local web server.  To enable, specify a port to listen on.  The device's address is http://addr:port, where addr is the local IP (or hostname).  This is useful, for example, when the hub is not accessible, and you want to check in on the device.</p>
 {{- end }}
+
+{{template "instructions-rpi-step1.tmpl" .}}
 
 <h4>Step 2</h4>
 
