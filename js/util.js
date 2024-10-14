@@ -28,11 +28,11 @@ function loadScript(src, callback) {
 */
 
 document.addEventListener("htmx:wsOpen", function(event) {
-	document.getElementById("device-body").classList.remove("offline")
+	document.getElementById("session").classList.remove("offline")
 });
 document.addEventListener("htmx:wsClose", function(event) {
-	document.getElementById("device-body").classList.add("offline")
+	document.getElementById("session").classList.add("offline")
 });
 document.addEventListener("htmx:wsError", function(event) {
-	document.getElementById("device-body").classList.add("offline")
+	document.getElementById("session").classList.add("offline")
 });

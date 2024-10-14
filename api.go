@@ -26,7 +26,7 @@ func (d *device) api() {
 	} else {
 		d.HandleFunc("GET /{$}", d.showHome)
 		d.HandleFunc("GET /home", d.showHome)
-		//d.HandleFunc("GET /status", d.showStatus)
+		d.HandleFunc("GET /status", d.showStatus)
 		//d.HandleFunc("GET /docs", d.showDocs)
 	}
 
@@ -35,6 +35,7 @@ func (d *device) api() {
 	d.HandleFunc("GET /show-view", d.showView)
 
 	d.HandleFunc("GET /state", d.showState)
+	d.HandleFunc("GET /sessions", d.showSessions)
 	d.HandleFunc("GET /code", d.showCode)
 
 	d.HandleFunc("GET /save", d.saveDevices)
@@ -256,15 +257,31 @@ func (d *device) keepAlive(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (d *device) noSessions(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "no more sessions", http.StatusTooManyRequests)
+}
+
 func (d *device) showHome(w http.ResponseWriter, r *http.Request) {
 	println("showHome", r.Host, r.URL.String())
 
 	sessionId, ok := newSession()
 	if !ok {
-		http.Error(w, "no more sessions", http.StatusTooManyRequests)
+		d.noSessions(w, r)
 		return
 	}
-	if err := d.renderSession(w, "home.tmpl", sessionId, 0); err != nil {
+	if err := d.renderTmpl(w, "device.tmpl", map[string]any{
+		"page":      "home",
+		"sessionId": sessionId,
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func (d *device) showStatus(w http.ResponseWriter, r *http.Request) {
+	if err := d.renderTmpl(w, "device.tmpl", map[string]any{
+		"page":     "status",
+		"sessions": sessions,
+	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
@@ -294,6 +311,12 @@ func (d *device) showView(w http.ResponseWriter, r *http.Request) {
 
 func (d *device) showState(w http.ResponseWriter, r *http.Request) {
 	d.renderTmpl(w, "device-state-state.tmpl", nil)
+}
+
+func (d *device) showSessions(w http.ResponseWriter, r *http.Request) {
+	d.renderTmpl(w, "device-status-sessions.tmpl", map[string]any{
+		"sessions": sessions,
+	})
 }
 
 func (d *device) showCode(w http.ResponseWriter, r *http.Request) {

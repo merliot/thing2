@@ -23,40 +23,45 @@ var (
 	tabsDocs   = siteTabs{tabDocs, tabHome, tabDemo, tabStatus, tabSource}
 )
 
-func (d *device) showSitePage(w http.ResponseWriter, r *http.Request,
-	page string, tabs siteTabs, createSession bool) {
-	var sessionId string
-	var ok bool
-
-	if createSession {
-		sessionId, ok = newSession()
-		if !ok {
-			http.Error(w, "no more sessions", http.StatusTooManyRequests)
-			return
-		}
-	}
-
+func (d *device) showSiteHome(w http.ResponseWriter, r *http.Request) {
 	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
-		"sessionId": sessionId,
-		"page":      page,
-		"tabs":      tabs,
+		"page": "home",
+		"tabs": tabsHome,
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
-func (d *device) showSiteHome(w http.ResponseWriter, r *http.Request) {
-	d.showSitePage(w, r, "home", tabsHome, false)
-}
-
 func (d *device) showSiteDemo(w http.ResponseWriter, r *http.Request) {
-	d.showSitePage(w, r, "demo", tabsDemo, true)
+	sessionId, ok := newSession()
+	if !ok {
+		d.noSessions(w, r)
+		return
+	}
+	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
+		"sessionId": sessionId,
+		"page":      "demo",
+		"tabs":      tabsDemo,
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 func (d *device) showSiteStatus(w http.ResponseWriter, r *http.Request) {
-	d.showSitePage(w, r, "status", tabsStatus, true)
+	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
+		"page":     "status",
+		"tabs":     tabsStatus,
+		"sessions": sessions,
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 func (d *device) showSiteDocs(w http.ResponseWriter, r *http.Request) {
-	d.showSitePage(w, r, "docs", tabsDocs, false)
+	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
+		"page": "docs",
+		"tabs": tabsDocs,
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
