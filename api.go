@@ -35,8 +35,9 @@ func (d *device) api() {
 	d.HandleFunc("GET /show-view", d.showView)
 
 	d.HandleFunc("GET /state", d.showState)
-	d.HandleFunc("GET /sessions", d.showSessions)
 	d.HandleFunc("GET /code", d.showCode)
+
+	d.HandleFunc("GET /show-status-tab", d.showStatusTab)
 
 	d.HandleFunc("GET /save", d.saveDevices)
 	//d.HandleFunc("GET /devices", d.showDevices)
@@ -279,8 +280,7 @@ func (d *device) showHome(w http.ResponseWriter, r *http.Request) {
 
 func (d *device) showStatus(w http.ResponseWriter, r *http.Request) {
 	if err := d.renderTmpl(w, "device.tmpl", map[string]any{
-		"page":     "status",
-		"sessions": sessions,
+		"page": "status",
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -313,10 +313,32 @@ func (d *device) showState(w http.ResponseWriter, r *http.Request) {
 	d.renderTmpl(w, "device-state-state.tmpl", nil)
 }
 
-func (d *device) showSessions(w http.ResponseWriter, r *http.Request) {
-	d.renderTmpl(w, "device-status-sessions.tmpl", map[string]any{
-		"sessions": sessions,
-	})
+var (
+	statusTabs      = []string{"sessions", "models", "devices"}
+	statusTabLabels = []string{"ACTIVE SESSIONS", "MODELS", "DEVICES"}
+)
+
+func (d *device) showStatusTab(w http.ResponseWriter, r *http.Request) {
+	tab := r.URL.Query().Get("tab")
+
+	var data = map[string]any{
+		"activeTab": tab,
+		"tabs":      statusTabs,
+		"tabLabels": statusTabLabels,
+	}
+
+	switch tab {
+	case "sessions":
+		data["sessions"] = sessions
+	case "models":
+		data["models"] = Models
+	case "devices":
+		data["devices"] = devices
+	}
+
+	if err := d.renderTmpl(w, "device-status-"+tab+".tmpl", data); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 func (d *device) showCode(w http.ResponseWriter, r *http.Request) {

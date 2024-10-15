@@ -1,20 +1,18 @@
-<div class="text-sm"
-	hx-get="/device/{{id}}/sessions"
+<div hx-get="/device/{{id}}/show-status-tab?tab=sessions"
 	hx-trigger="every 1s"
 	hx-target="this"
 	hx-swap="outerHTML">
+{{ template "device-status-tabs.tmpl" . }}
 {{ range $id, $session := .sessions }}
-	<div class="bg-sunflower text-black m-1 p-2 rounded-3xl max-w-lg">
+	<div class="bg-sunflower text-black m-1 p-4 rounded-3xl max-w-lg">
 		<h3>Session ID: {{$id}}</h3>
 		<p>Last Update: {{$session.Age}}</p>
 		<h4>Last Views:</h4>
 		<ul>
-		{{range $deviceId, $view := $session.LastViews}}
+	{{range $deviceId, $view := $session.LastViews}}
 			<li>{{$deviceId}}: {{$view.View}}, {{$view.Level}}</li>
-		{{end}}
+	{{end}}
 		</ul>
 	</div>
-{{ else }}
-	<p>No active sessions</p>
 {{ end }}
 </div>

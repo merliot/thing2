@@ -1,6 +1,5 @@
-<script src="/js/htmx.min.js.gz"></script>
-
-<div class="m-8">
-	<h2>Active Sessions</h2>
-{{ template "device-status-sessions.tmpl" . }}
+<div class="m-8 max-w-lg text-sm"
+	hx-get="/device/{{id}}/show-status-tab?tab=sessions"
+	hx-trigger="load"
+	hx-swap="innerHTML">
 </div>

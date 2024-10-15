@@ -49,9 +49,8 @@ func (d *device) showSiteDemo(w http.ResponseWriter, r *http.Request) {
 
 func (d *device) showSiteStatus(w http.ResponseWriter, r *http.Request) {
 	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
-		"page":     "status",
-		"tabs":     tabsStatus,
-		"sessions": sessions,
+		"page": "status",
+		"tabs": tabsStatus,
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
