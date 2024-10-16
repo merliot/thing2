@@ -25,8 +25,8 @@ var (
 
 func (d *device) showSiteHome(w http.ResponseWriter, r *http.Request) {
 	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
-		"page": "home",
-		"tabs": tabsHome,
+		"section": "home",
+		"tabs":    tabsHome,
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -40,7 +40,7 @@ func (d *device) showSiteDemo(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
 		"sessionId": sessionId,
-		"page":      "demo",
+		"section":   "demo",
 		"tabs":      tabsDemo,
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -49,17 +49,23 @@ func (d *device) showSiteDemo(w http.ResponseWriter, r *http.Request) {
 
 func (d *device) showSiteStatus(w http.ResponseWriter, r *http.Request) {
 	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
-		"page": "status",
-		"tabs": tabsStatus,
+		"section": "status",
+		"tabs":    tabsStatus,
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
 func (d *device) showSiteDocs(w http.ResponseWriter, r *http.Request) {
+	page := r.PathValue("page")
+	if page == "" {
+		page = "intro"
+	}
 	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
-		"page": "docs",
-		"tabs": tabsDocs,
+		"section": "docs",
+		"tabs":    tabsDocs,
+		"pages":   docPages,
+		"page":    page,
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}

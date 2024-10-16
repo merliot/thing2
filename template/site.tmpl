@@ -13,7 +13,7 @@
 
 	<body class="bg-black text m-4">
 {{ template "site-header.tmpl" . }}
-{{ $tmpl := joinStrings "site-" .page ".tmpl" }}
+{{ $tmpl := joinStrings "site-" .section ".tmpl" }}
 {{ renderTemplate $tmpl . }}
 {{ template "site-footer.tmpl" . }}
 	</body>

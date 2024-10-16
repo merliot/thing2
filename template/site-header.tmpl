@@ -3,7 +3,7 @@
 		<div class="flex flex-col">
 			<span class="text-4xl" >MERLIOT</span>
 			<span class="text">PRIVATE DEVICE HUB</span>
-{{ $tmpl := joinStrings "site-" .page "-intro.tmpl" }}
+{{ $tmpl := joinStrings "site-" .section "-intro.tmpl" }}
 {{ renderTemplate $tmpl . }}
 		</div>
 		<div class="flex flex-col items-end">

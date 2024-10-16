@@ -23,11 +23,13 @@ func (d *device) api() {
 		d.HandleFunc("GET /demo", d.showSiteDemo)
 		d.HandleFunc("GET /status", d.showSiteStatus)
 		d.HandleFunc("GET /docs", d.showSiteDocs)
+		d.HandleFunc("GET /docs/{page}", d.showSiteDocs)
 	} else {
 		d.HandleFunc("GET /{$}", d.showHome)
 		d.HandleFunc("GET /home", d.showHome)
 		d.HandleFunc("GET /status", d.showStatus)
-		//d.HandleFunc("GET /docs", d.showDocs)
+		d.HandleFunc("GET /docs", d.showDocs)
+		d.HandleFunc("GET /docs/{page}", d.showDocs)
 	}
 
 	d.HandleFunc("GET /", d.serveStaticFile)
@@ -271,7 +273,7 @@ func (d *device) showHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := d.renderTmpl(w, "device.tmpl", map[string]any{
-		"page":      "home",
+		"section":   "home",
 		"sessionId": sessionId,
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -280,7 +282,21 @@ func (d *device) showHome(w http.ResponseWriter, r *http.Request) {
 
 func (d *device) showStatus(w http.ResponseWriter, r *http.Request) {
 	if err := d.renderTmpl(w, "device.tmpl", map[string]any{
-		"page": "status",
+		"section": "status",
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func (d *device) showDocs(w http.ResponseWriter, r *http.Request) {
+	page := r.PathValue("page")
+	if page == "" {
+		page = "intro"
+	}
+	if err := d.renderTmpl(w, "device.tmpl", map[string]any{
+		"section": "docs",
+		"pages":   docPages,
+		"page":    page,
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -310,7 +326,9 @@ func (d *device) showView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *device) showState(w http.ResponseWriter, r *http.Request) {
-	d.renderTmpl(w, "device-state-state.tmpl", nil)
+	if err := d.renderTmpl(w, "device-state-state.tmpl", nil); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 var (

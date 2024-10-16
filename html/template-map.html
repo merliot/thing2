@@ -1,0 +1,85 @@
+<h2>Template Map</h2>
+
+<h3>Device /, /full</h3>
+	<pre class="text-sm">
+/
+	index.tmpl
+		/full
+			device-full.tmpl
+				device-header.tmpl
+				<span class="text-red-500">body-full.tmpl</span>
+				(or) device-undefined.tmpl
+	</pre>
+
+	<h3>Device /download</h3>
+	<pre class="text-sm">
+/
+	index.tmpl
+		/download
+			device-download.tmpl
+				device-header.tmpl
+				device-download-body.tmpl
+					/download-target
+						device-download-target.tmpl
+							<span class="text-red-500">download.tmpl</span> (optional)
+					/download-instructions
+						instructions-[target].tmpl
+							<span class="text-red-500">instructions-[target]-parts.tmpl</span>
+							<span class="text-red-500">instructions-[target]-step1.tmpl</span>
+	</pre>
+
+	<h3>Device /info</h3>
+	<pre class="text-sm">
+/
+	index.tmpl
+		/download
+			device-info.tmpl
+				device-header.tmpl
+				device-info-body.tmpl
+					<span class="text-red-500">info.tmpl</span> (optional)
+	</pre>
+
+	<h3>Hub /, /full</h3>
+	<pre class="text-sm">
+/
+	index.tmpl
+		/full
+			hub/device-full.tmpl
+				hub/device-header.tmpl
+				hub/body-full.tmpl
+					[for each child]
+						child/device-tile.tmpl
+							child/<span class="text-red-500">body-tile.tmpl</span>
+							(or) device-tile-undefined.tmpl
+				(or) hub/no-devices.tmpl
+	</pre>
+
+	<h3>Hub /list</h3>
+	<pre class="text-sm">
+/
+	index.tmpl
+		/list
+			hub/device-list.tmpl
+				hub/device-header.tmpl
+				hub/body-list.tmpl
+					[for each child]
+						child/device-list.tmpl
+							child/<span class="text-red-500">body-list.tmpl</span>
+							(or) device-list-undefined.tmpl
+				(or) hub/no-devices.tmpl
+	</pre>
+
+	<h3>Hub /detail?...</h3>
+	<pre class="text-sm">
+/
+	index.tmpl
+		/detail?...
+			hub/device-detail.tmpl
+				hub/device-header.tmpl
+				hub/body-detail.tmpl
+					child/device-full.tmpl
+						child/device-header.tmpl
+						child/<span class="text-red-500">body-full.tmpl</span>
+						(or) device-undefined.tmpl
+	</pre>
+
