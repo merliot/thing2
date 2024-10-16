@@ -1,7 +1,7 @@
 <div hx-target="this"
 	hx-swap="outerHTML">
 {{ template "device-status-tabs.tmpl" . }}
-	<div class="bg-sunflower text-black m-1 p-4 rounded-3xl max-w-lg">
+	<div class="bg-gray text-black m-1 p-4 rounded-3xl max-w-lg">
 		<h3>Devices</h3>
 		{{ range $id, $device := .devices }}
 			<h4>{{$id}}</h4>

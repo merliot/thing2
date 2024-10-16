@@ -1,0 +1,66 @@
+<h2 class="text-gold">ENVIRONMENT VARIABLES</h2>
+
+<p>Use environment variables to modify a device at run-time.  If running from the source tree, just prefix the command with the environment variables:</p>
+
+<pre class="cmd-line">$ DEMO=true go run ./cmd/</pre>
+
+<p>If running from Docker, use --env or -e:
+
+<pre class="cmd-line">$ docker run -e DEMO=true merliot/hub</pre>
+
+<div>
+	<div class="">
+		<h3 id="PORT">PORT</h3>
+		<p>Port on which the device web server runs. Defaults to 8000.</p>
+	</div>
+
+	<div class="">
+		<h3 id="DEVICES">DEVICES</h3>
+		<p>JSON string or device list for hardware setup.</p>
+	</div>
+
+	<div class="">
+		<h3 id="DEVICES_FILES">DEVICES_FILE</h3>
+		<p>File path for device configuration, defaults to devices.json.</p>
+	</div>
+
+	<div class="">
+		<h3 id="USER">USER</h3>
+		<p>Username for authentication or service access.</p>
+	</div>
+
+	<div class="">
+		<h3 id="PASSWD">PASSWD</h3>
+		<p>Password for authentication or service access.</p>
+	</div>
+
+	<div class="">
+		<h3 id="WIFI_SSIDS">WIFI_SSIDS</h3>
+		<p>Comma-separated list of SSIDs for WiFi setup.</p>
+	</div>
+
+	<div class="">
+		<h3 id="WIFI_PASSPHRASES">WIFI_PASSPHRASES</h3>
+		<p>Comma-separated list of WiFi passphrases.</p>
+	</div>
+
+	<div class="">
+		<h3 id="DIAL_URLS">DIAL_URLS</h3>
+		<p>Comma-separated URLs for dialing services.</p>
+	</div>
+
+	<div class="">
+		<h3 id="DEMO">DEMO</h3>
+		<p>Runs the demo mode, or defaults to site mode if SITE is enabled.</p>
+	</div>
+
+	<div class="">
+		<h3 id="SITE">SITE</h3>
+		<p>Enables the site mode if set to "true".</p>
+	</div>
+
+	<div class="">
+		<h3 id="DEBUG_KEEP_BUILDS">DEBUG_KEEP_BUILDS</h3>
+		<p>If set to "true", keeps build artifacts for debugging.</p>
+	</div>
+</div>

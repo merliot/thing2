@@ -1,85 +1,37 @@
-<h2>Template Map</h2>
+<h2 class="text-gold">TEMPLATE MAP</h2>
 
-<h3>Device /, /full</h3>
-	<pre class="text-sm">
-/
-	index.tmpl
-		/full
-			device-full.tmpl
-				device-header.tmpl
-				<span class="text-red-500">body-full.tmpl</span>
-				(or) device-undefined.tmpl
-	</pre>
+<p>This is mostly here for my sanity.  The template nesting gets pretty deep.</p>
 
-	<h3>Device /download</h3>
-	<pre class="text-sm">
-/
-	index.tmpl
-		/download
-			device-download.tmpl
-				device-header.tmpl
-				device-download-body.tmpl
-					/download-target
-						device-download-target.tmpl
-							<span class="text-red-500">download.tmpl</span> (optional)
-					/download-instructions
-						instructions-[target].tmpl
-							<span class="text-red-500">instructions-[target]-parts.tmpl</span>
-							<span class="text-red-500">instructions-[target]-step1.tmpl</span>
-	</pre>
+<p>The templates in <span class="text-red-500 font-mono text-lg">red</span> are required (mostly) for each device model.</p>
 
-	<h3>Device /info</h3>
-	<pre class="text-sm">
-/
-	index.tmpl
-		/download
-			device-info.tmpl
-				device-header.tmpl
-				device-info-body.tmpl
-					<span class="text-red-500">info.tmpl</span> (optional)
-	</pre>
+<h3>Device /, /home</h3>
 
-	<h3>Hub /, /full</h3>
-	<pre class="text-sm">
-/
-	index.tmpl
-		/full
-			hub/device-full.tmpl
-				hub/device-header.tmpl
-				hub/body-full.tmpl
-					[for each child]
-						child/device-tile.tmpl
-							child/<span class="text-red-500">body-tile.tmpl</span>
-							(or) device-tile-undefined.tmpl
-				(or) hub/no-devices.tmpl
-	</pre>
-
-	<h3>Hub /list</h3>
-	<pre class="text-sm">
-/
-	index.tmpl
-		/list
-			hub/device-list.tmpl
-				hub/device-header.tmpl
-				hub/body-list.tmpl
-					[for each child]
-						child/device-list.tmpl
-							child/<span class="text-red-500">body-list.tmpl</span>
-							(or) device-list-undefined.tmpl
-				(or) hub/no-devices.tmpl
-	</pre>
-
-	<h3>Hub /detail?...</h3>
-	<pre class="text-sm">
-/
-	index.tmpl
-		/detail?...
-			hub/device-detail.tmpl
-				hub/device-header.tmpl
-				hub/body-detail.tmpl
-					child/device-full.tmpl
-						child/device-header.tmpl
-						child/<span class="text-red-500">body-full.tmpl</span>
-						(or) device-undefined.tmpl
-	</pre>
-
+<pre class="text-sm">
+device.tmpl
+	device-header.tmpl
+	device-home.tmpl
+		session.tmpl
+			session-header.tmpl
+			session-view.tmpl
+				renderView (detail, overview, ...)
+					device-detail.tmpl
+						<span class="text-red-500">body-detail.tmpl</span>
+					device-overview.tmpl
+						<span class="text-red-500">body-overview.tmpl</span>
+					device-info.tmpl
+						device-info-body.tmpl
+							<span class="text-red-500">info.tmpl (optional)</span>
+					device-settings.tmpl
+						device-download-body.tmpl
+							device-download-target.tmpl
+								<span class="text-red-500">download.tmpl (optional)</span>
+							instructions-expanded.tmpl
+								instructions-{target}.tmpl
+									<span class="text-red-500">instructions-{target}-parts.tmpl</span>	
+									<span class="text-red-500">instructions-{target}-step1.tmpl</span>
+					device-state.tmpl
+						device-state-body.tmpl
+							device-state-state.tmpl
+			session-footer.tmpl
+	device-footer.tmpl
+</pre>

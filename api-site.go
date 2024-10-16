@@ -59,13 +59,31 @@ func (d *device) showSiteStatus(w http.ResponseWriter, r *http.Request) {
 func (d *device) showSiteDocs(w http.ResponseWriter, r *http.Request) {
 	page := r.PathValue("page")
 	if page == "" {
-		page = "intro"
+		page = "quick-start"
 	}
 	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
 		"section": "docs",
 		"tabs":    tabsDocs,
 		"pages":   docPages,
 		"page":    page,
+		"models":  Models,
+		"model":   "",
+		"hxget":   "/html/" + page + ".html",
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func (d *device) showSiteModelDocs(w http.ResponseWriter, r *http.Request) {
+	model := r.PathValue("model")
+	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
+		"section": "docs",
+		"tabs":    tabsDocs,
+		"pages":   docPages,
+		"page":    "",
+		"models":  Models,
+		"model":   model,
+		"hxget":   "/model/" + model + "/html/doc.html",
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}

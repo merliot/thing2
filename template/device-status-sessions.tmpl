@@ -4,7 +4,7 @@
 	hx-swap="outerHTML">
 {{ template "device-status-tabs.tmpl" . }}
 {{ range $id, $session := .sessions }}
-	<div class="bg-sunflower text-black m-1 p-4 rounded-3xl max-w-lg">
+	<div class="bg-gray text-black m-1 p-4 rounded-3xl max-w-lg">
 		<h3>Session ID: {{$id}}</h3>
 		<p>Last Update: {{$session.Age}}</p>
 		<h4>Last Views:</h4>

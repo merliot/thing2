@@ -24,12 +24,14 @@ func (d *device) api() {
 		d.HandleFunc("GET /status", d.showSiteStatus)
 		d.HandleFunc("GET /docs", d.showSiteDocs)
 		d.HandleFunc("GET /docs/{page}", d.showSiteDocs)
+		d.HandleFunc("GET /docs/model/{model}", d.showSiteModelDocs)
 	} else {
 		d.HandleFunc("GET /{$}", d.showHome)
 		d.HandleFunc("GET /home", d.showHome)
 		d.HandleFunc("GET /status", d.showStatus)
 		d.HandleFunc("GET /docs", d.showDocs)
 		d.HandleFunc("GET /docs/{page}", d.showDocs)
+		d.HandleFunc("GET /docs/model/{model}", d.showModelDocs)
 	}
 
 	d.HandleFunc("GET /", d.serveStaticFile)
@@ -291,12 +293,29 @@ func (d *device) showStatus(w http.ResponseWriter, r *http.Request) {
 func (d *device) showDocs(w http.ResponseWriter, r *http.Request) {
 	page := r.PathValue("page")
 	if page == "" {
-		page = "intro"
+		page = "quick-start"
 	}
 	if err := d.renderTmpl(w, "device.tmpl", map[string]any{
 		"section": "docs",
 		"pages":   docPages,
 		"page":    page,
+		"models":  Models,
+		"model":   "",
+		"hxget":   "/html/" + page + ".html",
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func (d *device) showModelDocs(w http.ResponseWriter, r *http.Request) {
+	model := r.PathValue("model")
+	if err := d.renderTmpl(w, "device.tmpl", map[string]any{
+		"section": "docs",
+		"pages":   docPages,
+		"page":    "",
+		"models":  Models,
+		"model":   model,
+		"hxget":   "/model/" + model + "/html/doc.html",
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
