@@ -13,7 +13,7 @@ import (
 	"sync"
 )
 
-//go:embed css html images js template
+//go:embed blog css docs images js template
 var deviceFs embed.FS
 
 type devicesMap map[string]*device // key: device id

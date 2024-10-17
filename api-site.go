@@ -15,12 +15,14 @@ var (
 	tabHome    = siteTab{"HOME", "/home"}
 	tabDemo    = siteTab{"DEMO", "/demo"}
 	tabStatus  = siteTab{"STATUS", "/status"}
-	tabDocs    = siteTab{"DOCS", "/docs"}
+	tabDocs    = siteTab{"DOCS", "/doc"}
+	tabBlog    = siteTab{"BLOG", "/blog"}
 	tabSource  = siteTab{"SOURCE", "https://github.com/merliot/thing2"}
-	tabsHome   = siteTabs{tabHome, tabDemo, tabStatus, tabDocs, tabSource}
-	tabsDemo   = siteTabs{tabDemo, tabHome, tabStatus, tabDocs, tabSource}
-	tabsStatus = siteTabs{tabStatus, tabHome, tabDemo, tabDocs, tabSource}
-	tabsDocs   = siteTabs{tabDocs, tabHome, tabDemo, tabStatus, tabSource}
+	tabsHome   = siteTabs{tabHome, tabDemo, tabStatus, tabDocs, tabBlog, tabSource}
+	tabsDemo   = siteTabs{tabDemo, tabHome, tabStatus, tabDocs, tabBlog, tabSource}
+	tabsStatus = siteTabs{tabStatus, tabHome, tabDemo, tabDocs, tabBlog, tabSource}
+	tabsDocs   = siteTabs{tabDocs, tabHome, tabDemo, tabStatus, tabBlog, tabSource}
+	tabsBlog   = siteTabs{tabBlog, tabHome, tabDemo, tabStatus, tabDocs, tabSource}
 )
 
 func (d *device) showSiteHome(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +70,7 @@ func (d *device) showSiteDocs(w http.ResponseWriter, r *http.Request) {
 		"page":    page,
 		"models":  Models,
 		"model":   "",
-		"hxget":   "/html/" + page + ".html",
+		"hxget":   "/docs/" + page + ".html",
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -83,7 +85,23 @@ func (d *device) showSiteModelDocs(w http.ResponseWriter, r *http.Request) {
 		"page":    "",
 		"models":  Models,
 		"model":   model,
-		"hxget":   "/model/" + model + "/html/doc.html",
+		"hxget":   "/model/" + model + "/docs/doc.html",
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func (d *device) showSiteBlog(w http.ResponseWriter, r *http.Request) {
+	blogs := d.blogs()
+	blog := r.PathValue("blog")
+	if blog == "" {
+		blog = blogs[0].Dir
+	}
+	if err := d.renderTmpl(w, "site.tmpl", map[string]any{
+		"section": "blog",
+		"tabs":    tabsBlog,
+		"blogs":   blogs,
+		"blog":    blog,
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}

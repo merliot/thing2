@@ -22,16 +22,18 @@ func (d *device) api() {
 		d.HandleFunc("GET /home", d.showSiteHome)
 		d.HandleFunc("GET /demo", d.showSiteDemo)
 		d.HandleFunc("GET /status", d.showSiteStatus)
-		d.HandleFunc("GET /docs", d.showSiteDocs)
-		d.HandleFunc("GET /docs/{page}", d.showSiteDocs)
-		d.HandleFunc("GET /docs/model/{model}", d.showSiteModelDocs)
+		d.HandleFunc("GET /doc", d.showSiteDocs)
+		d.HandleFunc("GET /doc/{page}", d.showSiteDocs)
+		d.HandleFunc("GET /doc/model/{model}", d.showSiteModelDocs)
+		d.HandleFunc("GET /blog", d.showSiteBlog)
+		d.HandleFunc("GET /blog/{blog}", d.showSiteBlog)
 	} else {
 		d.HandleFunc("GET /{$}", d.showHome)
 		d.HandleFunc("GET /home", d.showHome)
 		d.HandleFunc("GET /status", d.showStatus)
-		d.HandleFunc("GET /docs", d.showDocs)
-		d.HandleFunc("GET /docs/{page}", d.showDocs)
-		d.HandleFunc("GET /docs/model/{model}", d.showModelDocs)
+		d.HandleFunc("GET /doc", d.showDocs)
+		d.HandleFunc("GET /doc/{page}", d.showDocs)
+		d.HandleFunc("GET /doc/model/{model}", d.showModelDocs)
 	}
 
 	d.HandleFunc("GET /", d.serveStaticFile)
@@ -301,7 +303,7 @@ func (d *device) showDocs(w http.ResponseWriter, r *http.Request) {
 		"page":    page,
 		"models":  Models,
 		"model":   "",
-		"hxget":   "/html/" + page + ".html",
+		"hxget":   "/docs/" + page + ".html",
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -315,7 +317,7 @@ func (d *device) showModelDocs(w http.ResponseWriter, r *http.Request) {
 		"page":    "",
 		"models":  Models,
 		"model":   model,
-		"hxget":   "/model/" + model + "/html/doc.html",
+		"hxget":   "/model/" + model + "/docs/doc.html",
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
