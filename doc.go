@@ -17,6 +17,8 @@ var docPages = []docPage{
 	docPage{"new-model", "NEW MODEL"},
 	docPage{"services", "SERVICES"},
 	docPage{"api", "API"},
+	docPage{"device-views", "DEVICE VIEWS"},
+	docPage{"template-funcs", "TEMPLATE FUNCS"},
 	docPage{"template-map", "TEMPLATE MAP"},
 	docPage{"", "DEVICE MODELS"},
 }

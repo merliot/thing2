@@ -272,8 +272,16 @@ textarea {
   width: 7rem;
 }
 
+.w-32 {
+  width: 8rem;
+}
+
 .w-36 {
   width: 9rem;
+}
+
+.w-40 {
+  width: 10rem;
 }
 
 .w-1\/5 {
@@ -735,6 +743,11 @@ textarea {
   line-height: 1.75rem;
 }
 
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
 .text-3xl {
   font-size: 1.875rem;
   line-height: 2.25rem;
@@ -1172,4 +1185,10 @@ button {
   color: #33cc99;
   padding: 1rem;
   margin: 1rem;
+}
+
+.code-snippet {
+  color: #33cc99;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
